@@ -152,35 +152,48 @@ def extract_date(week: dict, date: dt.date) -> Dict[str, List[dict]]:
 
 # --------------------------------------------------------------------------- main
 
-def scrape(date: dt.date, fetch: Callable[[str, str, dt.date], dict],
-           meals_by_loc: Dict[str, List[str]]) -> Dict[str, Dict[str, dict]]:
-    result: Dict[str, Dict[str, dict]] = {}
+def scrape(dates: List[dt.date], fetch: Callable[[str, str, dt.date], dict],
+           meals_by_loc: Dict[str, List[str]]) -> Dict[str, Dict[str, Dict[str, dict]]]:
+    """Return {iso date: {location: {meal: stations}}} for every requested date.
+
+    Each weeks-API response covers a Sunday-Saturday week, so one request
+    serves every requested date inside that week.
+    """
+    result = {d.isoformat(): {name: {} for name in LOCATIONS.values()} for d in dates}
     for slug, display in LOCATIONS.items():
-        loc: Dict[str, dict] = {}
         for meal in meals_by_loc.get(slug, MEALS):
-            try:
-                stations = extract_date(fetch(slug, meal, date), date)
-            except Exception as e:  # noqa: BLE001
-                print("  ! %s / %s: %s" % (display, meal, e), file=sys.stderr)
-                continue
-            if stations:
-                loc[meal.capitalize()] = stations
-        result[display] = loc
+            weeks: List[dict] = []
+            for date in dates:
+                target = date.isoformat()
+                week = next((w for w in weeks if any(d.get("date") == target for d in w.get("days", []))), None)
+                if week is None:
+                    try:
+                        week = fetch(slug, meal, date)
+                    except Exception as e:  # noqa: BLE001
+                        print("  ! %s / %s / %s: %s" % (display, meal, target, e), file=sys.stderr)
+                        continue
+                    weeks.append(week)
+                stations = extract_date(week, date)
+                if stations:
+                    result[target][display][meal.capitalize()] = stations
     return result
 
 
-def count_items(day: Dict[str, Dict[str, dict]]) -> int:
-    return sum(len(items) for loc in day.values() for meal in loc.values() for items in meal.values())
+def count_items(days: Dict[str, Dict[str, Dict[str, dict]]]) -> int:
+    return sum(len(items) for day in days.values() for loc in day.values()
+               for meal in loc.values() for items in meal.values())
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--date", help="YYYY-MM-DD (default: today)")
+    ap.add_argument("--date", help="first day, YYYY-MM-DD (default: today)")
+    ap.add_argument("--days", type=int, default=7, help="number of days to collect (default: 7)")
     ap.add_argument("--mode", choices=["api", "playwright", "auto"], default="api")
     ap.add_argument("--out", action="append", help="output path (repeatable; default: ./dining_menu.json and web/public/)")
     args = ap.parse_args(argv)
 
-    date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
+    start = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
+    dates = [start + dt.timedelta(days=i) for i in range(max(1, args.days))]
 
     try:
         meals_by_loc = served_meals()
@@ -188,17 +201,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("! could not read schools list (%s); trying all meals" % e, file=sys.stderr)
         meals_by_loc = {}
 
-    day: Dict[str, Dict[str, dict]] = {}
+    days: Dict[str, Dict[str, Dict[str, dict]]] = {}
     mode_used = args.mode
     if args.mode in ("api", "auto"):
-        day = scrape(date, fetch_week_api, meals_by_loc)
+        days = scrape(dates, fetch_week_api, meals_by_loc)
         mode_used = "api"
-    if args.mode == "playwright" or (args.mode == "auto" and count_items(day) == 0):
+    if args.mode == "playwright" or (args.mode == "auto" and count_items(days) == 0):
         if args.mode == "auto":
             print("API returned nothing; falling back to Playwright...", file=sys.stderr)
         fetch, close = make_playwright_fetcher()
         try:
-            day = scrape(date, fetch, meals_by_loc)
+            days = scrape(dates, fetch, meals_by_loc)
         finally:
             close()
         mode_used = "playwright"
@@ -207,7 +220,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "generated_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "source": BASE_API.replace("https://", ""),
         "mode": mode_used,
-        "dates": {date.isoformat(): day},
+        "dates": days,
     }
 
     outputs = [Path(p) for p in args.out] if args.out else DEFAULT_OUTPUTS
@@ -215,16 +228,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    print("Menus for %s (mode: %s)" % (date.isoformat(), mode_used))
-    for loc, meals in day.items():
-        if not meals:
-            print("  %-20s (no menus)" % loc)
-        for meal, stations in meals.items():
-            n = sum(len(v) for v in stations.values())
-            print("  %-20s %-10s %3d items, %d stations: %s" % (
-                loc, meal, n, len(stations), ", ".join(stations)))
+    print("Menus %s to %s (mode: %s)" % (dates[0], dates[-1], mode_used))
+    for iso, day in days.items():
+        parts = []
+        for loc, meals in day.items():
+            counts = "/".join("%s %d" % (m[0], sum(len(v) for v in st.values())) for m, st in meals.items())
+            parts.append("%s: %s" % (loc.split()[0], counts or "-"))
+        print("  %s  %s" % (iso, "   ".join(parts)))
     print("Wrote: " + ", ".join(str(p) for p in outputs))
-    return 0 if count_items(day) else 1
+    return 0 if count_items(days) else 1
 
 
 if __name__ == "__main__":
