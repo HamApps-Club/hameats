@@ -5,8 +5,9 @@ A faster way to read Hamilton College dining menus. It has global search, Soper 
 ## 1. Scrape menus
 
 ```sh
-python3 scraper/scrape_menu.py                 # today, using the public Nutrislice JSON API
-python3 scraper/scrape_menu.py --date 2026-09-24
+python3 scraper/scrape_menu.py                 # next 7 days from today, via the public Nutrislice JSON API
+python3 scraper/scrape_menu.py --days 1        # today only
+python3 scraper/scrape_menu.py --date 2026-09-24 --days 3
 python3 scraper/scrape_menu.py --mode auto     # API first, Playwright if the API fails
 ```
 
@@ -36,6 +37,7 @@ cd web
 npm run dev        # http://localhost:3000
 ```
 
-- **Search:** type any food ("pizza", "omelet") to see every hall, meal and station serving it that day.
+- **Day / Week:** Day shows one day (pick it from the row of days). Week lists every day for the chosen meal.
+- **Search:** type any food ("pizza", "omelet") to see every hall, meal and station serving it: that day in Day view, the whole week in Week view.
 - **Compare:** Soper Commons and McEwen appear side by side for the selected meal. Check **Diner** to add Howard.
 - **Offline:** the last menu is saved in localStorage and shows instantly, then updates quietly when fresh data arrives.
