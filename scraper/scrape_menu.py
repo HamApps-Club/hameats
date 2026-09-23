@@ -1,0 +1,231 @@
+#!/usr/bin/env python3
+"""Scrape Hamilton College dining menus from Nutrislice into dining_menu.json.
+
+Schema: dates -> location -> meal -> station -> [items]
+
+Modes:
+  api         Call the public Nutrislice JSON API directly (default, stdlib only).
+  playwright  Load the portal in headless Chromium and capture its API responses.
+  auto        Try api first; fall back to playwright on failure or empty result.
+"""
+import argparse
+import datetime as dt
+import json
+import sys
+import time
+import urllib.request
+from pathlib import Path
+from typing import Callable, Dict, List, Optional
+
+BASE_API = "https://hamiltoncollege.api.nutrislice.com"
+BASE_PORTAL = "https://hamiltoncollege.nutrislice.com"
+USER_AGENT = "Mozilla/5.0 (HamiltonDiningDashboard scraper)"
+
+LOCATIONS = {
+    "soper-commons": "Soper Commons",
+    "mcewen": "McEwen Dining Hall",
+    "howard-diner": "Howard Diner",
+}
+MEALS = ["breakfast", "lunch", "dinner"]
+
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_OUTPUTS = [ROOT / "dining_menu.json", ROOT / "web" / "public" / "dining_menu.json"]
+
+
+# ---------------------------------------------------------------- HTTP (api mode)
+
+def http_json(url: str, retries: int = 2, timeout: int = 20):
+    last_err = None
+    for attempt in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as e:  # noqa: BLE001 - retry any network/parse error
+            last_err = e
+            time.sleep(1.5 * (attempt + 1))
+    raise RuntimeError("GET %s failed: %s" % (url, last_err))
+
+
+def week_url(slug: str, meal: str, date: dt.date) -> str:
+    return "%s/menu/api/weeks/school/%s/menu-type/%s/%04d/%02d/%02d/?format=json" % (
+        BASE_API, slug, meal, date.year, date.month, date.day)
+
+
+def served_meals() -> Dict[str, List[str]]:
+    """Which meals each target location actually serves, per the schools endpoint."""
+    schools = http_json("%s/menu/api/schools/?format=json" % BASE_API)
+    out = {}
+    for s in schools:
+        if s["slug"] in LOCATIONS:
+            out[s["slug"]] = [m["slug"] for m in s.get("active_menu_types", []) if m["slug"] in MEALS]
+    return out
+
+
+def fetch_week_api(slug: str, meal: str, date: dt.date) -> dict:
+    return http_json(week_url(slug, meal, date))
+
+
+# ---------------------------------------------------------- Playwright (fallback)
+
+def make_playwright_fetcher():
+    """Return (fetch_fn, close_fn) that load the portal page and capture the weeks API JSON."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        sys.exit("Playwright not installed: pip install -r scraper/requirements.txt && playwright install chromium")
+
+    pw = sync_playwright().start()
+    browser = pw.chromium.launch(headless=True)
+    context = browser.new_context(user_agent=USER_AGENT)
+
+    def fetch(slug: str, meal: str, date: dt.date) -> dict:
+        page = context.new_page()
+        captured = []
+        needle = "/menu/api/weeks/school/"
+
+        def on_response(resp):
+            if needle in resp.url and ("/%s/" % slug in resp.url or "/menu-type/" in resp.url):
+                try:
+                    captured.append(resp.json())
+                except Exception:  # noqa: BLE001
+                    pass
+
+        page.on("response", on_response)
+        url = "%s/menu/%s/%s/%s" % (BASE_PORTAL, slug, meal, date.isoformat())
+        page.goto(url, wait_until="networkidle", timeout=60000)
+        deadline = time.time() + 15
+        while not captured and time.time() < deadline:
+            page.wait_for_timeout(500)
+        page.close()
+        target = date.isoformat()
+        for payload in captured:
+            if any(d.get("date") == target for d in payload.get("days", [])):
+                return payload
+        if captured:
+            return captured[0]
+        raise RuntimeError("No menu API response captured from %s" % url)
+
+    def close():
+        context.close()
+        browser.close()
+        pw.stop()
+
+    return fetch, close
+
+
+# ------------------------------------------------------------------------ parsing
+
+def parse_day(menu_items: List[dict]) -> Dict[str, List[dict]]:
+    """Walk ordered menu items; station headers start a new group."""
+    stations: Dict[str, List[dict]] = {}
+    current = "General"
+    for it in menu_items:
+        if it.get("is_station_header") or it.get("is_section_title"):
+            name = (it.get("text") or "").strip()
+            if name:
+                current = name
+            continue
+        food = it.get("food")
+        if not food or not (food.get("name") or "").strip():
+            continue
+        name = food["name"].strip()
+        bucket = stations.setdefault(current, [])
+        if any(x["name"] == name for x in bucket):
+            continue
+        icons = (food.get("icons") or {}).get("food_icons") or []
+        bucket.append({
+            "name": name,
+            "calories": (food.get("rounded_nutrition_info") or {}).get("calories"),
+            "tags": [i.get("name") for i in icons if i.get("name")],
+        })
+    return {k: v for k, v in stations.items() if v}
+
+
+def extract_date(week: dict, date: dt.date) -> Dict[str, List[dict]]:
+    target = date.isoformat()
+    for day in week.get("days", []):
+        if day.get("date") == target:
+            return parse_day(day.get("menu_items") or [])
+    return {}
+
+
+# --------------------------------------------------------------------------- main
+
+def scrape(date: dt.date, fetch: Callable[[str, str, dt.date], dict],
+           meals_by_loc: Dict[str, List[str]]) -> Dict[str, Dict[str, dict]]:
+    result: Dict[str, Dict[str, dict]] = {}
+    for slug, display in LOCATIONS.items():
+        loc: Dict[str, dict] = {}
+        for meal in meals_by_loc.get(slug, MEALS):
+            try:
+                stations = extract_date(fetch(slug, meal, date), date)
+            except Exception as e:  # noqa: BLE001
+                print("  ! %s / %s: %s" % (display, meal, e), file=sys.stderr)
+                continue
+            if stations:
+                loc[meal.capitalize()] = stations
+        result[display] = loc
+    return result
+
+
+def count_items(day: Dict[str, Dict[str, dict]]) -> int:
+    return sum(len(items) for loc in day.values() for meal in loc.values() for items in meal.values())
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--date", help="YYYY-MM-DD (default: today)")
+    ap.add_argument("--mode", choices=["api", "playwright", "auto"], default="api")
+    ap.add_argument("--out", action="append", help="output path (repeatable; default: ./dining_menu.json and web/public/)")
+    args = ap.parse_args(argv)
+
+    date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
+
+    try:
+        meals_by_loc = served_meals()
+    except Exception as e:  # noqa: BLE001
+        print("! could not read schools list (%s); trying all meals" % e, file=sys.stderr)
+        meals_by_loc = {}
+
+    day: Dict[str, Dict[str, dict]] = {}
+    mode_used = args.mode
+    if args.mode in ("api", "auto"):
+        day = scrape(date, fetch_week_api, meals_by_loc)
+        mode_used = "api"
+    if args.mode == "playwright" or (args.mode == "auto" and count_items(day) == 0):
+        if args.mode == "auto":
+            print("API returned nothing; falling back to Playwright...", file=sys.stderr)
+        fetch, close = make_playwright_fetcher()
+        try:
+            day = scrape(date, fetch, meals_by_loc)
+        finally:
+            close()
+        mode_used = "playwright"
+
+    data = {
+        "generated_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "source": BASE_API.replace("https://", ""),
+        "mode": mode_used,
+        "dates": {date.isoformat(): day},
+    }
+
+    outputs = [Path(p) for p in args.out] if args.out else DEFAULT_OUTPUTS
+    for path in outputs:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    print("Menus for %s (mode: %s)" % (date.isoformat(), mode_used))
+    for loc, meals in day.items():
+        if not meals:
+            print("  %-20s (no menus)" % loc)
+        for meal, stations in meals.items():
+            n = sum(len(v) for v in stations.values())
+            print("  %-20s %-10s %3d items, %d stations: %s" % (
+                loc, meal, n, len(stations), ", ".join(stations)))
+    print("Wrote: " + ", ".join(str(p) for p in outputs))
+    return 0 if count_items(day) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

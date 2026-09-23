@@ -1,0 +1,783 @@
+{
+  "generated_at": "2026-09-23T21:51:14Z",
+  "source": "hamiltoncollege.api.nutrislice.com",
+  "mode": "api",
+  "dates": {
+    "2026-09-23": {
+      "Soper Commons": {
+        "Lunch": {
+          "Oven": [
+            {
+              "name": "Cheese Pizza",
+              "calories": 353.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Pepperoni Pizza",
+              "calories": 388.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Pork"
+              ]
+            },
+            {
+              "name": "Vegan Pizza",
+              "calories": null,
+              "tags": []
+            }
+          ],
+          "V2": [
+            {
+              "name": "Pasta with Mushroom Sauce",
+              "calories": 338.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Baked Sweet Potato",
+              "calories": 139.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Steamed Carrots",
+              "calories": 23.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Grill": [
+            {
+              "name": "Crinkle Cut French Fries",
+              "calories": 205.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Garden Burger",
+              "calories": 150.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Grilled Chicken Breast",
+              "calories": 348.0,
+              "tags": [
+                "Halal",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hamburger",
+              "calories": 227.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Bravo": [
+            {
+              "name": "Marinara Sauce",
+              "calories": 40.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Penne Pasta",
+              "calories": 241.0,
+              "tags": [
+                "Wheat",
+                "Egg",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Creamy Cajun Shrimp Pasta",
+              "calories": 392.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Shellfish"
+              ]
+            },
+            {
+              "name": "Puttanesca Sauce",
+              "calories": 57.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Fresh Stock": [
+            {
+              "name": "Tomato Soup",
+              "calories": 134.0,
+              "tags": []
+            },
+            {
+              "name": "Split Pea and Ham Soup",
+              "calories": 155.0,
+              "tags": [
+                "Dairy",
+                "Pork",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Spoon & Fork": [
+            {
+              "name": "Caribbean Style Stewed Lentils",
+              "calories": 239.0,
+              "tags": [
+                "Dairy",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Jamaican Jerk Chicken Quarters",
+              "calories": 340.0,
+              "tags": [
+                "Soy",
+                "Halal",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Jamaican Rice & Peas",
+              "calories": 104.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Roasted Zucchini & Squash",
+              "calories": 53.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Inspired Eats": [
+            {
+              "name": "Chimichurri Beef",
+              "calories": 223.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Roasted Yukon Potatoes",
+              "calories": 132.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ]
+        },
+        "Dinner": {
+          "Oven": [
+            {
+              "name": "Cheese Pizza",
+              "calories": 353.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Pepperoni Pizza",
+              "calories": 388.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Pork"
+              ]
+            }
+          ],
+          "Bravo": [
+            {
+              "name": "Creamy Cajun Shrimp Pasta",
+              "calories": 392.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Shellfish"
+              ]
+            },
+            {
+              "name": "Marinara Sauce",
+              "calories": 40.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Penne Pasta",
+              "calories": 241.0,
+              "tags": [
+                "Wheat",
+                "Egg",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Puttanesca Sauce",
+              "calories": 57.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "V2": [
+            {
+              "name": "Roasted Tomato & Goat Cheese Polenta",
+              "calories": 311.0,
+              "tags": [
+                "Dairy",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Baked Sweet Potato",
+              "calories": 139.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Green Beans",
+              "calories": 40.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Grill": [
+            {
+              "name": "Crinkle Cut French Fries",
+              "calories": 205.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Garden Burger",
+              "calories": 150.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Grilled Chicken Breast",
+              "calories": 348.0,
+              "tags": [
+                "Halal",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hamburger",
+              "calories": 227.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Spoon & Fork": [
+            {
+              "name": "Coconut Chickpea Curry",
+              "calories": 246.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Herbed Couscous",
+              "calories": 143.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Kale with Garlic",
+              "calories": 66.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Fresh Stock": [
+            {
+              "name": "Navy Bean Soup",
+              "calories": 49.0,
+              "tags": [
+                "Fish",
+                "Soy",
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Chicken Noodle Soup",
+              "calories": 123.0,
+              "tags": [
+                "Halal",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Inspired Eats": [
+            {
+              "name": "Chicken Cacciatore",
+              "calories": 409.0,
+              "tags": [
+                "Halal",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Roasted Tomato & Vegetable Risotto",
+              "calories": 171.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ]
+        }
+      },
+      "McEwen Dining Hall": {
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Bacon",
+              "calories": 105.0,
+              "tags": [
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "French Toast",
+              "calories": 165.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            }
+          ]
+        },
+        "Lunch": {
+          "Oven": [
+            {
+              "name": "Cheese Pizza",
+              "calories": 353.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Pepper and Onion Pizza",
+              "calories": 359.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            }
+          ],
+          "Grill": [
+            {
+              "name": "Hamburger",
+              "calories": 227.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Garden Burger",
+              "calories": 150.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Crinkle Cut French Fries",
+              "calories": 205.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hot Dog",
+              "calories": 354.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Puzzle Tater Tots",
+              "calories": 271.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Turkey Burger",
+              "calories": 300.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Cauliflower Salad",
+              "calories": 74.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Fresh Stock": [
+            {
+              "name": "Fall Squash Soup",
+              "calories": 105.0,
+              "tags": [
+                "Dairy",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Shrimp Sausage & Kale Soup",
+              "calories": 198.0,
+              "tags": [
+                "Dairy",
+                "Shellfish",
+                "Pork",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Spoon & Fork": [
+            {
+              "name": "Honey Roasted Carrots",
+              "calories": 144.0,
+              "tags": [
+                "Dairy",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Seasoned Sweet Potato Wedges",
+              "calories": 126.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Steamed Broccoli",
+              "calories": 20.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Sloppy Joe Meat",
+              "calories": 265.0,
+              "tags": [
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Balsamic Glazed Tofu",
+              "calories": 88.0,
+              "tags": []
+            }
+          ]
+        },
+        "Dinner": {
+          "Oven": [
+            {
+              "name": "Cheese Pizza",
+              "calories": 353.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Pepper and Onion Pizza",
+              "calories": 359.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Puzzle Tater Tots",
+              "calories": 271.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Grill": [
+            {
+              "name": "Cucumber",
+              "calories": 4.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Wakame Salad",
+              "calories": 28.0,
+              "tags": [
+                "Sesame",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Steamed Edamame",
+              "calories": 93.0,
+              "tags": [
+                "Soy",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Sushi Rice",
+              "calories": 108.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Sweet Soy Tofu",
+              "calories": 91.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Bang Bang Shrimp",
+              "calories": 304.0,
+              "tags": [
+                "Shellfish",
+                "Egg",
+                "Soy",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Carrot",
+              "calories": 40.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Fresh Stock": [
+            {
+              "name": "Fall Squash Soup",
+              "calories": 105.0,
+              "tags": [
+                "Dairy",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Shrimp Sausage & Kale Soup",
+              "calories": 198.0,
+              "tags": [
+                "Dairy",
+                "Shellfish",
+                "Pork",
+                "Gluten Friendly"
+              ]
+            }
+          ],
+          "Spoon & Fork": [
+            {
+              "name": "Black Beans & Rice",
+              "calories": 123.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Eggplant Parmesan",
+              "calories": 236.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Roasted Root Vegetables",
+              "calories": 148.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Carrots & Green Beans",
+              "calories": 37.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ]
+        }
+      },
+      "Howard Diner": {}
+    }
+  }
+}
