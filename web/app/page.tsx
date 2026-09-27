@@ -5,7 +5,7 @@ import { CompareGrid } from "@/components/CompareGrid";
 import { SearchBar } from "@/components/SearchBar";
 import { SearchResults } from "@/components/SearchResults";
 import { dayOfMonth, formatDate, localISODate, shortWeekday } from "@/lib/dates";
-import { DEFAULT_THEME, HALLS, hallBySlug, type Hall } from "@/lib/halls";
+import { HALLS, THEME, hallBySlug, type Hall } from "@/lib/halls";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
 import { MEALS, type DayMenu, type Meal } from "@/lib/types";
@@ -133,7 +133,7 @@ export default function Home() {
   const [meal, setMeal] = useState<Meal>(() => currentMeal());
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const hall: Hall | undefined = hallBySlug(useHash());
-  const theme = hall?.theme ?? DEFAULT_THEME;
+  const theme = hall?.theme ?? THEME;
 
   const dates = useMemo(() => (data ? Object.keys(data.dates).sort() : []), [data]);
   const today = localISODate();
@@ -145,7 +145,7 @@ export default function Home() {
   const locations = hall ? [hall.name] : [];
 
   return (
-    <div className={`min-h-full text-zinc-900 dark:text-zinc-100 ${theme.page}`}>
+    <div className={`min-h-full flex-1 text-zinc-900 dark:text-zinc-100 ${theme.page}`}>
       <header className={`sticky top-0 z-10 border-b backdrop-blur ${theme.header}`}>
         <div className="mx-auto max-w-6xl space-y-3 px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -165,10 +165,10 @@ export default function Home() {
               </div>
             ) : (
               <h1 className="text-xl font-bold tracking-tight">
-                <span className="text-blue-800 dark:text-blue-400">Hamilton</span> Dining
+                <span className={theme.headerTitle}>Hamilton</span> <span className="text-white">Dining</span>
               </h1>
             )}
-            <div className={`flex items-center gap-3 text-xs ${hall?.theme.headerTitle ? "text-blue-100" : "text-zinc-500"}`}>
+            <div className={`flex items-center gap-3 text-xs text-blue-100`}>
               <span className="flex items-center gap-1.5" title={generatedAt ? `Scraped ${new Date(generatedAt).toLocaleString()}` : undefined}>
                 <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
                 {STATUS_LABEL[status]}
