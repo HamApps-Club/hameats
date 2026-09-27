@@ -11,6 +11,7 @@ Modes:
 import argparse
 import datetime as dt
 import json
+import re
 import sys
 import time
 import urllib.request
@@ -25,6 +26,7 @@ LOCATIONS = {
     "soper-commons": "Soper Commons",
     "mcewen": "McEwen Dining Hall",
     "howard-diner": "Howard Diner",
+    "little-pub": "Little Pub",
 }
 MEALS = ["breakfast", "lunch", "dinner"]
 
@@ -48,7 +50,8 @@ def http_json(url: str, retries: int = 2, timeout: int = 20):
 
 
 def week_url(slug: str, meal: str, date: dt.date) -> str:
-    return "%s/menu/api/weeks/school/%s/menu-type/%s/%04d/%02d/%02d/?format=json" % (
+    # Full weeks endpoint (not the digest); JSON comes back via the Accept header.
+    return "%s/menu/api/weeks/school/%s/menu-type/%s/%d/%d/%d" % (
         BASE_API, slug, meal, date.year, date.month, date.day)
 
 
@@ -116,6 +119,27 @@ def make_playwright_fetcher():
 
 # ------------------------------------------------------------------------ parsing
 
+NUTRIENTS = [("protein", "g_protein"), ("carbs", "g_carbs"), ("fat", "g_fat"),
+             ("sugar", "g_sugar"), ("fiber", "g_fiber"), ("sodium", "mg_sodium")]
+
+
+def plain(text) -> Optional[str]:
+    """Plain text from a Nutrislice rich-text field (may contain HTML)."""
+    out = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", " ", text or "").replace("&nbsp;", " ").replace("&amp;", "&")).strip()
+    return out or None
+
+
+def extras(food: dict) -> dict:
+    """Optional detail fields; keys are omitted when Nutrislice has no value."""
+    info = food.get("rounded_nutrition_info") or {}
+    nutrition = {k: info[f] for k, f in NUTRIENTS if isinstance(info.get(f), (int, float))}
+    size = food.get("serving_size_info") or {}
+    serving = ("%s %s" % (size.get("serving_size_amount"), size.get("serving_size_unit") or "")).strip() \
+        if size.get("serving_size_amount") else None
+    out = {"description": plain(food.get("description")), "serving": serving,
+           "ingredients": plain(food.get("ingredients")), "nutrition": nutrition or None}
+    return {k: v for k, v in out.items() if v}
+
 def parse_day(menu_items: List[dict]) -> Dict[str, List[dict]]:
     """Walk ordered menu items; station headers start a new group."""
     stations: Dict[str, List[dict]] = {}
@@ -138,6 +162,7 @@ def parse_day(menu_items: List[dict]) -> Dict[str, List[dict]]:
             "name": name,
             "calories": (food.get("rounded_nutrition_info") or {}).get("calories"),
             "tags": [i.get("name") for i in icons if i.get("name")],
+            **extras(food),
         })
     return {k: v for k, v in stations.items() if v}
 

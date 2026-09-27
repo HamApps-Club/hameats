@@ -13,8 +13,6 @@ import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
 import { MEALS, type DayMenu, type Meal, type MenuData } from "@/lib/types";
 
-const APP_NAME = "Ham Eats";
-
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
   window.addEventListener("hashchange", cb);
@@ -53,6 +51,9 @@ function mealByClock(minutes: number): Meal {
 
 const hasMenu = (day: DayMenu | undefined, hall: Hall, meal: Meal) =>
   Object.keys(day?.[hall.name]?.[meal] ?? {}).length > 0;
+
+/** Whether the hall's hours ever include this meal (Little Pub never serves breakfast). */
+const servesMeal = (hall: Hall, meal: Meal) => hall.hours.some((d) => d.some((x) => x.meal === meal));
 
 /** Start from `preferred`; if that meal has no menu, take the next meal that does (then earlier ones). */
 function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
@@ -93,7 +94,9 @@ function HomeView({ data, now }: { data: MenuData; now: CampusTime }) {
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-        <h1 className="py-4 text-center text-3xl font-bold tracking-tight">{APP_NAME}</h1>
+        <h1 className="py-4 text-center text-3xl font-bold tracking-tight">
+          <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
+        </h1>
       </header>
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
         <h2 className="text-3xl font-bold">{greeting(now.minutes)}</h2>
@@ -177,7 +180,7 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
         </div>
 
         <div role="tablist" aria-label="Meal" className="flex border-b border-zinc-200 dark:border-zinc-800">
-          {MEALS.map((m) => (
+          {MEALS.filter((m) => servesMeal(hall, m) || hasMenu(day, hall, m)).map((m) => (
             <button
               key={m}
               role="tab"

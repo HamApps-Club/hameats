@@ -2,6 +2,8 @@
 
 A faster way to read the campus dining hall menus. It shows which halls are open right now with today's hours, opens each hall on the meal being served, has global search, and keeps working offline.
 
+Covers Soper Commons, McEwen, Howard Diner and Little Pub. Foods show dietary and allergen icons (tap one for its description, serving size, nutrition and ingredients when Nutrislice provides them). It installs as an app (PWA) and works offline: `web/public/sw.js` caches the app and the last menus.
+
 Hall hours live in `web/lib/hours.ts`; update them there when the dining schedule changes.
 
 ## 1. Scrape menus

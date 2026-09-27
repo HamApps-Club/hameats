@@ -48,6 +48,9 @@ const DINER_MON_WED = [
 ];
 const DINER_THU_FRI = [...DINER_MON_WED, p("Late Night", "Dinner", t(24), t(27))];
 
+const PUB_LUNCH = [p("Lunch Buffet", "Lunch", t(11), t(13, 30))];
+const PUB_LUNCH_AND_NIGHT = [...PUB_LUNCH, p("Pub", "Dinner", t(20), t(26))];
+
 export const HOURS: Record<string, WeekHours> = {
   commons: [COMMONS_WEEKEND, ...Array(5).fill(COMMONS_WEEKDAY), COMMONS_WEEKEND],
   mcewen: [[], MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_FRI, []],
@@ -60,6 +63,7 @@ export const HOURS: Record<string, WeekHours> = {
     DINER_THU_FRI,
     [p("Late Night", "Dinner", t(15), t(27))],
   ],
+  littlePub: [[], PUB_LUNCH, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH, []],
 };
 
 // ------------------------------------------------------------------ clock
@@ -162,7 +166,11 @@ export function mealNow(week: WeekHours, now: CampusTime): Meal | null {
   return week[now.dow].find((x) => x.open > now.minutes)?.meal ?? null;
 }
 
-/** Tab label for a meal on a given weekday — e.g. Commons calls weekend lunch "Brunch". */
+/** Service names that replace the meal name on its tab. */
+const TAB_NAMES = new Set(["Brunch", "Pub"]);
+
+/** Tab label for a meal on a given weekday — e.g. Commons calls weekend lunch "Brunch", Little Pub's night service is "Pub". */
 export function mealLabel(week: WeekHours | undefined, dow: number, meal: Meal) {
-  return week?.[dow].find((x) => x.meal === meal)?.name === "Brunch" ? "Brunch" : meal;
+  const name = week?.[dow].find((x) => x.meal === meal)?.name;
+  return name && TAB_NAMES.has(name) ? name : meal;
 }
