@@ -1,4 +1,4 @@
-import type { MealMenu, MenuData, MenuItem } from "./types";
+import type { MealMenu, MenuData, MenuItem, Nutrition } from "./types";
 
 // Server-side port of scraper/scrape_menu.py (api mode). Keep the two in sync.
 
@@ -9,6 +9,7 @@ const LOCATIONS: Record<string, string> = {
   "soper-commons": "Soper Commons",
   mcewen: "McEwen Dining Hall",
   "howard-diner": "Howard Diner",
+  "little-pub": "Little Pub",
 };
 const MEALS = ["breakfast", "lunch", "dinner"];
 
@@ -18,10 +19,36 @@ type ApiMenuItem = {
   text?: string;
   food?: {
     name?: string;
-    rounded_nutrition_info?: { calories?: number | null };
+    description?: string | null;
+    ingredients?: string | null;
+    serving_size_info?: { serving_size_amount?: string | number | null; serving_size_unit?: string | null } | null;
+    rounded_nutrition_info?: Record<string, number | null | undefined> | null;
     icons?: { food_icons?: { name?: string }[] };
   } | null;
 };
+
+/** Plain text from a Nutrislice rich-text field (may contain HTML). */
+const plain = (s: string | null | undefined) =>
+  (s ?? "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim() || undefined;
+
+const NUTRIENTS: [keyof Nutrition, string][] = [
+  ["protein", "g_protein"],
+  ["carbs", "g_carbs"],
+  ["fat", "g_fat"],
+  ["sugar", "g_sugar"],
+  ["fiber", "g_fiber"],
+  ["sodium", "mg_sodium"],
+];
+
+function nutritionOf(info: Record<string, number | null | undefined> | null | undefined): Nutrition | undefined {
+  if (!info) return undefined;
+  const out: Nutrition = {};
+  for (const [key, field] of NUTRIENTS) {
+    const v = info[field];
+    if (typeof v === "number") out[key] = v;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
 type ApiWeek = { days?: { date?: string; menu_items?: ApiMenuItem[] }[] };
 type ApiSchool = { slug: string; active_menu_types?: { slug: string }[] };
 
@@ -56,10 +83,16 @@ function parseDay(items: ApiMenuItem[]): MealMenu {
     if (!name) continue;
     const bucket = (stations[current] ??= []);
     if (bucket.some((x) => x.name === name)) continue;
+    const food = it.food;
+    const size = food?.serving_size_info;
     const item: MenuItem = {
       name,
-      calories: it.food?.rounded_nutrition_info?.calories ?? null,
-      tags: (it.food?.icons?.food_icons ?? []).map((i) => i.name).filter((n): n is string => !!n),
+      calories: food?.rounded_nutrition_info?.calories ?? null,
+      tags: (food?.icons?.food_icons ?? []).map((i) => i.name).filter((n): n is string => !!n),
+      description: plain(food?.description),
+      serving: size?.serving_size_amount ? `${size.serving_size_amount} ${size.serving_size_unit ?? ""}`.trim() : undefined,
+      ingredients: plain(food?.ingredients),
+      nutrition: nutritionOf(food?.rounded_nutrition_info),
     };
     bucket.push(item);
   }
@@ -103,8 +136,9 @@ export async function fetchMenus(days = 7, revalidate = 1800): Promise<MenuData>
       for (const date of dates) {
         let week = weeks.find((w) => w.days?.some((d) => d.date === date));
         if (!week) {
-          const [y, m, d] = date.split("-");
-          const url = `${BASE_API}/menu/api/weeks/school/${slug}/menu-type/${meal}/${y}/${m}/${d}/?format=json`;
+          // Full weeks endpoint (not the digest), in the form .../2026/9/23; JSON comes back via the Accept header.
+          const [y, m, d] = date.split("-").map(Number);
+          const url = `${BASE_API}/menu/api/weeks/school/${slug}/menu-type/${meal}/${y}/${m}/${d}`;
           try {
             week = await getJson<ApiWeek>(url, revalidate);
           } catch (e) {

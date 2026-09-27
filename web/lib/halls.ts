@@ -14,6 +14,7 @@ export const HALLS: Hall[] = [
   { slug: "commons", name: "Soper Commons", hours: HOURS.commons, stationOrder: ["Spoon & Fork", "Inspired Eats"] },
   { slug: "mcewen", name: "McEwen Dining Hall", hours: HOURS.mcewen, stationOrder: ["Spoon & Fork", "Fresh Stock"] },
   { slug: "diner", name: "Howard Diner", hours: HOURS.diner },
+  { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub },
 ];
 
 export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
