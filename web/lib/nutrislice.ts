@@ -31,7 +31,7 @@ async function getJson<T>(url: string, revalidate: number): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** "YYYY-MM-DD" for today in Hamilton, regardless of the server's time zone. */
+/** "YYYY-MM-DD" for today on campus, regardless of the server's time zone. */
 function hamiltonToday() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(new Date());
 }
