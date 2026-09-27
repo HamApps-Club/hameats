@@ -27,18 +27,8 @@ export type Hall = {
   stationOrder?: string[];
 };
 
-const DEFAULT_THEME: HallTheme = {
-  accentText: "text-red-800 dark:text-red-400",
-  selected: "border-red-800 bg-red-800 text-white dark:border-red-500 dark:bg-red-600",
-  header: "border-zinc-200 bg-zinc-50/90 dark:border-zinc-800 dark:bg-zinc-950/90",
-  headerTitle: "",
-  card: "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900",
-  page: "bg-zinc-50 dark:bg-zinc-950",
-  button:
-    "border-red-800 bg-white text-red-900 hover:bg-red-50 dark:border-red-500 dark:bg-zinc-900 dark:text-red-300 dark:hover:bg-zinc-800",
-};
-
-const COMMONS_THEME: HallTheme = {
+/** Blue and yellow, used by every page. */
+export const THEME: HallTheme = {
   accentText: "text-blue-800 dark:text-yellow-300",
   selected: "border-yellow-400 bg-yellow-400 text-blue-950",
   header: "border-yellow-400 bg-blue-900/95",
@@ -49,12 +39,10 @@ const COMMONS_THEME: HallTheme = {
 };
 
 export const HALLS: Hall[] = [
-  { slug: "commons", name: "Soper Commons", short: "Commons", theme: COMMONS_THEME, stationOrder: ["Spoon & Fork", "Inspired Eats"] },
-  { slug: "mcewen", name: "McEwen Dining Hall", short: "McEwen", theme: DEFAULT_THEME },
-  { slug: "diner", name: "Howard Diner", short: "Diner", theme: DEFAULT_THEME },
+  { slug: "commons", name: "Soper Commons", short: "Commons", theme: THEME, stationOrder: ["Spoon & Fork", "Inspired Eats"] },
+  { slug: "mcewen", name: "McEwen Dining Hall", short: "McEwen", theme: THEME, stationOrder: ["Spoon & Fork", "Fresh Stock"] },
+  { slug: "diner", name: "Howard Diner", short: "Diner", theme: THEME },
 ];
-
-export { DEFAULT_THEME };
 
 export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
 

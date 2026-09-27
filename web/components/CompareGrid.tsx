@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, orderedStations, type HallTheme } from "@/lib/halls";
+import { THEME, orderedStations, type HallTheme } from "@/lib/halls";
 import type { DayMenu, MealMenu, MenuItem } from "@/lib/types";
 import { Tags } from "./Tags";
 
@@ -97,7 +97,7 @@ export function CompareGrid({
   meal,
   locations,
   compact,
-  theme = DEFAULT_THEME,
+  theme = THEME,
   stationOrder,
 }: {
   day: DayMenu | undefined;

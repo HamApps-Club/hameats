@@ -44,7 +44,7 @@ export function SearchResults({ rows, query, week }: { rows: SearchRow[]; query:
                   .sort((a, b) => mealOrder(a.meal) - mealOrder(b.meal))
                   .map((r, i) => (
                     <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2">
-                      <span className="w-20 shrink-0 text-xs font-semibold uppercase tracking-wide text-red-800 dark:text-red-400">
+                      <span className="w-20 shrink-0 text-xs font-semibold uppercase tracking-wide text-blue-800 dark:text-yellow-300">
                         {r.meal}
                       </span>
                       <span className="font-medium">
