@@ -1,18 +1,29 @@
+import { DEFAULT_THEME, orderedStations, type HallTheme } from "@/lib/halls";
 import type { DayMenu, MealMenu, MenuItem } from "@/lib/types";
 import { Tags } from "./Tags";
 
-function StationCard({ station, items, compact }: { station: string; items: MenuItem[]; compact?: boolean }) {
+function StationCard({
+  station,
+  items,
+  compact,
+  theme,
+}: {
+  station: string;
+  items: MenuItem[];
+  compact?: boolean;
+  theme: HallTheme;
+}) {
   if (compact) {
     return (
       <p className="text-sm leading-snug">
-        <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-wide text-red-800 dark:text-red-400">{station}</span>
+        <span className={`mr-1.5 text-[11px] font-semibold uppercase tracking-wide ${theme.accentText}`}>{station}</span>
         {items.map((it) => it.name).join(" · ")}
       </p>
     );
   }
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-      <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-red-800 dark:text-red-400">{station}</h3>
+    <div className={`rounded-lg border p-3 ${theme.card}`}>
+      <h3 className={`mb-1.5 text-xs font-semibold uppercase tracking-wide ${theme.accentText}`}>{station}</h3>
       <ul className="space-y-1">
         {items.map((it) => (
           <li key={it.name} className="flex flex-wrap items-baseline justify-between gap-x-2">
@@ -33,13 +44,19 @@ function LocationColumn({
   meal,
   stations,
   compact,
+  theme,
+  stationOrder,
+  wide,
 }: {
   name: string;
   meal: string;
   stations?: MealMenu;
   compact?: boolean;
+  theme: HallTheme;
+  stationOrder?: string[];
+  wide?: boolean;
 }) {
-  const entries = stations ? Object.entries(stations) : [];
+  const entries = orderedStations(stations, stationOrder);
   const count = entries.reduce((n, [, items]) => n + items.length, 0);
   return (
     <section className="min-w-0">
@@ -51,12 +68,14 @@ function LocationColumn({
         <div
           className={
             compact
-              ? "space-y-1.5 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
-              : "space-y-3"
+              ? `space-y-1.5 rounded-lg border p-3 ${theme.card}`
+              : wide
+                ? "grid grid-cols-1 items-start gap-3 md:grid-cols-2 lg:grid-cols-3"
+                : "space-y-3"
           }
         >
           {entries.map(([station, items]) => (
-            <StationCard key={station} station={station} items={items} compact={compact} />
+            <StationCard key={station} station={station} items={items} compact={compact} theme={theme} />
           ))}
         </div>
       ) : (
@@ -78,17 +97,31 @@ export function CompareGrid({
   meal,
   locations,
   compact,
+  theme = DEFAULT_THEME,
+  stationOrder,
 }: {
   day: DayMenu | undefined;
   meal: string;
   locations: string[];
   compact?: boolean;
+  theme?: HallTheme;
+  stationOrder?: string[];
 }) {
-  const cols = locations.length === 3 ? "md:grid-cols-2 lg:grid-cols-3" : "md:grid-cols-2";
+  const single = locations.length === 1;
+  const cols = single ? "" : locations.length === 3 ? "md:grid-cols-2 lg:grid-cols-3" : "md:grid-cols-2";
   return (
     <div className={`grid grid-cols-1 ${compact ? "gap-3" : "gap-6"} ${cols}`}>
       {locations.map((loc) => (
-        <LocationColumn key={loc} name={loc} meal={meal} stations={day?.[loc]?.[meal]} compact={compact} />
+        <LocationColumn
+          key={loc}
+          name={loc}
+          meal={meal}
+          stations={day?.[loc]?.[meal]}
+          compact={compact}
+          theme={theme}
+          stationOrder={stationOrder}
+          wide={single}
+        />
       ))}
     </div>
   );

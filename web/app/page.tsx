@@ -1,15 +1,35 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { CompareGrid } from "@/components/CompareGrid";
 import { SearchBar } from "@/components/SearchBar";
 import { SearchResults } from "@/components/SearchResults";
 import { dayOfMonth, formatDate, localISODate, shortWeekday } from "@/lib/dates";
+import { DEFAULT_THEME, HALLS, hallBySlug, type Hall } from "@/lib/halls";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
 import { MEALS, type DayMenu, type Meal } from "@/lib/types";
 
 type View = "day" | "week";
+
+// The selected hall lives in the URL hash (#commons) so the browser back button returns home.
+const subscribeHash = (cb: () => void) => {
+  window.addEventListener("hashchange", cb);
+  return () => window.removeEventListener("hashchange", cb);
+};
+const useHash = () =>
+  useSyncExternalStore(
+    subscribeHash,
+    () => window.location.hash.slice(1),
+    () => "",
+  );
+
+function goHome() {
+  // Drop the hash entirely rather than leaving a bare "#".
+  history.pushState(null, "", window.location.pathname + window.location.search);
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+  window.scrollTo({ top: 0 });
+}
 
 function currentMeal(d = new Date()): Meal {
   const mins = d.getHours() * 60 + d.getMinutes();
@@ -81,13 +101,39 @@ function NotPosted() {
   );
 }
 
+function HallButtons({ day, meal }: { day: DayMenu | undefined; meal: Meal }) {
+  return (
+    <nav aria-label="Dining halls" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {HALLS.map((h) => {
+        const stations = day?.[h.name]?.[meal];
+        const count = stations ? Object.values(stations).reduce((n, items) => n + items.length, 0) : 0;
+        return (
+          <a
+            key={h.slug}
+            href={`#${h.slug}`}
+            onClick={() => window.scrollTo({ top: 0 })}
+            className={`flex flex-col gap-1 rounded-2xl border-2 p-6 shadow-sm transition active:scale-[0.98] ${h.theme.button}`}
+          >
+            <span className="text-2xl font-bold">{h.short}</span>
+            <span className="text-sm opacity-80">{h.name}</span>
+            <span className="mt-2 text-sm font-medium">
+              {count > 0 ? `${meal} today · ${count} items →` : `Not serving ${meal.toLowerCase()} today →`}
+            </span>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function Home() {
   const { data, status, generatedAt, refresh } = useMenuData();
   const [query, setQuery] = useState("");
   const [view, setView] = useState<View>("day");
   const [meal, setMeal] = useState<Meal>(() => currentMeal());
   const [pickedDate, setPickedDate] = useState<string | null>(null);
-  const [showDiner, setShowDiner] = useState(false);
+  const hall: Hall | undefined = hallBySlug(useHash());
+  const theme = hall?.theme ?? DEFAULT_THEME;
 
   const dates = useMemo(() => (data ? Object.keys(data.dates).sort() : []), [data]);
   const today = localISODate();
@@ -96,26 +142,40 @@ export default function Home() {
   const searchDates = useMemo(() => (view === "week" ? dates : date ? [date] : []), [view, dates, date]);
   const results = useMemo(() => searchMenus(data, searchDates, query), [data, searchDates, query]);
   const searching = query.trim().length > 0;
-  const locations = showDiner
-    ? ["Soper Commons", "McEwen Dining Hall", "Howard Diner"]
-    : ["Soper Commons", "McEwen Dining Hall"];
+  const locations = hall ? [hall.name] : [];
 
   return (
-    <div className="min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+    <div className={`min-h-full text-zinc-900 dark:text-zinc-100 ${theme.page}`}>
+      <header className={`sticky top-0 z-10 border-b backdrop-blur ${theme.header}`}>
         <div className="mx-auto max-w-6xl space-y-3 px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h1 className="text-xl font-bold tracking-tight">
-              <span className="text-red-800 dark:text-red-400">Hamilton</span> Dining
-            </h1>
-            <div className="flex items-center gap-3 text-xs text-zinc-500">
+            {hall ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={goHome}
+                  aria-label="Back to home"
+                  className={`flex min-h-11 items-center gap-1.5 rounded-xl border-2 px-4 text-base font-semibold shadow-sm ${hall.theme.selected}`}
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5">
+                    <path d="M10.7 2.3a1 1 0 0 0-1.4 0l-7 7A1 1 0 0 0 3 11h1v6a1 1 0 0 0 1 1h3v-4h4v4h3a1 1 0 0 0 1-1v-6h1a1 1 0 0 0 .7-1.7l-7-7Z" />
+                  </svg>
+                  Home
+                </button>
+                <h1 className={`text-xl font-bold tracking-tight ${hall.theme.headerTitle}`}>{hall.name}</h1>
+              </div>
+            ) : (
+              <h1 className="text-xl font-bold tracking-tight">
+                <span className="text-red-800 dark:text-red-400">Hamilton</span> Dining
+              </h1>
+            )}
+            <div className={`flex items-center gap-3 text-xs ${hall?.theme.headerTitle ? "text-blue-100" : "text-zinc-500"}`}>
               <span className="flex items-center gap-1.5" title={generatedAt ? `Scraped ${new Date(generatedAt).toLocaleString()}` : undefined}>
                 <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
                 {STATUS_LABEL[status]}
               </span>
               <button
                 onClick={refresh}
-                className="rounded-md border border-zinc-300 px-2 py-1 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                className="rounded-md border border-current/30 px-2 py-1 font-medium hover:bg-black/5 dark:hover:bg-white/10"
               >
                 Refresh
               </button>
@@ -127,22 +187,9 @@ export default function Home() {
             <>
               <div className="flex flex-wrap items-center gap-2">
                 <Segmented label="View" options={VIEW_OPTIONS} value={view} onChange={setView} />
-                {!searching && (
-                  <>
-                    <Segmented label="Meal" options={MEAL_OPTIONS} value={meal} onChange={setMeal} />
-                    <label className="flex items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
-                      <input
-                        type="checkbox"
-                        checked={showDiner}
-                        onChange={(e) => setShowDiner(e.target.checked)}
-                        className="accent-red-800"
-                      />
-                      Diner
-                    </label>
-                  </>
-                )}
+                {!searching && <Segmented label="Meal" options={MEAL_OPTIONS} value={meal} onChange={setMeal} />}
               </div>
-              {view === "day" && (
+              {view === "day" && (hall || searching) && (
                 <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5">
                   {dates.map((d) => (
                     <button
@@ -151,7 +198,7 @@ export default function Home() {
                       aria-pressed={d === date}
                       className={`flex w-12 shrink-0 flex-col items-center rounded-lg border py-1 text-xs ${
                         d === date
-                          ? "border-red-800 bg-red-800 text-white dark:border-red-500 dark:bg-red-600"
+                          ? theme.selected
                           : "border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
                       } ${isPosted(data.dates[d]) ? "" : "opacity-50"}`}
                     >
@@ -173,11 +220,19 @@ export default function Home() {
           </p>
         ) : searching ? (
           <SearchResults rows={results} query={query} week={view === "week"} />
+        ) : !hall ? (
+          <HallButtons day={data.dates[today]} meal={meal} />
         ) : view === "day" ? (
           <>
             {date && <h2 className="mb-4 text-lg font-semibold">{formatDate(date)}</h2>}
             {isPosted(date ? data.dates[date] : undefined) ? (
-              <CompareGrid day={date ? data.dates[date] : undefined} meal={meal} locations={locations} />
+              <CompareGrid
+                day={date ? data.dates[date] : undefined}
+                meal={meal}
+                locations={locations}
+                theme={theme}
+                stationOrder={hall.stationOrder}
+              />
             ) : (
               <NotPosted />
             )}
@@ -189,13 +244,20 @@ export default function Home() {
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
                   {formatDate(d)}
                   {d === today && (
-                    <span className="rounded bg-red-800 px-1.5 py-0.5 text-xs font-medium text-white dark:bg-red-600">
+                    <span className={`rounded border px-1.5 py-0.5 text-xs font-medium ${theme.selected}`}>
                       Today
                     </span>
                   )}
                 </h2>
                 {isPosted(data.dates[d]) ? (
-                  <CompareGrid day={data.dates[d]} meal={meal} locations={locations} compact />
+                  <CompareGrid
+                    day={data.dates[d]}
+                    meal={meal}
+                    locations={locations}
+                    theme={theme}
+                    stationOrder={hall.stationOrder}
+                    compact
+                  />
                 ) : (
                   <NotPosted />
                 )}
