@@ -1,5 +1,5 @@
 import { HOURS, type WeekHours } from "./hours";
-import type { MealMenu } from "./types";
+import type { Meal, MealMenu } from "./types";
 
 export type Hall = {
   slug: string;
@@ -8,13 +8,15 @@ export type Hall = {
   hours: WeekHours;
   /** Stations shown first, in this order; the rest keep the menu's order. */
   stationOrder?: string[];
+  /** Menu tabs to show, when not every meal in `hours` has a menu (Little Pub's pub nights have none). */
+  menuMeals?: Meal[];
 };
 
 export const HALLS: Hall[] = [
   { slug: "commons", name: "Soper Commons", hours: HOURS.commons, stationOrder: ["Spoon & Fork", "Inspired Eats"] },
   { slug: "mcewen", name: "McEwen Dining Hall", hours: HOURS.mcewen, stationOrder: ["Spoon & Fork", "Fresh Stock"] },
   { slug: "diner", name: "Howard Diner", hours: HOURS.diner },
-  { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub },
+  { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub, menuMeals: ["Lunch"] },
 ];
 
 export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
