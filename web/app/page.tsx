@@ -165,7 +165,7 @@ export default function Home() {
               </div>
             ) : (
               <h1 className="text-xl font-bold tracking-tight">
-                <span className="text-red-800 dark:text-red-400">Hamilton</span> Dining
+                <span className="text-blue-800 dark:text-blue-400">Hamilton</span> Dining
               </h1>
             )}
             <div className={`flex items-center gap-3 text-xs ${hall?.theme.headerTitle ? "text-blue-100" : "text-zinc-500"}`}>
