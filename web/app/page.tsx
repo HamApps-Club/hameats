@@ -116,7 +116,7 @@ function HallButtons({ day, meal }: { day: DayMenu | undefined; meal: Meal }) {
           >
             <span className="text-2xl font-bold">{h.short}</span>
             <span className="text-sm opacity-80">{h.name}</span>
-            <span className="mt-2 text-sm font-medium">
+            <span className={`mt-2 text-sm font-medium ${h.theme.headerTitle}`}>
               {count > 0 ? `${meal} today · ${count} items →` : `Not serving ${meal.toLowerCase()} today →`}
             </span>
           </a>
@@ -168,7 +168,7 @@ export default function Home() {
                 <span className={theme.headerTitle}>Hamilton</span> <span className="text-white">Dining</span>
               </h1>
             )}
-            <div className={`flex items-center gap-3 text-xs text-blue-100`}>
+            <div className={`flex items-center gap-3 text-xs text-continental-light`}>
               <span className="flex items-center gap-1.5" title={generatedAt ? `Scraped ${new Date(generatedAt).toLocaleString()}` : undefined}>
                 <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
                 {STATUS_LABEL[status]}
