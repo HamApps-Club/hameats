@@ -1,9 +1,9 @@
 // Ham Eats service worker: makes the app load offline and keeps the last menus on the device.
 // Bump VERSION to drop old caches after changing this file.
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = `shell-${VERSION}`;
 const DATA = `data-${VERSION}`;
-const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=2", "/icons/icon-512.png?v=2"];
+const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=3", "/icons/icon-512.png?v=3"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
