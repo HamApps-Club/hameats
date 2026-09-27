@@ -24,6 +24,8 @@ pip install -r scraper/requirements.txt && playwright install chromium
 
 Howard Diner mostly publishes PDF menus, so it often has no item data.
 
+The live site doesn't depend on this file: `web/app/api/menu/route.ts` fetches the next 7 days straight from Nutrislice on the server and Vercel caches the result for 30 minutes. If a refresh fails, the last good copy keeps being served. The scraped `dining_menu.json` is only the backup the site uses if that route is unavailable, and the starting data if Nutrislice is down during a deploy.
+
 The GitHub Action in `.github/workflows/scrape-menu.yml` runs this twice a day (6:17am and 6:17pm Eastern) and commits the new menus when they change. To run it now, open the repo's **Actions** tab → **Update dining menus** → **Run workflow**.
 
 To refresh from your own machine instead, add a crontab entry (`crontab -e`):

@@ -4,7 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import type { MenuData } from "./types";
 
 const STORAGE_KEY = "dining_menu_v1";
-const MENU_URL = "/dining_menu.json";
+/** Live menus, fetched from Nutrislice on the server and cached ~30 min. */
+const MENU_URL = "/api/menu";
+/** Last scraped snapshot, used if the live route fails. */
+const FALLBACK_URL = "/dining_menu.json";
+
+async function fetchMenu(url: string) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as MenuData;
+}
 
 export type MenuStatus = "loading" | "cached" | "fresh" | "offline" | "error";
 
@@ -27,7 +36,7 @@ function writeCache(data: MenuData) {
 
 /**
  * Stale-while-revalidate: render the localStorage copy immediately,
- * then fetch the latest dining_menu.json and swap it in if it changed.
+ * then fetch the latest menus and swap them in if they changed.
  */
 export function useMenuData() {
   const [data, setData] = useState<MenuData | null>(null);
@@ -40,9 +49,12 @@ export function useMenuData() {
       setStatus("cached");
     }
     try {
-      const res = await fetch(MENU_URL, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const fresh = (await res.json()) as MenuData;
+      const fresh = await fetchMenu(MENU_URL).catch(() => fetchMenu(FALLBACK_URL));
+      // The fallback snapshot can be older than what this browser already has; keep the newer one.
+      if (cached && cached.generated_at > fresh.generated_at) {
+        setStatus("offline");
+        return;
+      }
       if (!cached || cached.generated_at !== fresh.generated_at) writeCache(fresh);
       setData(fresh);
       setStatus("fresh");
