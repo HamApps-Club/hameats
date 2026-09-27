@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
-import { CompareGrid } from "@/components/CompareGrid";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { HallList } from "@/components/HallList";
+import { HoursPanel } from "@/components/HoursPanel";
+import { MenuList } from "@/components/MenuList";
 import { SearchBar } from "@/components/SearchBar";
 import { SearchResults } from "@/components/SearchResults";
-import { dayOfMonth, formatDate, localISODate, shortWeekday } from "@/lib/dates";
-import { HALLS, THEME, hallBySlug, type Hall } from "@/lib/halls";
+import { dayOfMonth, formatDate, shortWeekday } from "@/lib/dates";
+import { HALLS, hallBySlug, type Hall } from "@/lib/halls";
+import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
-import { MEALS, type DayMenu, type Meal } from "@/lib/types";
+import { MEALS, type DayMenu, type Meal, type MenuData } from "@/lib/types";
 
-type View = "day" | "week";
+const APP_NAME = "Campus Eats";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -31,11 +34,37 @@ function goHome() {
   window.scrollTo({ top: 0 });
 }
 
-function currentMeal(d = new Date()): Meal {
-  const mins = d.getHours() * 60 + d.getMinutes();
-  if (mins < 10 * 60 + 30) return "Breakfast";
-  if (mins < 16 * 60) return "Lunch";
+/** Campus clock, ticking every minute so open/closed and the current meal stay right. */
+function useCampusNow() {
+  const [now, setNow] = useState(() => campusNow());
+  useEffect(() => {
+    const id = setInterval(() => setNow(campusNow()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+/** Fallback when a hall has no more service today: go by the time of day. */
+function mealByClock(minutes: number): Meal {
+  if (minutes < 10 * 60 + 30) return "Breakfast";
+  if (minutes < 16 * 60) return "Lunch";
   return "Dinner";
+}
+
+const hasMenu = (day: DayMenu | undefined, hall: Hall, meal: Meal) =>
+  Object.keys(day?.[hall.name]?.[meal] ?? {}).length > 0;
+
+/** Start from `preferred`; if that meal has no menu, take the next meal that does (then earlier ones). */
+function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
+  const i = MEALS.indexOf(preferred);
+  const order = [...MEALS.slice(i), ...MEALS.slice(0, i).reverse()];
+  return order.find((m) => hasMenu(day, hall, m)) ?? preferred;
+}
+
+function greeting(minutes: number) {
+  if (minutes >= 5 * 60 && minutes < 12 * 60) return "Good Morning ☀️";
+  if (minutes >= 12 * 60 && minutes < 17 * 60) return "Good Afternoon 🌤️";
+  return "Good Evening 🌙";
 }
 
 const isPosted = (day: DayMenu | undefined) => !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
@@ -43,7 +72,7 @@ const isPosted = (day: DayMenu | undefined) => !!day && Object.values(day).some(
 const STATUS_LABEL: Record<MenuStatus, string> = {
   loading: "Loading…",
   cached: "Cached · checking for updates",
-  fresh: "Up to date",
+  fresh: "Menus up to date",
   offline: "Offline · showing saved menu",
   error: "Couldn't load menu",
 };
@@ -56,216 +85,165 @@ const STATUS_DOT: Record<MenuStatus, string> = {
   error: "bg-red-500",
 };
 
-function Segmented<T extends string>({
-  options,
-  value,
-  onChange,
-  label,
-}: {
-  options: readonly { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-  label: string;
-}) {
+function HomeView({ data, now }: { data: MenuData; now: CampusTime }) {
+  const [query, setQuery] = useState("");
+  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
+  const results = useMemo(() => searchMenus(data, dates, query), [data, dates, query]);
+
   return (
-    <div role="tablist" aria-label={label} className="flex rounded-lg bg-zinc-200/70 p-0.5 dark:bg-zinc-800">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          role="tab"
-          aria-selected={value === o.value}
-          onClick={() => onChange(o.value)}
-          className={`rounded-md px-3 py-1 text-sm font-medium ${
-            value === o.value ? "bg-white shadow-sm dark:bg-zinc-950" : "text-zinc-600 dark:text-zinc-400"
-          }`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
+    <>
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+        <h1 className="py-4 text-center text-3xl font-bold tracking-tight">{APP_NAME}</h1>
+      </header>
+      <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+        <h2 className="text-3xl font-bold">{greeting(now.minutes)}</h2>
+        <SearchBar onSearch={setQuery} />
+        {query.trim() ? (
+          <SearchResults rows={results} query={query} week />
+        ) : (
+          <section className="space-y-3">
+            <h2 className="text-2xl font-bold">All Dining Halls</h2>
+            <HallList halls={HALLS} now={now} />
+          </section>
+        )}
+      </main>
+    </>
   );
 }
 
-const VIEW_OPTIONS = [
-  { value: "day", label: "Day" },
-  { value: "week", label: "Week" },
-] as const;
+function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: CampusTime }) {
+  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
+  const [pickedDate, setPickedDate] = useState<string | null>(null);
+  const [pickedMeal, setPickedMeal] = useState<Meal | null>(null);
 
-const MEAL_OPTIONS = MEALS.map((m) => ({ value: m, label: m }));
+  const today = now.iso;
+  // Default to today, or the next day this hall has a menu (e.g. a hall that's closed on weekends).
+  const servesOn = (d: string) => MEALS.some((m) => hasMenu(data.dates[d], hall, m));
+  const defaultDate = dates.find((d) => d >= today && servesOn(d)) ?? (dates.includes(today) ? today : dates[0]);
+  const date = pickedDate && dates.includes(pickedDate) ? pickedDate : defaultDate;
+  const day = date ? data.dates[date] : undefined;
+  const dow = date ? dowOf(date) : now.dow;
 
-function NotPosted() {
-  return (
-    <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700">
-      Menus not posted yet
-    </p>
+  // Today: whatever the hall is serving now (or next). Other days: the first meal with a menu.
+  const autoMeal = withMenu(
+    date === today ? (mealNow(hall.hours, now) ?? mealByClock(now.minutes)) : "Breakfast",
+    day,
+    hall,
   );
-}
+  const meal = pickedMeal ?? autoMeal;
 
-function HallButtons({ day, meal }: { day: DayMenu | undefined; meal: Meal }) {
   return (
-    <nav aria-label="Dining halls" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {HALLS.map((h) => {
-        const stations = day?.[h.name]?.[meal];
-        const count = stations ? Object.values(stations).reduce((n, items) => n + items.length, 0) : 0;
-        return (
-          <a
-            key={h.slug}
-            href={`#${h.slug}`}
-            onClick={() => window.scrollTo({ top: 0 })}
-            className={`flex flex-col gap-1 rounded-2xl border-2 p-6 shadow-sm transition active:scale-[0.98] ${h.theme.button}`}
+    <>
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+        <div className="mx-auto grid max-w-2xl grid-cols-[5.5rem_1fr_5.5rem] items-center px-2 py-2">
+          <button
+            onClick={goHome}
+            aria-label="Back to all dining halls"
+            className="flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
           >
-            <span className="text-2xl font-bold">{h.short}</span>
-            <span className="text-sm opacity-80">{h.name}</span>
-            <span className={`mt-2 text-sm font-medium ${h.theme.headerTitle}`}>
-              {count > 0 ? `${meal} today · ${count} items →` : `Not serving ${meal.toLowerCase()} today →`}
-            </span>
-          </a>
-        );
-      })}
-    </nav>
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-6">
+              <path
+                fillRule="evenodd"
+                d="M12.8 5.2a.75.75 0 0 1 0 1.06L9.06 10l3.74 3.74a.75.75 0 1 1-1.06 1.06L7.47 10.53a.75.75 0 0 1 0-1.06l4.27-4.27a.75.75 0 0 1 1.06 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Home
+          </button>
+          <h1 className="truncate text-center text-lg font-bold">{hall.name}</h1>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-2xl space-y-5 px-4 py-5">
+        <HoursPanel hours={hall.hours} now={now} />
+
+        <div className="grid grid-cols-7 gap-1" role="group" aria-label="Day">
+          {dates.map((d) => (
+            <button
+              key={d}
+              onClick={() => {
+                setPickedDate(d);
+                setPickedMeal(null);
+              }}
+              aria-pressed={d === date}
+              className={`flex flex-col items-center rounded-xl py-2 ${
+                d === date ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900" : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+              } ${isPosted(data.dates[d]) ? "" : "opacity-40"}`}
+            >
+              <span className="text-xs">{d === today ? "Today" : shortWeekday(d)}</span>
+              <span className="text-2xl font-bold tabular-nums">{dayOfMonth(d)}</span>
+            </button>
+          ))}
+        </div>
+
+        <div role="tablist" aria-label="Meal" className="flex border-b border-zinc-200 dark:border-zinc-800">
+          {MEALS.map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={m === meal}
+              onClick={() => setPickedMeal(m)}
+              className={`-mb-px flex-1 border-b-2 py-2.5 text-base ${
+                m === meal
+                  ? "border-zinc-900 font-semibold dark:border-white"
+                  : `border-transparent text-zinc-500 ${hasMenu(day, hall, m) ? "" : "opacity-50"}`
+              }`}
+            >
+              {mealLabel(hall.hours, dow, m)}
+            </button>
+          ))}
+        </div>
+
+        {date && <p className="text-sm text-zinc-500">{formatDate(date)}</p>}
+        <MenuList
+          stations={day?.[hall.name]?.[meal]}
+          stationOrder={hall.stationOrder}
+          emptyText={`No ${mealLabel(hall.hours, dow, meal).toLowerCase()} menu posted for this day.`}
+          note={hall.slug === "diner" ? "The Diner mostly posts PDF menus." : undefined}
+        />
+      </main>
+    </>
   );
 }
 
 export default function Home() {
   const { data, status, generatedAt, refresh } = useMenuData();
-  const [query, setQuery] = useState("");
-  const [view, setView] = useState<View>("day");
-  const [meal, setMeal] = useState<Meal>(() => currentMeal());
-  const [pickedDate, setPickedDate] = useState<string | null>(null);
-  const hall: Hall | undefined = hallBySlug(useHash());
-  const theme = hall?.theme ?? THEME;
-
-  const dates = useMemo(() => (data ? Object.keys(data.dates).sort() : []), [data]);
-  const today = localISODate();
-  const date = pickedDate && dates.includes(pickedDate) ? pickedDate : dates.includes(today) ? today : dates.at(-1);
-
-  const searchDates = useMemo(() => (view === "week" ? dates : date ? [date] : []), [view, dates, date]);
-  const results = useMemo(() => searchMenus(data, searchDates, query), [data, searchDates, query]);
-  const searching = query.trim().length > 0;
-  const locations = hall ? [hall.name] : [];
+  const hall = hallBySlug(useHash());
+  const now = useCampusNow();
 
   return (
-    <div className={`min-h-full flex-1 text-zinc-900 dark:text-zinc-100 ${theme.page}`}>
-      <header className={`sticky top-0 z-10 border-b backdrop-blur ${theme.header}`}>
-        <div className="mx-auto max-w-6xl space-y-3 px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {hall ? (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={goHome}
-                  aria-label="Back to home"
-                  className={`flex min-h-11 items-center gap-1.5 rounded-xl border-2 px-4 text-base font-semibold shadow-sm ${hall.theme.selected}`}
-                >
-                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5">
-                    <path d="M10.7 2.3a1 1 0 0 0-1.4 0l-7 7A1 1 0 0 0 3 11h1v6a1 1 0 0 0 1 1h3v-4h4v4h3a1 1 0 0 0 1-1v-6h1a1 1 0 0 0 .7-1.7l-7-7Z" />
-                  </svg>
-                  Home
-                </button>
-                <h1 className={`text-xl font-bold tracking-tight ${hall.theme.headerTitle}`}>{hall.name}</h1>
-              </div>
-            ) : (
-              <h1 className="text-xl font-bold tracking-tight">
-                <span className={theme.headerTitle}>Hamilton</span> <span className="text-white">Dining</span>
-              </h1>
-            )}
-            <div className={`flex items-center gap-3 text-xs text-continental-light`}>
-              <span className="flex items-center gap-1.5" title={generatedAt ? `Scraped ${new Date(generatedAt).toLocaleString()}` : undefined}>
-                <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
-                {STATUS_LABEL[status]}
-              </span>
-              <button
-                onClick={refresh}
-                className="rounded-md border border-current/30 px-2 py-1 font-medium hover:bg-black/5 dark:hover:bg-white/10"
-              >
-                Refresh
-              </button>
-            </div>
-          </div>
-          <SearchBar onSearch={setQuery} />
-          {/* Rendered client-side only: the default meal depends on the viewer's clock, not build time. */}
-          {data && (
-            <>
-              <div className="flex flex-wrap items-center gap-2">
-                <Segmented label="View" options={VIEW_OPTIONS} value={view} onChange={setView} />
-                {!searching && <Segmented label="Meal" options={MEAL_OPTIONS} value={meal} onChange={setMeal} />}
-              </div>
-              {view === "day" && (hall || searching) && (
-                <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5">
-                  {dates.map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setPickedDate(d)}
-                      aria-pressed={d === date}
-                      className={`flex w-12 shrink-0 flex-col items-center rounded-lg border py-1 text-xs ${
-                        d === date
-                          ? theme.selected
-                          : "border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
-                      } ${isPosted(data.dates[d]) ? "" : "opacity-50"}`}
-                    >
-                      <span>{d === today ? "Today" : shortWeekday(d)}</span>
-                      <span className="text-base font-semibold">{dayOfMonth(d)}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-4 py-6">
+    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <div className="flex-1">
+        {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (
           <p className="py-20 text-center text-zinc-500">
-            {status === "error" ? "No menu data yet. Run python3 scraper/scrape_menu.py." : "Loading menus…"}
+            {status === "error" ? "Couldn't load menus. Try Refresh below." : "Loading menus…"}
           </p>
-        ) : searching ? (
-          <SearchResults rows={results} query={query} week={view === "week"} />
-        ) : !hall ? (
-          <HallButtons day={data.dates[today]} meal={meal} />
-        ) : view === "day" ? (
-          <>
-            {date && <h2 className="mb-4 text-lg font-semibold">{formatDate(date)}</h2>}
-            {isPosted(date ? data.dates[date] : undefined) ? (
-              <CompareGrid
-                day={date ? data.dates[date] : undefined}
-                meal={meal}
-                locations={locations}
-                theme={theme}
-                stationOrder={hall.stationOrder}
-              />
-            ) : (
-              <NotPosted />
-            )}
-          </>
+        ) : hall ? (
+          <HallView key={hall.slug} hall={hall} data={data} now={now} />
         ) : (
-          <div className="space-y-8">
-            {dates.map((d) => (
-              <section key={d}>
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                  {formatDate(d)}
-                  {d === today && (
-                    <span className={`rounded border px-1.5 py-0.5 text-xs font-medium ${theme.selected}`}>
-                      Today
-                    </span>
-                  )}
-                </h2>
-                {isPosted(data.dates[d]) ? (
-                  <CompareGrid
-                    day={data.dates[d]}
-                    meal={meal}
-                    locations={locations}
-                    theme={theme}
-                    stationOrder={hall.stationOrder}
-                    compact
-                  />
-                ) : (
-                  <NotPosted />
-                )}
-              </section>
-            ))}
-          </div>
+          <HomeView data={data} now={now} />
         )}
-      </main>
+      </div>
+
+      <footer className="mx-auto w-full max-w-2xl space-y-2 px-4 py-6 text-xs text-zinc-500">
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className="flex items-center gap-1.5"
+            title={generatedAt ? `Updated ${new Date(generatedAt).toLocaleString()}` : undefined}
+          >
+            <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
+            {STATUS_LABEL[status]}
+          </span>
+          <button
+            onClick={refresh}
+            className="rounded-md border border-zinc-300 px-2 py-1 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          >
+            Refresh
+          </button>
+        </div>
+        <p>Unofficial student project, not affiliated with the college. Menus and hours can change.</p>
+      </footer>
     </div>
   );
 }

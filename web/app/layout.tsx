@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hamilton Dining",
-  description: "Search and compare Hamilton College dining menus",
+  title: "Campus Eats",
+  description: "Dining hall menus and hours",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

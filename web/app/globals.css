@@ -10,14 +10,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  /* Hamilton College colors: Continental Blue (PMS 287) and Buff (PMS 465). */
-  --color-continental: #003087;
-  --color-continental-dark: #00236a;
-  --color-continental-light: #c7d3ec;
-  --color-buff: #b9975b;
-  --color-buff-light: #e8dcc4;
-  --color-buff-50: #f8f4ec;
 }
 
 @media (prefers-color-scheme: dark) {

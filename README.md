@@ -1,6 +1,8 @@
-# Hamilton Dining
+# Campus Eats
 
-A faster way to read Hamilton College dining menus. It has global search, Soper and McEwen side by side, and it keeps working offline.
+A faster way to read the campus dining hall menus. It shows which halls are open right now with today's hours, opens each hall on the meal being served, has global search, and keeps working offline.
+
+Hall hours live in `web/lib/hours.ts`; update them there when the dining schedule changes.
 
 ## 1. Scrape menus
 
