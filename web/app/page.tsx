@@ -13,7 +13,7 @@ import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
 import { MEALS, type DayMenu, type Meal, type MenuData } from "@/lib/types";
 
-const APP_NAME = "Campus Eats";
+const APP_NAME = "Ham Eats";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {

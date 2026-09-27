@@ -1,4 +1,4 @@
-# Campus Eats
+# Ham Eats
 
 A faster way to read the campus dining hall menus. It shows which halls are open right now with today's hours, opens each hall on the meal being served, has global search, and keeps working offline.
 

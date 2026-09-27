@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Campus Eats",
+  title: "Ham Eats",
   description: "Dining hall menus and hours",
 };
 
