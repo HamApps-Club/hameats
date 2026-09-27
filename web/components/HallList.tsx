@@ -1,5 +1,5 @@
 import type { Hall } from "@/lib/halls";
-import { statusAt, summary, type CampusTime } from "@/lib/hours";
+import { statusAt, summaryParts, type CampusTime } from "@/lib/hours";
 import { StatusLine } from "./HoursPanel";
 
 export function HallList({ halls, now }: { halls: Hall[]; now: CampusTime }) {
@@ -17,7 +17,18 @@ export function HallList({ halls, now }: { halls: Hall[]; now: CampusTime }) {
             <div className="min-w-0 flex-1 space-y-1.5">
               <h3 className="text-xl font-semibold">{h.name}</h3>
               <StatusLine status={statusAt(h.hours, now)} caps />
-              <p className="text-sm tabular-nums text-zinc-500">{today.length ? summary(today) : "Closed today"}</p>
+              {today.length ? (
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 text-sm tabular-nums text-zinc-500">
+                  {summaryParts(today).map((part) => (
+                    <div key={part.name} className="contents">
+                      <dt>{part.name}</dt>
+                      <dd>{part.hours}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="text-sm text-zinc-500">Closed today</p>
+              )}
             </div>
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5 shrink-0 text-zinc-400">
               <path

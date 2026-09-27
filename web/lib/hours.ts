@@ -110,22 +110,24 @@ export function clock(min: number) {
 
 export const range = (a: number, b: number) => `${clock(a)} – ${clock(b)}`;
 
-/** Merge back-to-back periods of the same meal ("Lunch" + "Light Lunch" → one span). */
-export function mealSpans(day: Period[]) {
-  const spans: { meal: Meal; name: string; open: number; close: number }[] = [];
-  for (const period of day) {
-    const last = spans.at(-1);
-    if (last && last.meal === period.meal && last.close === period.open) last.close = period.close;
-    else spans.push({ meal: period.meal, name: period.name, open: period.open, close: period.close });
-  }
-  return spans;
+/** "7–10 AM", "11 AM–2 PM", "4 PM–12 AM": one AM/PM when both ends share it. */
+export function compactRange(open: number, close: number) {
+  const half = (m: number) => ((m % t(24)) < t(12) ? "AM" : "PM");
+  return half(open) === half(close) && close - open < t(12)
+    ? `${short(open)}–${short(close)} ${half(close)}`
+    : `${clock(open)}–${clock(close)}`;
 }
 
-/** "7 - 11 | 11 - 5 | 5 - 10"; spans reaching midnight get AM/PM ("4 PM - 3 AM") so they stay clear. */
-export function summary(day: Period[]) {
-  return mealSpans(day)
-    .map((s) => (s.close >= t(24) ? `${clock(s.open)} - ${clock(s.close)}` : `${short(s.open)} - ${short(s.close)}`))
-    .join(" | ");
+/**
+ * Today's main service for each meal, e.g. [{ name: "Breakfast", hours: "7–10 AM" }, { name: "Lunch", hours: "11 AM–2 PM" }].
+ * Uses each meal's first window, the same as the first line of the hall page's hours
+ * (extensions like "Light Lunch" are listed there, not here).
+ */
+export function summaryParts(day: Period[]) {
+  const seen = new Set<string>();
+  return day
+    .filter((x) => !seen.has(x.meal) && seen.add(x.meal))
+    .map((x) => ({ name: x.name, hours: compactRange(x.open, x.close) }));
 }
 
 // ------------------------------------------------------------------ status
