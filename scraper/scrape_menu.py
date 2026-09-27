@@ -56,13 +56,20 @@ def week_url(slug: str, meal: str, date: dt.date) -> str:
 
 
 def served_meals() -> Dict[str, List[str]]:
-    """Which meals each target location actually serves, per the schools endpoint."""
+    """Every active menu type per location (e.g. "lunch", "pub-menu"), per the schools endpoint."""
     schools = http_json("%s/menu/api/schools/?format=json" % BASE_API)
-    out = {}
-    for s in schools:
-        if s["slug"] in LOCATIONS:
-            out[s["slug"]] = [m["slug"] for m in s.get("active_menu_types", []) if m["slug"] in MEALS]
-    return out
+    return {s["slug"]: [m["slug"] for m in s.get("active_menu_types", [])] for s in schools if s["slug"] in LOCATIONS}
+
+
+def meal_for_type(menu_type: str) -> Optional[str]:
+    """Which meal tab a menu type belongs on (Little Pub's "pub" menus count as dinner)."""
+    if "breakfast" in menu_type:
+        return "Breakfast"
+    if "brunch" in menu_type or "lunch" in menu_type:
+        return "Lunch"
+    if any(w in menu_type for w in ("dinner", "pub", "late", "night")):
+        return "Dinner"
+    return None
 
 
 def fetch_week_api(slug: str, meal: str, date: dt.date) -> dict:
@@ -189,7 +196,11 @@ def scrape(dates: List[dt.date], fetch: Callable[[str, str, dt.date], dict],
     """
     result = {d.isoformat(): {name: {} for name in LOCATIONS.values()} for d in dates}
     for slug, display in LOCATIONS.items():
-        for meal in meals_by_loc.get(slug, MEALS):
+        # Always try breakfast/lunch/dinner, plus whatever else the location lists.
+        for meal in dict.fromkeys(MEALS + meals_by_loc.get(slug, [])):
+            tab = meal_for_type(meal)
+            if not tab:
+                continue
             weeks: List[dict] = []
             for date in dates:
                 target = date.isoformat()
@@ -203,7 +214,7 @@ def scrape(dates: List[dt.date], fetch: Callable[[str, str, dt.date], dict],
                     weeks.append(week)
                 stations = extract_date(week, date)
                 if stations:
-                    result[target][display][meal.capitalize()] = stations
+                    result[target][display].setdefault(tab, {}).update(stations)
     return result
 
 

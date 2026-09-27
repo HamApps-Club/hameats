@@ -107,18 +107,28 @@ function parseDay(items: ApiMenuItem[]): MealMenu {
   return Object.fromEntries(Object.entries(stations).filter(([, v]) => v.length));
 }
 
-async function servedMeals(revalidate: number): Promise<Record<string, string[]>> {
+/** Every active menu type per location (e.g. "lunch", "pub-menu"), from the schools list. */
+async function activeMenuTypes(revalidate: number): Promise<Record<string, string[]>> {
   try {
     const schools = await getJson<ApiSchool[]>(`${BASE_API}/menu/api/schools/?format=json`, revalidate);
     return Object.fromEntries(
-      schools
-        .filter((s) => s.slug in LOCATIONS)
-        .map((s) => [s.slug, (s.active_menu_types ?? []).map((m) => m.slug).filter((m) => MEALS.includes(m))]),
+      schools.filter((s) => s.slug in LOCATIONS).map((s) => [s.slug, (s.active_menu_types ?? []).map((m) => m.slug)]),
     );
   } catch {
     return {};
   }
 }
+
+/** Which meal tab a menu type belongs on; null if it can't be placed. */
+function mealForType(type: string): "Breakfast" | "Lunch" | "Dinner" | null {
+  if (/breakfast/.test(type)) return "Breakfast";
+  if (/brunch|lunch/.test(type)) return "Lunch";
+  if (/dinner|pub|late|night/.test(type)) return "Dinner";
+  return null;
+}
+
+/** One line per request, for /api/menu/status. */
+export type FetchLog = { location: string; menuType: string; week: string; ok: boolean; items: number; error?: string };
 
 export function countItems(data: MenuData) {
   let n = 0;
@@ -129,16 +139,22 @@ export function countItems(data: MenuData) {
 }
 
 /** Fetch the next `days` days of menus for every hall, straight from Nutrislice. */
-export async function fetchMenus(days = 7, revalidate = 1800): Promise<MenuData> {
+export async function fetchMenus(days = 7, revalidate = 1800, log?: FetchLog[]): Promise<MenuData> {
   const start = hamiltonToday();
   const dates = Array.from({ length: days }, (_, i) => addDays(start, i));
   const result: MenuData["dates"] = Object.fromEntries(
     dates.map((d) => [d, Object.fromEntries(Object.values(LOCATIONS).map((name) => [name, {}]))]),
   );
-  const mealsByLoc = await servedMeals(revalidate);
+  const typesByLoc = await activeMenuTypes(revalidate);
 
+  // Always try breakfast/lunch/dinner, plus whatever else a location lists (Little Pub may use its own names).
   const jobs = Object.entries(LOCATIONS).flatMap(([slug, display]) =>
-    (mealsByLoc[slug] ?? MEALS).map(async (meal) => {
+    [...new Set([...MEALS, ...(typesByLoc[slug] ?? [])])].map(async (menuType) => {
+      const meal = mealForType(menuType);
+      if (!meal) {
+        log?.push({ location: display, menuType, week: "-", ok: false, items: 0, error: "no matching meal tab" });
+        return;
+      }
       // Each weeks response covers a Sunday–Saturday week, so one request serves every date inside it.
       const weeks: ApiWeek[] = [];
       for (const date of dates) {
@@ -146,19 +162,25 @@ export async function fetchMenus(days = 7, revalidate = 1800): Promise<MenuData>
         if (!week) {
           // Full weeks endpoint (not the digest), in the form .../2026/9/23; JSON comes back via the Accept header.
           const [y, m, d] = date.split("-").map(Number);
-          const url = `${BASE_API}/menu/api/weeks/school/${slug}/menu-type/${meal}/${y}/${m}/${d}`;
+          const url = `${BASE_API}/menu/api/weeks/school/${slug}/menu-type/${menuType}/${y}/${m}/${d}`;
           try {
             week = await getJson<ApiWeek>(url, revalidate);
           } catch (e) {
-            console.error(`menu fetch failed: ${display} / ${meal} / ${date}:`, e);
+            console.error(`menu fetch failed: ${display} / ${menuType} / ${date}:`, e);
+            log?.push({ location: display, menuType, week: date, ok: false, items: 0, error: String(e) });
+            // Remember the miss so the other days in this week don't retry it.
+            weeks.push({ days: Array.from({ length: 7 }, (_, i) => ({ date: addDays(date, i - new Date(`${date}T12:00:00Z`).getUTCDay()) })) });
             continue;
           }
           weeks.push(week);
+          const items = (week.days ?? []).reduce((n, dd) => n + (dd.menu_items ?? []).filter((x) => x.food?.name).length, 0);
+          log?.push({ location: display, menuType, week: date, ok: true, items });
         }
         const day = week.days?.find((d) => d.date === date);
         const stations = parseDay(day?.menu_items ?? []);
         if (Object.keys(stations).length) {
-          result[date][display][meal[0].toUpperCase() + meal.slice(1)] = stations;
+          // Two menu types can land on the same tab (e.g. "lunch" and "lunch-buffet"): merge their stations.
+          result[date][display][meal] = { ...result[date][display][meal], ...stations };
         }
       }
     }),

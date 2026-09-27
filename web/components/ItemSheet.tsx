@@ -38,6 +38,8 @@ export function ItemSheet({
 }) {
   const n = item.nutrition ?? {};
   const rows = ROWS.filter((r) => n[r.key] != null);
+  // Standing menus (e.g. the Diner's PDF) have no numbers at all; skip the empty nutrition layout for those.
+  const hasNumbers = item.calories != null || Object.keys(n).length > 0 || !!item.serving;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -85,10 +87,20 @@ export function ItemSheet({
             {item.description && <p className="text-zinc-600 dark:text-zinc-400">{item.description}</p>}
           </header>
 
-          <div className="text-center">
-            <p className="text-6xl font-bold tabular-nums">{item.calories != null ? Math.round(item.calories) : "—"}</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-widest text-zinc-500">Calories</p>
-          </div>
+          {!hasNumbers && (
+            <p className="rounded-2xl border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700">
+              Nutrition info isn&apos;t available for this item.
+            </p>
+          )}
+
+          {hasNumbers && (
+            <div className="text-center">
+              <p className="text-6xl font-bold tabular-nums">
+                {item.calories != null ? Math.round(item.calories) : "—"}
+              </p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-widest text-zinc-500">Calories</p>
+            </div>
+          )}
 
           {(n.protein != null || n.carbs != null || n.fat != null) && (
             <div className="grid grid-cols-3 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white text-center dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
@@ -107,43 +119,45 @@ export function ItemSheet({
             </div>
           )}
 
-          <section>
-            <h3 className="mb-2 text-xl font-bold">Nutrition Facts</h3>
-            <dl className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
-              {item.serving && (
-                <div className="flex justify-between py-2">
-                  <dt className="font-semibold">Serving Size</dt>
-                  <dd className="text-zinc-500">{item.serving}</dd>
-                </div>
-              )}
-              <div className="flex justify-between py-2">
-                <dt className="font-semibold">Calories</dt>
-                <dd className="font-semibold tabular-nums">
-                  {item.calories != null ? `${Math.round(item.calories)} kcal` : "—"}
-                </dd>
-              </div>
-              {rows.map((r) => {
-                const v = n[r.key]!;
-                return (
-                  <div key={r.key} className={`flex justify-between py-2 ${r.indent ? "pl-4" : ""}`}>
-                    <dt>
-                      <span className={r.indent ? "" : "font-semibold"}>{r.label}</span>{" "}
-                      <span className="tabular-nums text-zinc-500">
-                        {fmt(v)}
-                        {r.unit}
-                      </span>
-                    </dt>
-                    <dd className="tabular-nums text-zinc-500">{r.dv ? `${Math.round((v / r.dv) * 100)}%` : ""}</dd>
+          {hasNumbers && (
+            <section>
+              <h3 className="mb-2 text-xl font-bold">Nutrition Facts</h3>
+              <dl className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+                {item.serving && (
+                  <div className="flex justify-between py-2">
+                    <dt className="font-semibold">Serving Size</dt>
+                    <dd className="text-zinc-500">{item.serving}</dd>
                   </div>
-                );
-              })}
-            </dl>
-            {rows.length > 0 ? (
-              <p className="mt-2 text-xs text-zinc-500">% Daily Value is based on a 2,000-calorie diet.</p>
-            ) : (
-              <p className="mt-2 text-xs text-zinc-500">Detailed nutrition hasn&apos;t been posted for this item.</p>
-            )}
-          </section>
+                )}
+                <div className="flex justify-between py-2">
+                  <dt className="font-semibold">Calories</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {item.calories != null ? `${Math.round(item.calories)} kcal` : "—"}
+                  </dd>
+                </div>
+                {rows.map((r) => {
+                  const v = n[r.key]!;
+                  return (
+                    <div key={r.key} className={`flex justify-between py-2 ${r.indent ? "pl-4" : ""}`}>
+                      <dt>
+                        <span className={r.indent ? "" : "font-semibold"}>{r.label}</span>{" "}
+                        <span className="tabular-nums text-zinc-500">
+                          {fmt(v)}
+                          {r.unit}
+                        </span>
+                      </dt>
+                      <dd className="tabular-nums text-zinc-500">{r.dv ? `${Math.round((v / r.dv) * 100)}%` : ""}</dd>
+                    </div>
+                  );
+                })}
+              </dl>
+              {rows.length > 0 ? (
+                <p className="mt-2 text-xs text-zinc-500">% Daily Value is based on a 2,000-calorie diet.</p>
+              ) : (
+                <p className="mt-2 text-xs text-zinc-500">Detailed nutrition hasn&apos;t been posted for this item.</p>
+              )}
+            </section>
+          )}
 
           {item.ingredients && (
             <section>

@@ -17,6 +17,7 @@ const ICONS: Record<string, Icon> = {
   Soy: { code: "S", label: "Contains soy", style: CONTAINS, kind: "contains" },
   Wheat: { code: "W", label: "Contains wheat", style: CONTAINS, kind: "contains" },
   Sesame: { code: "SE", label: "Contains sesame", style: CONTAINS, kind: "contains" },
+  "Tree Nut": { code: "TN", label: "Contains tree nuts", style: CONTAINS, kind: "contains" },
 };
 
 const iconFor = (tag: string): Icon =>

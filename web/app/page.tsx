@@ -12,6 +12,7 @@ import { HALLS, hallBySlug, type Hall } from "@/lib/halls";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
+import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
@@ -81,11 +82,19 @@ const hasMenu = (day: DayMenu | undefined, hall: Hall, meal: Meal) =>
 /** Whether the hall's hours ever include this meal (Little Pub never serves breakfast). */
 const servesMeal = (hall: Hall, meal: Meal) => hall.hours.some((d) => d.some((x) => x.meal === meal));
 
-/** Start from `preferred`; if that meal has no menu, take the next meal that does (then earlier ones). */
+/** Meal tabs shown for a hall on a day. */
+const mealTabs = (day: DayMenu | undefined, hall: Hall) =>
+  MEALS.filter((m) => servesMeal(hall, m) || hasMenu(day, hall, m));
+
+/**
+ * Start from `preferred`; if that meal has no menu, take the next meal that does (then earlier ones).
+ * Always lands on a tab that's shown, so a hall that never serves breakfast never opens on it.
+ */
 function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
+  const tabs = mealTabs(day, hall);
   const i = MEALS.indexOf(preferred);
-  const order = [...MEALS.slice(i), ...MEALS.slice(0, i).reverse()];
-  return order.find((m) => hasMenu(day, hall, m)) ?? preferred;
+  const order = [...MEALS.slice(i), ...MEALS.slice(0, i).reverse()].filter((m) => tabs.includes(m));
+  return order.find((m) => hasMenu(day, hall, m)) ?? order[0] ?? preferred;
 }
 
 function greeting(minutes: number) {
@@ -94,7 +103,8 @@ function greeting(minutes: number) {
   return "Good Evening 🌙";
 }
 
-const isPosted = (day: DayMenu | undefined) => !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
+const isPosted = (day: DayMenu | undefined) =>
+  !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
 
 const STATUS_LABEL: Record<MenuStatus, string> = {
   loading: "Loading…",
@@ -168,6 +178,7 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
     hall,
   );
   const meal = pickedMeal ?? autoMeal;
+  const standing = standingMenuFor(hall.slug);
 
   return (
     <>
@@ -204,7 +215,9 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
               }}
               aria-pressed={d === date}
               className={`flex flex-col items-center rounded-xl py-2 ${
-                d === date ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900" : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+                d === date
+                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                  : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
               } ${isPosted(data.dates[d]) ? "" : "opacity-40"}`}
             >
               <span className="text-xs">{d === today ? "Today" : shortWeekday(d)}</span>
@@ -214,7 +227,7 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
         </div>
 
         <div role="tablist" aria-label="Meal" className="flex border-b border-zinc-200 dark:border-zinc-800">
-          {MEALS.filter((m) => servesMeal(hall, m) || hasMenu(day, hall, m)).map((m) => (
+          {mealTabs(day, hall).map((m) => (
             <button
               key={m}
               role="tab"
@@ -232,11 +245,33 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
         </div>
 
         {date && <p className="text-sm text-zinc-500">{formatDate(date)}</p>}
+        {standing && isStanding(hall.slug, meal, day?.[hall.name]?.[meal]) && (
+          <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+            <p>{standing.note}</p>
+            <p>
+              From the posted menu ·{" "}
+              <a
+                href={standing.pdf}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-zinc-900 underline dark:text-zinc-100"
+              >
+                View PDF
+              </a>
+            </p>
+          </div>
+        )}
         <MenuList
           stations={day?.[hall.name]?.[meal]}
           stationOrder={hall.stationOrder}
           emptyText={`No ${mealLabel(hall.hours, dow, meal).toLowerCase()} menu posted for this day.`}
-          note={hall.slug === "diner" ? "The Diner mostly posts PDF menus." : undefined}
+          note={
+            standing && (
+              <a href={standing.pdf} target="_blank" rel="noreferrer" className="underline">
+                View the posted menu (PDF)
+              </a>
+            )
+          }
           onSelect={(item, station) =>
             open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, dow, meal)}` })
           }
@@ -248,7 +283,9 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
 }
 
 export default function Home() {
-  const { data, status, generatedAt, refresh } = useMenuData();
+  const { data: posted, status, generatedAt, refresh } = useMenuData();
+  // Posted Nutrislice menus, plus standing menus (the Diner's PDF) wherever nothing was posted.
+  const data = useMemo(() => posted && withStandingMenus(posted), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
 
