@@ -27,15 +27,15 @@ export type Hall = {
   stationOrder?: string[];
 };
 
-/** Blue and yellow, used by every page. */
+/** Hamilton College's Continental Blue and Buff (colors defined in globals.css), used by every page. */
 export const THEME: HallTheme = {
-  accentText: "text-blue-800 dark:text-yellow-300",
-  selected: "border-yellow-400 bg-yellow-400 text-blue-950",
-  header: "border-yellow-400 bg-blue-900/95",
-  headerTitle: "text-yellow-300",
-  card: "border-blue-200 border-l-4 border-l-yellow-400 bg-white dark:border-blue-900 dark:border-l-yellow-400 dark:bg-blue-950/60",
-  page: "bg-blue-50 dark:bg-slate-950",
-  button: "border-yellow-400 bg-blue-900 text-yellow-300 hover:bg-blue-800",
+  accentText: "text-continental dark:text-buff",
+  selected: "border-buff bg-buff text-continental-dark",
+  header: "border-buff bg-continental/95",
+  headerTitle: "text-buff",
+  card: "border-buff-light border-l-4 border-l-buff bg-white dark:border-continental dark:border-l-buff dark:bg-continental-dark/50",
+  page: "bg-buff-50 dark:bg-slate-950",
+  button: "border-buff bg-continental text-white hover:bg-continental-dark",
 };
 
 export const HALLS: Hall[] = [
