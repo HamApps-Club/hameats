@@ -84,7 +84,7 @@ const servesMeal = (hall: Hall, meal: Meal) => hall.hours.some((d) => d.some((x)
 
 /** Meal tabs shown for a hall on a day. */
 const mealTabs = (day: DayMenu | undefined, hall: Hall) =>
-  MEALS.filter((m) => servesMeal(hall, m) || hasMenu(day, hall, m));
+  hall.menuMeals ?? MEALS.filter((m) => servesMeal(hall, m) || hasMenu(day, hall, m));
 
 /**
  * Start from `preferred`; if that meal has no menu, take the next meal that does (then earlier ones).

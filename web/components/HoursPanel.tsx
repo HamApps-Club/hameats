@@ -31,6 +31,11 @@ export function StatusLine({ status, caps }: { status: Status; caps?: boolean })
 export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }) {
   const [expanded, setExpanded] = useState(false);
   const meals = MEALS.filter((m) => hours.some((day) => day.some((x) => x.meal === m)));
+  // Tab label: the service's own name when every window of that meal shares one ("Pub", "Lunch Buffet").
+  const tabLabel = (m: Meal) => {
+    const names = new Set(hours.flatMap((day) => day.filter((x) => x.meal === m).map((x) => x.name)));
+    return names.size === 1 ? [...names][0] : m;
+  };
   const [meal, setMeal] = useState<Meal>(() => mealNow(hours, now) ?? meals[0]);
   const status = statusAt(hours, now);
 
@@ -72,7 +77,7 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
                   m === meal ? "bg-white shadow-sm dark:bg-zinc-950" : "text-zinc-500"
                 }`}
               >
-                {m}
+                {tabLabel(m)}
               </button>
             ))}
           </div>
