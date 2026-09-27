@@ -35,9 +35,17 @@ const NUTRIENTS: [keyof Nutrition, string][] = [
   ["protein", "g_protein"],
   ["carbs", "g_carbs"],
   ["fat", "g_fat"],
-  ["sugar", "g_sugar"],
-  ["fiber", "g_fiber"],
+  ["saturatedFat", "g_saturated_fat"],
+  ["transFat", "g_trans_fat"],
+  ["cholesterolMg", "mg_cholesterol"],
   ["sodium", "mg_sodium"],
+  ["fiber", "g_fiber"],
+  ["sugar", "g_sugar"],
+  ["addedSugar", "g_added_sugar"],
+  ["potassiumMg", "mg_potassium"],
+  ["calciumMg", "mg_calcium"],
+  ["ironMg", "mg_iron"],
+  ["vitaminDMcg", "mcg_vitamin_d"],
 ];
 
 function nutritionOf(info: Record<string, number | null | undefined> | null | undefined): Nutrition | undefined {

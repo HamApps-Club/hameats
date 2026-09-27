@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { HallList } from "@/components/HallList";
 import { HoursPanel } from "@/components/HoursPanel";
+import { ItemSheet } from "@/components/ItemSheet";
 import { MenuList } from "@/components/MenuList";
 import { SearchBar } from "@/components/SearchBar";
 import { SearchResults } from "@/components/SearchResults";
@@ -11,7 +12,7 @@ import { HALLS, hallBySlug, type Hall } from "@/lib/halls";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { searchMenus } from "@/lib/search";
-import { MEALS, type DayMenu, type Meal, type MenuData } from "@/lib/types";
+import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -30,6 +31,31 @@ function goHome() {
   history.pushState(null, "", window.location.pathname + window.location.search);
   window.dispatchEvent(new HashChangeEvent("hashchange"));
   window.scrollTo({ top: 0 });
+}
+
+type Selected = { item: MenuItem; context: string };
+
+/**
+ * The food detail page. Opening it adds a history entry, so the phone's back
+ * gesture (or browser Back) closes it instead of leaving the hall.
+ */
+function useItemSheet() {
+  const [selected, setSelected] = useState<Selected | null>(null);
+  useEffect(() => {
+    const onPop = () => setSelected(null);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const open = useCallback((s: Selected) => {
+    history.pushState({ itemSheet: true }, "");
+    setSelected(s);
+  }, []);
+  const close = useCallback(() => {
+    if (history.state?.itemSheet) history.back();
+    else setSelected(null);
+  }, []);
+  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} onClose={close} />;
+  return { open, sheet };
 }
 
 /** Campus clock, ticking every minute so open/closed and the current meal stay right. */
@@ -90,6 +116,7 @@ function HomeView({ data, now }: { data: MenuData; now: CampusTime }) {
   const [query, setQuery] = useState("");
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const results = useMemo(() => searchMenus(data, dates, query), [data, dates, query]);
+  const { open, sheet } = useItemSheet();
 
   return (
     <>
@@ -102,7 +129,12 @@ function HomeView({ data, now }: { data: MenuData; now: CampusTime }) {
         <h2 className="text-3xl font-bold">{greeting(now.minutes)}</h2>
         <SearchBar onSearch={setQuery} />
         {query.trim() ? (
-          <SearchResults rows={results} query={query} week />
+          <SearchResults
+            rows={results}
+            query={query}
+            week
+            onSelect={(r) => open({ item: r.item, context: `${r.location} · ${r.station} · ${r.meal}` })}
+          />
         ) : (
           <section className="space-y-3">
             <h2 className="text-2xl font-bold">All Dining Halls</h2>
@@ -110,6 +142,7 @@ function HomeView({ data, now }: { data: MenuData; now: CampusTime }) {
           </section>
         )}
       </main>
+      {sheet}
     </>
   );
 }
@@ -118,6 +151,7 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const [pickedMeal, setPickedMeal] = useState<Meal | null>(null);
+  const { open, sheet } = useItemSheet();
 
   const today = now.iso;
   // Default to today, or the next day this hall has a menu (e.g. a hall that's closed on weekends).
@@ -203,8 +237,12 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
           stationOrder={hall.stationOrder}
           emptyText={`No ${mealLabel(hall.hours, dow, meal).toLowerCase()} menu posted for this day.`}
           note={hall.slug === "diner" ? "The Diner mostly posts PDF menus." : undefined}
+          onSelect={(item, station) =>
+            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, dow, meal)}` })
+          }
         />
       </main>
+      {sheet}
     </>
   );
 }

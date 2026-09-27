@@ -1,52 +1,55 @@
 import { orderedStations } from "@/lib/halls";
-import type { MealMenu, MenuItem, Nutrition } from "@/lib/types";
-import { IconLegend, TagList, Tags } from "./Tags";
+import type { MealMenu, MenuItem } from "@/lib/types";
+import { IconLegend, Tags } from "./Tags";
 
-const NUTRIENT_LABELS: [keyof Nutrition, string, string][] = [
-  ["protein", "Protein", "g"],
-  ["carbs", "Carbs", "g"],
-  ["fat", "Fat", "g"],
-  ["sugar", "Sugar", "g"],
-  ["fiber", "Fiber", "g"],
-  ["sodium", "Sodium", "mg"],
-];
+/** "183 calories · 6g protein · 33g carbs" — whatever is known. */
+function macroLine(it: MenuItem) {
+  const n = it.nutrition;
+  return [
+    it.calories != null && `${Math.round(it.calories)} calories`,
+    n?.protein != null && `${Math.round(n.protein)}g protein`,
+    n?.carbs != null && `${Math.round(n.carbs)}g carbs`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 
-function Details({ item }: { item: MenuItem }) {
-  const facts = [
-    item.serving && `Serving: ${item.serving}`,
-    item.calories != null && `${Math.round(item.calories)} calories`,
-    ...NUTRIENT_LABELS.filter(([k]) => item.nutrition?.[k] != null).map(
-      ([k, label, unit]) => `${label} ${Math.round(item.nutrition![k]!)}${unit}`,
-    ),
-  ].filter(Boolean);
-  const empty = !item.description && !facts.length && !item.tags.length && !item.ingredients;
-
+function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => void }) {
+  const macros = macroLine(item);
   return (
-    <div className="space-y-2 pb-3 pl-2 pr-1 text-sm text-zinc-600 dark:text-zinc-400">
-      {item.description && <p>{item.description}</p>}
-      {facts.length > 0 && <p className="tabular-nums">{facts.join(" · ")}</p>}
-      {item.tags.length > 0 && <TagList tags={item.tags} />}
-      {item.ingredients && (
-        <p className="text-xs">
-          <span className="font-medium">Ingredients:</span> {item.ingredients}
-        </p>
-      )}
-      {empty && <p className="text-xs">No extra details posted for this item.</p>}
-    </div>
+    <button
+      onClick={onSelect}
+      className="flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+    >
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <p className="text-base font-medium">{item.name}</p>
+        {macros && <p className="text-sm tabular-nums text-zinc-500">{macros}</p>}
+        <Tags tags={item.tags} />
+      </div>
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5 shrink-0 text-zinc-400">
+        <path
+          fillRule="evenodd"
+          d="M7.2 14.8a.75.75 0 0 1 0-1.06L10.94 10 7.2 6.26a.75.75 0 1 1 1.06-1.06l4.27 4.27a.75.75 0 0 1 0 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0Z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </button>
   );
 }
 
-/** One hall's stations for one meal, as a single readable column. Tap a food for its details. */
+/** One hall's stations for one meal. Stations collapse; tap a food to open its page. */
 export function MenuList({
   stations,
   stationOrder,
   emptyText,
   note,
+  onSelect,
 }: {
   stations: MealMenu | undefined;
   stationOrder?: string[];
   emptyText: string;
   note?: React.ReactNode;
+  onSelect: (item: MenuItem, station: string) => void;
 }) {
   const entries = orderedStations(stations, stationOrder);
   if (!entries.length) {
@@ -58,29 +61,32 @@ export function MenuList({
     );
   }
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {entries.map(([station, items]) => (
-        <section key={station}>
-          <h3 className="mb-2 text-xl font-bold">{station}</h3>
-          <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+        <details key={station} open className="group">
+          <summary className="mb-3 flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+            <h3 className="text-xl font-bold">{station}</h3>
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+              className="size-5 text-zinc-400 transition group-open:rotate-180"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </summary>
+          <ul className="space-y-2">
             {items.map((it) => (
               <li key={it.name}>
-                <details className="group">
-                  <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 pl-2 [&::-webkit-details-marker]:hidden">
-                    <span className="text-base">{it.name}</span>
-                    <span className="flex items-center gap-2">
-                      <Tags tags={it.tags} />
-                      {it.calories != null && (
-                        <span className="text-xs tabular-nums text-zinc-400">{Math.round(it.calories)} cal</span>
-                      )}
-                    </span>
-                  </summary>
-                  <Details item={it} />
-                </details>
+                <ItemCard item={it} onSelect={() => onSelect(it, station)} />
               </li>
             ))}
           </ul>
-        </section>
+        </details>
       ))}
       <IconLegend />
     </div>
