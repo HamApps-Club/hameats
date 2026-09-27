@@ -1,0 +1,49 @@
+name: Update dining menus
+
+on:
+  schedule:
+    # 6:17am and 6:17pm Eastern (UTC times; off the hour to dodge GitHub's cron rush).
+    # The evening run picks up menus that get posted during the day.
+    - cron: "17 10 * * *"
+    - cron: "17 22 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-menu
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    env:
+      # "Today" should be Hamilton's today, not UTC's.
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # API mode is stdlib-only, so no pip install. The script exits non-zero
+      # when it collects no items, which stops the job before it commits empty data.
+      - name: Scrape next 7 days
+        run: python3 scraper/scrape_menu.py
+
+      - name: Commit if the menus changed
+        run: |
+          # generated_at changes every run; only commit when the menus themselves differ.
+          if git show HEAD:web/public/dining_menu.json | jq -S .dates > /tmp/old.json \
+             && jq -S .dates web/public/dining_menu.json > /tmp/new.json \
+             && cmp -s /tmp/old.json /tmp/new.json; then
+            echo "Menus unchanged; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add dining_menu.json web/public/dining_menu.json
+          git commit -m "Update dining menus ($(date +%Y-%m-%d))"
+          git push

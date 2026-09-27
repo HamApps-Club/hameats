@@ -24,7 +24,9 @@ pip install -r scraper/requirements.txt && playwright install chromium
 
 Howard Diner mostly publishes PDF menus, so it often has no item data.
 
-To refresh every morning, add a crontab entry (`crontab -e`):
+The GitHub Action in `.github/workflows/scrape-menu.yml` runs this twice a day (6:17am and 6:17pm Eastern) and commits the new menus when they change. To run it now, open the repo's **Actions** tab → **Update dining menus** → **Run workflow**.
+
+To refresh from your own machine instead, add a crontab entry (`crontab -e`):
 
 ```
 0 6 * * * cd ~/Documents/cravable && /usr/bin/python3 scraper/scrape_menu.py
