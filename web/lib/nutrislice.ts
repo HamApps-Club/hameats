@@ -82,14 +82,18 @@ function addDays(iso: string, n: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Sunday that starts the Nutrislice week containing `iso`. */
-function sundayOf(iso: string) {
-  return addDays(iso, -new Date(`${iso}T12:00:00Z`).getUTCDay());
-}
+/** 0 = Sunday … 6 = Saturday. */
+const weekday = (iso: string) => new Date(`${iso}T12:00:00Z`).getUTCDay();
 
-/** How far back to look for a location's last posted menu, and locations that shouldn't (the Diner uses its PDF). */
-const LOOKBACK_WEEKS = 4;
-const NO_LOOKBACK = new Set(["howard-diner"]);
+/** Sunday that starts the Nutrislice week containing `iso`. */
+const sundayOf = (iso: string) => addDays(iso, -weekday(iso));
+
+/**
+ * Locations that serve the same menu every week but only have it on Nutrislice for past weeks
+ * (Little Pub), and how far back to look for their latest posted week.
+ */
+const REPEATS_WEEKLY = new Set(["little-pub"]);
+const LOOKBACK_WEEKS = 8;
 
 /** Walk ordered menu items; station headers start a new group. */
 function parseDay(items: ApiMenuItem[]): MealMenu {
@@ -227,25 +231,28 @@ export async function fetchMenus(days = 7, revalidate = 1800, log?: FetchLog[]):
     ),
   );
 
-  // A location with nothing posted for the whole window (Little Pub often posts late) gets its most recent
-  // posted week instead, day for day (last Monday's menu on Monday), and is flagged so the page can say so.
-  const reused: Record<string, string> = {};
+  // Weekly-repeating locations: their latest posted week is the menu every week. Any day/meal in the window
+  // without a posted menu gets the same weekday from that week (Monday's menu on every Monday).
   await Promise.all(
     Object.entries(LOCATIONS)
-      .filter(
-        ([slug, display]) => !NO_LOOKBACK.has(slug) && dates.every((d) => !Object.keys(result[d][display]).length),
-      )
+      .filter(([slug]) => REPEATS_WEEKLY.has(slug))
       .map(async ([slug, display]) => {
+        const types = typesFor(slug, display);
+        const posted = new Set(dates.flatMap((d) => Object.keys(result[d][display]).map((meal) => `${d}/${meal}`)));
         for (let back = 1; back <= LOOKBACK_WEEKS; back++) {
-          const filled = await Promise.all(
-            typesFor(slug, display).flatMap(({ menuType, meal }) =>
-              dates.map((date) => fill(slug, display, menuType, meal, addDays(date, -7 * back), date)),
+          const templateSunday = sundayOf(addDays(dates[0], -7 * back));
+          const weeks = await Promise.all(
+            types.map(({ menuType }) => fetchWeek(slug, display, menuType, templateSunday)),
+          );
+          if (!weeks.some((w) => w?.days?.some((d) => (d.menu_items ?? []).some((x) => x.food?.name)))) continue;
+          await Promise.all(
+            types.flatMap(({ menuType, meal }) =>
+              dates
+                .filter((d) => !posted.has(`${d}/${meal}`))
+                .map((d) => fill(slug, display, menuType, meal, addDays(templateSunday, weekday(d)), d)),
             ),
           );
-          if (filled.some(Boolean)) {
-            reused[display] = sundayOf(addDays(dates[0], -7 * back));
-            return;
-          }
+          return;
         }
       }),
   );
@@ -255,6 +262,5 @@ export async function fetchMenus(days = 7, revalidate = 1800, log?: FetchLog[]):
     source: BASE_API.replace("https://", ""),
     mode: "live",
     dates: result,
-    ...(Object.keys(reused).length ? { reused } : {}),
   };
 }
