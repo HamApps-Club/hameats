@@ -40,6 +40,8 @@ export type MenuData = {
   mode?: string;
   /** "YYYY-MM-DD" -> locations */
   dates: Record<string, DayMenu>;
+  /** Locations showing a repeated older menu because nothing is posted yet: location -> Sunday of that week. */
+  reused?: Record<string, string>;
 };
 
 export const MEALS = ["Breakfast", "Lunch", "Dinner"] as const;
