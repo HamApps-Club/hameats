@@ -245,6 +245,13 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
         </div>
 
         {date && <p className="text-sm text-zinc-500">{formatDate(date)}</p>}
+        {data.reused?.[hall.name] && (
+          <p className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
+            Nothing is posted for this week yet, so this is the last posted menu (week of{" "}
+            {new Date(`${data.reused[hall.name]}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+            ), day for day. It may change.
+          </p>
+        )}
         {standing && isStanding(hall.slug, meal, day?.[hall.name]?.[meal]) && (
           <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
             <p>{standing.note}</p>
