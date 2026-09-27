@@ -1,10 +1,19 @@
+/** Grams unless the name says otherwise. */
 export type Nutrition = {
   protein?: number;
   carbs?: number;
   fat?: number;
-  sugar?: number;
-  fiber?: number;
+  saturatedFat?: number;
+  transFat?: number;
+  cholesterolMg?: number;
   sodium?: number;
+  fiber?: number;
+  sugar?: number;
+  addedSugar?: number;
+  potassiumMg?: number;
+  calciumMg?: number;
+  ironMg?: number;
+  vitaminDMcg?: number;
 };
 
 export type MenuItem = {

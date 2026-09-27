@@ -12,7 +12,17 @@ function groupBy<T>(rows: T[], key: (r: T) => string) {
   return map;
 }
 
-export function SearchResults({ rows, query, week }: { rows: SearchRow[]; query: string; week: boolean }) {
+export function SearchResults({
+  rows,
+  query,
+  week,
+  onSelect,
+}: {
+  rows: SearchRow[];
+  query: string;
+  week: boolean;
+  onSelect: (row: SearchRow) => void;
+}) {
   if (!rows.length) {
     return (
       <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center text-zinc-500 dark:border-zinc-700">
@@ -43,17 +53,22 @@ export function SearchResults({ rows, query, week }: { rows: SearchRow[]; query:
                 {[...locRows]
                   .sort((a, b) => mealOrder(a.meal) - mealOrder(b.meal))
                   .map((r, i) => (
-                    <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2">
-                      <span className="w-20 shrink-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                        {r.meal}
-                      </span>
-                      <span className="font-medium">
-                        <Highlight text={r.item.name} query={r.stationMatch ? "" : query} />
-                      </span>
-                      <span className="text-sm text-zinc-500">
-                        @ <Highlight text={r.station} query={r.stationMatch ? query : ""} />
-                      </span>
-                      <Tags tags={r.item.tags} />
+                    <li key={i}>
+                      <button
+                        onClick={() => onSelect(r)}
+                        className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+                      >
+                        <span className="w-20 shrink-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                          {r.meal}
+                        </span>
+                        <span className="font-medium">
+                          <Highlight text={r.item.name} query={r.stationMatch ? "" : query} />
+                        </span>
+                        <span className="text-sm text-zinc-500">
+                          @ <Highlight text={r.station} query={r.stationMatch ? query : ""} />
+                        </span>
+                        <Tags tags={r.item.tags} />
+                      </button>
                     </li>
                   ))}
               </ul>

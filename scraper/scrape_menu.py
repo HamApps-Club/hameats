@@ -120,7 +120,10 @@ def make_playwright_fetcher():
 # ------------------------------------------------------------------------ parsing
 
 NUTRIENTS = [("protein", "g_protein"), ("carbs", "g_carbs"), ("fat", "g_fat"),
-             ("sugar", "g_sugar"), ("fiber", "g_fiber"), ("sodium", "mg_sodium")]
+             ("saturatedFat", "g_saturated_fat"), ("transFat", "g_trans_fat"), ("cholesterolMg", "mg_cholesterol"),
+             ("sodium", "mg_sodium"), ("fiber", "g_fiber"), ("sugar", "g_sugar"), ("addedSugar", "g_added_sugar"),
+             ("potassiumMg", "mg_potassium"), ("calciumMg", "mg_calcium"), ("ironMg", "mg_iron"),
+             ("vitaminDMcg", "mcg_vitamin_d")]
 
 
 def plain(text) -> Optional[str]:

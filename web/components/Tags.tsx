@@ -74,7 +74,24 @@ export function IconLegend() {
       <summary className="cursor-pointer font-medium">What do the icons mean?</summary>
       <p className="mt-3 mb-2 text-xs text-zinc-500">Filled icons describe the dish; outlined icons mean it contains that allergen.</p>
       <TagList tags={ORDER} />
-      <p className="mt-3 text-xs text-zinc-500">Tap any food for details. Always confirm allergens with dining staff.</p>
+      <p className="mt-3 text-xs text-zinc-500">Tap any food for its nutrition facts. Always confirm allergens with dining staff.</p>
     </details>
+  );
+}
+
+/** Labeled pills for the item page: diet labels filled, allergens outlined ("Contains dairy"). */
+export function TagPills({ tags }: { tags: string[] }) {
+  if (!tags.length) return null;
+  return (
+    <ul className="flex flex-wrap gap-1.5">
+      {sortTags(tags).map((t) => {
+        const icon = iconFor(t);
+        return (
+          <li key={t} className={`rounded-md px-2 py-0.5 text-xs font-semibold ${icon.style}`}>
+            {icon.label}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
