@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { HALLS, type Hall } from "@/lib/halls";
+import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
@@ -150,7 +150,7 @@ function HallColumn({
 }) {
   const win = windowFor(hall, now.dow, meal);
   const servingNow = win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
-  const stations = Object.entries(mealMenu ?? {})
+  const stations = orderedStations(mealMenu, hall.stationOrder)
     .map(([station, items]) => [station, items.filter((it) => itemPasses(it, excludeAllergens, requirePreferences))] as const)
     .filter(([, items]) => items.length > 0);
   const isFiltering = excludeAllergens.size > 0 || requirePreferences.size > 0;
