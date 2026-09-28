@@ -1,16 +1,18 @@
 import type { ComponentType } from "react";
 import { useCallback, useSyncExternalStore } from "react";
+import { AccordionHomeLayout } from "@/components/home/AccordionHomeLayout";
 import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
 import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
 
 export type { HomeLayoutProps };
 
 // Extend this union as new home layouts are registered below.
-export type HomeLayoutId = "classic" | "meal-first";
+export type HomeLayoutId = "classic" | "meal-first" | "accordion";
 
 export const HOME_LAYOUTS: Record<HomeLayoutId, { label: string; Component: ComponentType<HomeLayoutProps> }> = {
   classic: { label: "Classic", Component: ClassicHomeLayout },
   "meal-first": { label: "Meal First", Component: MealFirstHomeLayout },
+  accordion: { label: "Accordion", Component: AccordionHomeLayout },
 };
 
 export const DEFAULT_HOME_LAYOUT: HomeLayoutId = "classic";
