@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
 import { LayoutGallery } from "@/components/home/LayoutGallery";
 import { MenuList } from "@/components/MenuList";
-import { dayOfMonth, formatDate, shortWeekday } from "@/lib/dates";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
@@ -178,26 +180,16 @@ function HallView({
       <main className="mx-auto max-w-2xl space-y-5 px-4 py-5">
         <HoursPanel hours={hall.hours} now={now} />
 
-        <div className="grid grid-cols-7 gap-1" role="group" aria-label="Day">
-          {dates.map((d) => (
-            <button
-              key={d}
-              onClick={() => {
-                setPickedDate(d);
-                setPickedMeal(null);
-              }}
-              aria-pressed={d === date}
-              className={`flex flex-col items-center rounded-xl py-2 ${
-                d === date
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
-              } ${isPosted(data.dates[d]) ? "" : "opacity-40"}`}
-            >
-              <span className="text-xs">{d === today ? "Today" : shortWeekday(d)}</span>
-              <span className="text-2xl font-bold tabular-nums">{dayOfMonth(d)}</span>
-            </button>
-          ))}
-        </div>
+        <DayPicker
+          dates={dates}
+          selected={date}
+          today={today}
+          onSelect={(d) => {
+            setPickedDate(d);
+            setPickedMeal(null);
+          }}
+          isDimmed={(d) => !isPosted(data.dates[d])}
+        />
 
         <div role="tablist" aria-label="Meal" className="flex border-b border-zinc-200 dark:border-zinc-800">
           {mealTabs(day, hall).map((m) => (
@@ -307,17 +299,21 @@ export default function Home() {
             homeState={{ view: galleryOpen ? "gallery" : "home" }}
           />
         ) : galleryOpen ? (
-          <LayoutGallery
-            current={layoutId}
-            onSelect={(id) => {
-              setLayoutId(id);
-              track("home_layout_changed", { layout: id, source: "gallery" });
-              history.pushState({ view: "home" }, "");
-              setGalleryOpen(false);
-            }}
-          />
+          <>
+            <ThemeToggle />
+            <LayoutGallery
+              current={layoutId}
+              onSelect={(id) => {
+                setLayoutId(id);
+                track("home_layout_changed", { layout: id, source: "gallery" });
+                history.pushState({ view: "home" }, "");
+                setGalleryOpen(false);
+              }}
+            />
+          </>
         ) : (
           <>
+            <ThemeToggle />
             <ChangeLayoutButton
               onClick={() => {
                 history.pushState({ view: "gallery" }, "");

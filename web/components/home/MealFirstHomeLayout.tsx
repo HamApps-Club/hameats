@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
-import { compactRange, mealNow, statusAt, type CampusTime } from "@/lib/hours";
+import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
+import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
 import { track } from "@/lib/analytics";
+import { formatDate } from "@/lib/dates";
 
 /**
  * An alternative home layout, browsed meal-first — a close visual match of
@@ -53,7 +55,7 @@ function mealByClock(minutes: number): Meal {
   return "Dinner";
 }
 
-/** This hall's first service window for `meal` today, or undefined if it doesn't serve it. */
+/** This hall's first service window for `meal` on weekday `dow`, or undefined if it doesn't serve it. */
 function windowFor(hall: Hall, dow: number, meal: Meal) {
   return hall.hours[dow].find((p) => p.meal === meal);
 }
@@ -61,19 +63,22 @@ function windowFor(hall: Hall, dow: number, meal: Meal) {
 function HallColumn({
   hall,
   meal,
+  date,
   now,
   data,
   onSelect,
 }: {
   hall: Hall;
   meal: Meal;
+  date: string;
   now: CampusTime;
   data: MenuData;
   onSelect: (s: Selected) => void;
 }) {
-  const win = windowFor(hall, now.dow, meal);
-  const servingNow = win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
-  const mealMenu = data.dates[now.iso]?.[hall.name]?.[meal];
+  const isToday = date === now.iso;
+  const win = windowFor(hall, dowOf(date), meal);
+  const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
+  const mealMenu = data.dates[date]?.[hall.name]?.[meal];
   const stations = orderedStations(mealMenu, hall.stationOrder);
 
   return (
@@ -88,7 +93,9 @@ function HallColumn({
           {meal} · {compactRange(win.open, win.close)}
         </p>
       ) : (
-        <p className="text-sm text-[#606870] dark:text-zinc-400">No {meal.toLowerCase()} today</p>
+        <p className="text-sm text-[#606870] dark:text-zinc-400">
+          No {meal.toLowerCase()} {isToday ? "today" : "this day"}
+        </p>
       )}
 
       {stations.length > 0 ? (
@@ -120,11 +127,17 @@ function HallColumn({
 
 export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
+  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
+  const [pickedDate, setPickedDate] = useState<string | null>(null);
+  const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
+  const isToday = date === now.iso;
   const { open, sheet } = useItemSheet();
 
-  const servingCount = HALLS.filter(
-    (h) => windowFor(h, now.dow, meal) && mealNow(h.hours, now) === meal && statusAt(h.hours, now).open,
-  ).length;
+  const servingCount = isToday
+    ? HALLS.filter(
+        (h) => windowFor(h, now.dow, meal) && mealNow(h.hours, now) === meal && statusAt(h.hours, now).open,
+      ).length
+    : 0;
 
   return (
     <div style={{ fontFamily: SITE_FONT }}>
@@ -151,15 +164,29 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mx-auto mb-5 max-w-2xl">
+          <DayPicker
+            dates={dates}
+            selected={date}
+            today={now.iso}
+            onSelect={(d) => {
+              setPickedDate(d);
+              track("meal_first_day_picked", { date: d });
+            }}
+          />
+        </div>
+
         <p className="mb-5 text-sm text-[#606870] dark:text-zinc-400">
-          {servingCount > 0
-            ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
-            : `No halls serving ${meal.toLowerCase()} right now`}
+          {!isToday
+            ? `${meal} on ${formatDate(date)}`
+            : servingCount > 0
+              ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
+              : `No halls serving ${meal.toLowerCase()} right now`}
         </p>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
           {HALLS.map((h) => (
-            <HallColumn key={h.slug} hall={h} meal={meal} now={now} data={data} onSelect={open} />
+            <HallColumn key={h.slug} hall={h} meal={meal} date={date} now={now} data={data} onSelect={open} />
           ))}
         </div>
       </main>

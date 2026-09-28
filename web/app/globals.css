@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dark mode follows the `dark` class on <html> (see app/layout.tsx), so the in-app toggle can override the system. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -14,12 +17,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --accent: #5b8def;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --accent: #5b8def;
+  color-scheme: dark;
 }
 
 body {

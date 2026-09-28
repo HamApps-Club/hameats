@@ -29,12 +29,26 @@ export const viewport: Viewport = {
   ],
 };
 
+// Runs before the page paints so there's no light flash: a saved choice from the toggle wins, else the system
+// setting (and system changes are followed until the user picks one).
+const THEME_SCRIPT = `(() => {
+  const saved = () => { try { return localStorage.getItem("theme"); } catch { return null; } };
+  const mq = matchMedia("(prefers-color-scheme: dark)");
+  const apply = () => document.documentElement.classList.toggle("dark", saved() ? saved() === "dark" : mq.matches);
+  apply();
+  mq.addEventListener("change", () => { if (!saved()) apply(); });
+})();`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <PostHogProvider>
           {children}
