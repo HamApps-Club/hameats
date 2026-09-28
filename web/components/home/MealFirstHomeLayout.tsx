@@ -18,9 +18,10 @@ import { track } from "@/lib/analytics";
  * Layered on top: a live "serving now" indicator, which a static site can't have.
  */
 
-// Bootstrap 3's default stack and link-blue, which TigerMenus never overrides.
+// Bootstrap 3's default stack, which TigerMenus never overrides. The link-blue
+// itself is Ham Eats' shared accent color, not TigerMenus' Bootstrap blue.
 const SITE_FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
-const LINK_BLUE = "text-[#337ab7] dark:text-blue-400";
+const LINK_BLUE = "text-accent";
 
 type Selected = { item: MenuItem; context: string };
 
@@ -101,7 +102,7 @@ function HallColumn({
                   <button
                     key={it.name}
                     onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                    className="block text-left text-sm text-[#262626] hover:text-[#337ab7] hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                    className="block text-left text-sm text-[#262626] hover:text-accent hover:underline dark:text-zinc-300 dark:hover:text-accent"
                   >
                     {it.name}
                   </button>
@@ -130,7 +131,7 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
       {/* TigerMenus' jumbotron: light grey band, big -1px-tracked title, plain-text meal nav */}
       <header className="border-b border-[#e1e5e8] bg-[#eeeeee] px-4 pb-6 pt-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="text-[40px] font-medium tracking-[-1px] text-[#262626] dark:text-zinc-100">
-          <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
+          <span className="text-accent">Ham</span> Eats
         </h1>
         <div role="tablist" aria-label="Meal" className="mt-2 flex justify-center gap-4 text-lg">
           {MEALS.map((m) => (
@@ -140,7 +141,7 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
               aria-selected={m === meal}
               onClick={() => setMeal(m)}
               className={`min-h-11 px-1 ${
-                m === meal ? "font-bold text-[#262626] dark:text-white" : `${LINK_BLUE} hover:underline`
+                m === meal ? `font-bold ${LINK_BLUE}` : "text-[#262626] hover:underline dark:text-zinc-300"
               }`}
             >
               {m}

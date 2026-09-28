@@ -10,7 +10,7 @@ import { dayOfMonth, formatDate, shortWeekday } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
-import { useMenuData, type MenuStatus } from "@/lib/menuData";
+import { useMenuData } from "@/lib/menuData";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
@@ -101,22 +101,6 @@ function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
 
 const isPosted = (day: DayMenu | undefined) =>
   !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
-
-const STATUS_LABEL: Record<MenuStatus, string> = {
-  loading: "Loading…",
-  cached: "Cached · checking for updates",
-  fresh: "Menus up to date",
-  offline: "Offline · showing saved menu",
-  error: "Couldn't load menu",
-};
-
-const STATUS_DOT: Record<MenuStatus, string> = {
-  loading: "bg-zinc-400",
-  cached: "bg-amber-400",
-  fresh: "bg-green-500",
-  offline: "bg-amber-500",
-  error: "bg-red-500",
-};
 
 /** Small entry point back to the layout gallery, shown in the corner of the home screen. */
 function ChangeLayoutButton({ onClick }: { onClick: () => void }) {
@@ -262,7 +246,7 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
 }
 
 export default function Home() {
-  const { data: posted, status, generatedAt, refresh } = useMenuData();
+  const { data: posted, status } = useMenuData();
   // Posted Nutrislice menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
   const data = useMemo(() => posted && withMirroredMenus(withStandingMenus(posted)), [posted]);
@@ -285,7 +269,7 @@ export default function Home() {
         {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (
           <p className="py-20 text-center text-zinc-500">
-            {status === "error" ? "Couldn't load menus. Try Refresh below." : "Loading menus…"}
+            {status === "error" ? "Couldn't load menus." : "Loading menus…"}
           </p>
         ) : hall ? (
           <HallView key={hall.slug} hall={hall} data={data} now={now} />
@@ -307,26 +291,7 @@ export default function Home() {
       </div>
 
       <footer className="mx-auto w-full max-w-2xl space-y-2 px-4 py-6 text-xs text-zinc-500">
-        <div className="flex items-center justify-between gap-3">
-          <span
-            className="flex items-center gap-1.5"
-            title={generatedAt ? `Updated ${new Date(generatedAt).toLocaleString()}` : undefined}
-          >
-            <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
-            {STATUS_LABEL[status]}
-          </span>
-          <button
-            onClick={refresh}
-            className="rounded-md border border-zinc-300 px-2 py-1 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-          >
-            Refresh
-          </button>
-        </div>
-        <p>Unofficial student project, not affiliated with the college. Menus and hours can change.</p>
-
-        <hr className="border-zinc-200 dark:border-zinc-800" />
-
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <Link href="/hours" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
             Dining hours
           </Link>
@@ -335,11 +300,11 @@ export default function Home() {
           </a>
         </div>
 
-        <div>
+        <div className="text-center">
           <button
             onClick={() => setHomeScreenOpen((o) => !o)}
             aria-expanded={homeScreenOpen}
-            className="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300"
+            className="mx-auto flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300"
           >
             <svg
               viewBox="0 0 20 20"
@@ -356,7 +321,7 @@ export default function Home() {
             Add to Home Screen
           </button>
           {homeScreenOpen && (
-            <div className="mt-2 space-y-1.5 pl-5">
+            <div className="mt-2 space-y-1.5">
               <p>
                 Open the{" "}
                 <Link href="/" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
@@ -374,7 +339,7 @@ export default function Home() {
 
         <hr className="border-zinc-200 dark:border-zinc-800" />
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <a href="#" className="font-medium hover:underline">
             About
           </a>
