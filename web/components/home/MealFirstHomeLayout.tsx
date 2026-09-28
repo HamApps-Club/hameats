@@ -1,14 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { HALLS, type Hall } from "@/lib/halls";
 import { compactRange, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
-import { searchMenus } from "@/lib/search";
 import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { ItemSheet } from "@/components/ItemSheet";
-import { SearchBar } from "@/components/SearchBar";
-import { SearchResults } from "@/components/SearchResults";
 import { track } from "@/lib/analytics";
 
 /**
@@ -121,19 +118,8 @@ function HallColumn({
 }
 
 export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
-  const [query, setQuery] = useState("");
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
-  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
-  const results = useMemo(() => searchMenus(data, dates, query), [data, dates, query]);
   const { open, sheet } = useItemSheet();
-
-  const handleSearch = useCallback(
-    (q: string) => {
-      if (q.trim() && !query.trim()) track("search_used");
-      setQuery(q);
-    },
-    [query],
-  );
 
   const servingCount = HALLS.filter(
     (h) => windowFor(h, now.dow, meal) && mealNow(h.hours, now) === meal && statusAt(h.hours, now).open,
@@ -146,51 +132,35 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
         <h1 className="text-[40px] font-medium tracking-[-1px] text-[#262626] dark:text-zinc-100">
           <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
         </h1>
-        {!query.trim() && (
-          <div role="tablist" aria-label="Meal" className="mt-2 flex justify-center gap-4 text-lg">
-            {MEALS.map((m) => (
-              <button
-                key={m}
-                role="tab"
-                aria-selected={m === meal}
-                onClick={() => setMeal(m)}
-                className={`min-h-11 px-1 ${
-                  m === meal ? "font-bold text-[#262626] dark:text-white" : `${LINK_BLUE} hover:underline`
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        )}
+        <div role="tablist" aria-label="Meal" className="mt-2 flex justify-center gap-4 text-lg">
+          {MEALS.map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={m === meal}
+              onClick={() => setMeal(m)}
+              className={`min-h-11 px-1 ${
+                m === meal ? "font-bold text-[#262626] dark:text-white" : `${LINK_BLUE} hover:underline`
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <div className="mb-5">
-          <SearchBar onSearch={handleSearch} />
-        </div>
-        {query.trim() ? (
-          <SearchResults
-            rows={results}
-            query={query}
-            week
-            onSelect={(r) => open({ item: r.item, context: `${r.location} · ${r.station} · ${r.meal}` })}
-          />
-        ) : (
-          <>
-            <p className="mb-5 text-sm text-[#606870] dark:text-zinc-400">
-              {servingCount > 0
-                ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
-                : `No halls serving ${meal.toLowerCase()} right now`}
-            </p>
+        <p className="mb-5 text-sm text-[#606870] dark:text-zinc-400">
+          {servingCount > 0
+            ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
+            : `No halls serving ${meal.toLowerCase()} right now`}
+        </p>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
-              {HALLS.map((h) => (
-                <HallColumn key={h.slug} hall={h} meal={meal} now={now} data={data} onSelect={open} />
-              ))}
-            </div>
-          </>
-        )}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
+          {HALLS.map((h) => (
+            <HallColumn key={h.slug} hall={h} meal={meal} now={now} data={data} onSelect={open} />
+          ))}
+        </div>
       </main>
       {sheet}
     </div>
