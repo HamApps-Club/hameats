@@ -13,8 +13,18 @@ export type Hall = {
 };
 
 export const HALLS: Hall[] = [
-  { slug: "commons", name: "Soper Commons", hours: HOURS.commons, stationOrder: ["Spoon & Fork", "Inspired Eats"] },
-  { slug: "mcewen", name: "McEwen Dining Hall", hours: HOURS.mcewen, stationOrder: ["Spoon & Fork", "Fresh Stock"] },
+  {
+    slug: "commons",
+    name: "Soper Commons",
+    hours: HOURS.commons,
+    stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo", "Oven"],
+  },
+  {
+    slug: "mcewen",
+    name: "McEwen Dining Hall",
+    hours: HOURS.mcewen,
+    stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo", "Oven"],
+  },
   { slug: "diner", name: "Howard Diner", hours: HOURS.diner },
   { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub, menuMeals: ["Lunch"] },
 ];
