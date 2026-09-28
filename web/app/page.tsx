@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
 import { LayoutGallery } from "@/components/home/LayoutGallery";
 import { MenuList } from "@/components/MenuList";
+import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
@@ -258,7 +258,6 @@ export default function Home() {
   // Every fresh load of "/" starts on the Super Simplified layout; "Change layout"
   // opens the gallery for anyone who wants to try a different one.
   const [galleryOpen, setGalleryOpen] = useState(false);
-  const [homeScreenOpen, setHomeScreenOpen] = useState(false);
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   useEffect(() => {
@@ -327,85 +326,7 @@ export default function Home() {
         )}
       </div>
 
-      <footer className="mx-auto w-full max-w-2xl space-y-2 px-4 py-6 text-xs text-zinc-500">
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/hours" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            Dining hours
-          </Link>
-          <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-            Bag lunch
-          </a>
-        </div>
-
-        {/* Deliberately oversized: getting the app onto the home screen is the main thing we want people to do. */}
-        <div className="py-4">
-          <button
-            onClick={() => setHomeScreenOpen((o) => !o)}
-            aria-expanded={homeScreenOpen}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-600 px-6 py-6 text-2xl font-bold text-white shadow-md active:bg-blue-700 dark:bg-blue-500 dark:active:bg-blue-600"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden className="size-9 shrink-0">
-              <rect x="6" y="2" width="12" height="20" rx="2.5" />
-              <path strokeLinecap="round" d="M12 8v6M9 11h6" />
-            </svg>
-            Add to Home Screen
-            <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden
-              className={`size-7 shrink-0 transition ${homeScreenOpen ? "rotate-90" : ""}`}
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.2 5.2a.75.75 0 0 1 1.06 0l4.27 4.27a.75.75 0 0 1 0 1.06l-4.27 4.27a.75.75 0 0 1-1.06-1.06L10.94 10 7.2 6.26a.75.75 0 0 1 0-1.06Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-          {homeScreenOpen && (
-            <div className="mt-4 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 text-base text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-              <div>
-                <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">iPhone (Safari)</p>
-                <ol className="list-decimal space-y-1 pl-6">
-                  <li>Tap the three dots (•••) in the bottom-right corner.</li>
-                  <li>Tap &quot;View More.&quot;</li>
-                  <li>Tap &quot;Add to Home Screen.&quot;</li>
-                  <li>Tap &quot;Add.&quot;</li>
-                </ol>
-              </div>
-              <div>
-                <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">Android (Chrome)</p>
-                <ol className="list-decimal space-y-1 pl-6">
-                  <li>
-                    Open the{" "}
-                    <Link href="/" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                      homepage
-                    </Link>{" "}
-                    in Chrome.
-                  </li>
-                  <li>Tap the menu (three dots) in the top-right corner.</li>
-                  <li>Tap &quot;Add to Home screen&quot; (or &quot;Install app&quot;).</li>
-                  <li>Tap &quot;Add&quot; to confirm.</li>
-                </ol>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <hr className="border-zinc-200 dark:border-zinc-800" />
-
-        <div className="flex items-center justify-center gap-4">
-          <a href="#" className="font-medium hover:underline">
-            About
-          </a>
-          <a href="#" className="font-medium hover:underline">
-            Feedback
-          </a>
-          <a href="#" className="font-medium hover:underline">
-            GitHub
-          </a>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
