@@ -38,7 +38,7 @@ export function LayoutGallery({
               key={id}
               onClick={() => onSelect(id as HomeLayoutId)}
               aria-pressed={selected}
-              className={`flex items-start gap-4 rounded-2xl border bg-white p-4 text-left shadow-sm transition active:scale-[0.99] dark:bg-zinc-900 ${
+              className={`overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition active:scale-[0.99] dark:bg-zinc-900 ${
                 selected
                   ? "border-blue-500 ring-1 ring-blue-500"
                   : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
@@ -47,11 +47,11 @@ export function LayoutGallery({
               <Image
                 src={layout.previewSrc}
                 alt=""
-                width={194}
-                height={240}
-                className="h-24 w-20 shrink-0 rounded-lg border border-zinc-200 object-cover object-top dark:border-zinc-700"
+                width={640}
+                height={399}
+                className="aspect-[8/5] w-full border-b border-zinc-200 object-cover object-top dark:border-zinc-800"
               />
-              <div className="min-w-0">
+              <div className="min-w-0 p-4">
                 <h3 className="font-semibold text-blue-600 dark:text-blue-400">{layout.label}</h3>
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{layout.description}</p>
               </div>
