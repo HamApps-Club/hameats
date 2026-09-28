@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { HOME_LAYOUTS, type HomeLayoutId } from "@/lib/homeLayouts";
 
 /**
@@ -43,7 +44,13 @@ export function LayoutGallery({
                   : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
               }`}
             >
-              <layout.Preview />
+              <Image
+                src={layout.previewSrc}
+                alt=""
+                width={194}
+                height={240}
+                className="h-24 w-20 shrink-0 rounded-lg border border-zinc-200 object-cover object-top dark:border-zinc-700"
+              />
               <div className="min-w-0">
                 <h3 className="font-semibold text-blue-600 dark:text-blue-400">{layout.label}</h3>
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{layout.description}</p>
