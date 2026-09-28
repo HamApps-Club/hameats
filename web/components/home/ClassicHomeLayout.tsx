@@ -9,6 +9,7 @@ import { HALLS } from "@/lib/halls";
 import type { CampusTime } from "@/lib/hours";
 import { searchMenus } from "@/lib/search";
 import type { MenuData, MenuItem } from "@/lib/types";
+import { track } from "@/lib/analytics";
 
 type Selected = { item: MenuItem; context: string };
 
@@ -26,6 +27,7 @@ function useItemSheet() {
   const open = useCallback((s: Selected) => {
     history.pushState({ itemSheet: true }, "");
     setSelected(s);
+    track("item_opened", { item: s.item.name, context: s.context });
   }, []);
   const close = useCallback(() => {
     if (history.state?.itemSheet) history.back();
@@ -49,6 +51,14 @@ export function ClassicHomeLayout({ data, now }: HomeLayoutProps) {
   const results = useMemo(() => searchMenus(data, dates, query), [data, dates, query]);
   const { open, sheet } = useItemSheet();
 
+  const handleSearch = useCallback(
+    (q: string) => {
+      if (q.trim() && !query.trim()) track("search_used");
+      setQuery(q);
+    },
+    [query],
+  );
+
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
@@ -58,7 +68,7 @@ export function ClassicHomeLayout({ data, now }: HomeLayoutProps) {
       </header>
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
         <h2 className="text-3xl font-bold">{greeting(now.minutes)}</h2>
-        <SearchBar onSearch={setQuery} />
+        <SearchBar onSearch={handleSearch} />
         {query.trim() ? (
           <SearchResults
             rows={results}
