@@ -10,7 +10,7 @@ import { MenuList } from "@/components/MenuList";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
+import { DEFAULT_HOME_LAYOUT, HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
@@ -255,9 +255,9 @@ export default function Home() {
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
-  // Every fresh load of "/" starts at the gallery; picking a layout (or already having
-  // one selected this session) keeps it out of the way until the next fresh load.
-  const [galleryOpen, setGalleryOpen] = useState(true);
+  // Every fresh load of "/" starts on the Super Simplified layout; "Change layout"
+  // opens the gallery for anyone who wants to try a different one.
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [homeScreenOpen, setHomeScreenOpen] = useState(false);
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
@@ -265,12 +265,13 @@ export default function Home() {
     if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: layoutId });
   }, [data, hall, layoutId, galleryOpen]);
 
-  // Tag the entry page load lands on as the gallery, so back button from a
-  // picked layout (or from a hall reached from it) returns here instead of
-  // wherever the plain history stack would otherwise send the user.
+  // Reset to the default layout on each fresh load, and tag the entry page load
+  // lands on as home, so back from the gallery (or from a hall reached from
+  // home) returns here instead of wherever the plain history stack would go.
   useEffect(() => {
-    if (!window.location.hash) history.replaceState({ view: "gallery" }, "");
-  }, []);
+    setLayoutId(DEFAULT_HOME_LAYOUT);
+    if (!window.location.hash) history.replaceState({ view: "home" }, "");
+  }, [setLayoutId]);
 
   useEffect(() => {
     const onPop = (e: PopStateEvent) => {
