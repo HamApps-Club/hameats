@@ -1,14 +1,13 @@
 import type { ComponentType } from "react";
 import { useCallback, useSyncExternalStore } from "react";
-import { AccordionHomeLayout } from "@/components/home/AccordionHomeLayout";
 import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
-import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
+import { MealFirstHomeLayout, SingleColumnHomeLayout } from "@/components/home/MealFirstHomeLayout";
 import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout";
 
 export type { HomeLayoutProps };
 
 // Extend this union as new home layouts are registered below.
-export type HomeLayoutId = "classic" | "meal-first" | "accordion" | "net-nutrition";
+export type HomeLayoutId = "classic" | "meal-first" | "single-column" | "net-nutrition";
 
 type HomeLayoutEntry = {
   label: string;
@@ -21,8 +20,8 @@ type HomeLayoutEntry = {
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "meal-first": {
-    label: "Super Simplified",
-    description: "Pick Breakfast, Lunch, or Dinner, then browse halls as cards scoped to that meal. You can tap any food item for more details.",
+    label: "Double Column",
+    description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
     Component: MealFirstHomeLayout,
     previewSrc: "/layout-previews/meal-first.png",
   },
@@ -32,11 +31,11 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     Component: ClassicHomeLayout,
     previewSrc: "/layout-previews/classic.png",
   },
-  accordion: {
-    label: "Accordion",
-    description: "Every hall on one page — tap to expand its menu in place, no navigating away.",
-    Component: AccordionHomeLayout,
-    previewSrc: "/layout-previews/accordion.png",
+  "single-column": {
+    label: "Single Column",
+    description: "Same as Double Column, with every hall stacked in one column. You can tap any food item for more details.",
+    Component: SingleColumnHomeLayout,
+    previewSrc: "/layout-previews/single-column.png",
   },
   "net-nutrition": {
     label: "Net Nutrition",
