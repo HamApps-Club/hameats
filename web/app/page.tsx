@@ -28,9 +28,9 @@ const useHash = () =>
     () => "",
   );
 
-function goHome() {
+function goHome(state: unknown) {
   // Drop the hash entirely rather than leaving a bare "#".
-  history.pushState(null, "", window.location.pathname + window.location.search);
+  history.pushState(state, "", window.location.pathname + window.location.search);
   window.dispatchEvent(new HashChangeEvent("hashchange"));
   window.scrollTo({ top: 0 });
 }
@@ -116,7 +116,17 @@ function ChangeLayoutButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: CampusTime }) {
+function HallView({
+  hall,
+  data,
+  now,
+  homeState,
+}: {
+  hall: Hall;
+  data: MenuData;
+  now: CampusTime;
+  homeState: unknown;
+}) {
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const [pickedMeal, setPickedMeal] = useState<Meal | null>(null);
@@ -148,7 +158,7 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
         <div className="mx-auto grid max-w-2xl grid-cols-[5.5rem_1fr_5.5rem] items-center px-2 py-2">
           <button
-            onClick={goHome}
+            onClick={() => goHome(homeState)}
             aria-label="Back to all dining halls"
             className="flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
           >
@@ -263,6 +273,23 @@ export default function Home() {
     if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: layoutId });
   }, [data, hall, layoutId, galleryOpen]);
 
+  // Tag the entry page load lands on as the gallery, so back button from a
+  // picked layout (or from a hall reached from it) returns here instead of
+  // wherever the plain history stack would otherwise send the user.
+  useEffect(() => {
+    if (!window.location.hash) history.replaceState({ view: "gallery" }, "");
+  }, []);
+
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const view = (e.state as { view?: string } | null)?.view;
+      if (view === "gallery") setGalleryOpen(true);
+      else if (view === "home") setGalleryOpen(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <div className="flex-1">
@@ -272,19 +299,31 @@ export default function Home() {
             {status === "error" ? "Couldn't load menus." : "Loading menus…"}
           </p>
         ) : hall ? (
-          <HallView key={hall.slug} hall={hall} data={data} now={now} />
+          <HallView
+            key={hall.slug}
+            hall={hall}
+            data={data}
+            now={now}
+            homeState={{ view: galleryOpen ? "gallery" : "home" }}
+          />
         ) : galleryOpen ? (
           <LayoutGallery
             current={layoutId}
             onSelect={(id) => {
               setLayoutId(id);
               track("home_layout_changed", { layout: id, source: "gallery" });
+              history.pushState({ view: "home" }, "");
               setGalleryOpen(false);
             }}
           />
         ) : (
           <>
-            <ChangeLayoutButton onClick={() => setGalleryOpen(true)} />
+            <ChangeLayoutButton
+              onClick={() => {
+                history.pushState({ view: "gallery" }, "");
+                setGalleryOpen(true);
+              }}
+            />
             <HomeLayout data={data} now={now} />
           </>
         )}
