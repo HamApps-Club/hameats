@@ -19,17 +19,18 @@ type HomeLayoutEntry = {
 };
 
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
+  // Listed in gallery order.
+  "meal-first": {
+    label: "Super Simplified",
+    description: "Pick Breakfast, Lunch, or Dinner, then browse halls as cards scoped to that meal. You can tap any food item for more details.",
+    Component: MealFirstHomeLayout,
+    previewSrc: "/layout-previews/meal-first.png",
+  },
   classic: {
     label: "Classic",
     description: "A search bar up top and every dining hall listed below, ranked by what's open now.",
     Component: ClassicHomeLayout,
     previewSrc: "/layout-previews/classic.png",
-  },
-  "meal-first": {
-    label: "Super Simplified",
-    description: "Pick Breakfast, Lunch, or Dinner, then browse halls as cards scoped to that meal.",
-    Component: MealFirstHomeLayout,
-    previewSrc: "/layout-previews/meal-first.png",
   },
   accordion: {
     label: "Accordion",
