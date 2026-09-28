@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
+import { LayoutGallery } from "@/components/home/LayoutGallery";
 import { MenuList } from "@/components/MenuList";
 import { dayOfMonth, formatDate, shortWeekday } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
+import { HOME_LAYOUTS, useHasPickedHomeLayout, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
@@ -115,44 +116,16 @@ const STATUS_DOT: Record<MenuStatus, string> = {
   error: "bg-red-500",
 };
 
-/** "Layout" button in the corner of the home screen, opening a menu to switch layouts. */
-function LayoutSwitcher() {
-  const [layoutId, setLayoutId] = useHomeLayoutId();
-  const [open, setOpen] = useState(false);
-
+/** Small entry point back to the layout gallery, shown in the corner of the home screen. */
+function ChangeLayoutButton({ onClick }: { onClick: () => void }) {
   return (
     <div className="fixed right-3 top-3 z-20">
       <button
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-haspopup="menu"
+        onClick={onClick}
         className="rounded-lg border border-zinc-300 bg-zinc-50/90 px-2.5 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur hover:bg-zinc-200/70 dark:border-zinc-700 dark:bg-zinc-950/90 dark:text-zinc-400 dark:hover:bg-zinc-800"
       >
-        Layout
+        Change layout
       </button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 mt-1 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
-        >
-          {Object.entries(HOME_LAYOUTS).map(([id, { label }]) => (
-            <button
-              key={id}
-              role="menuitem"
-              onClick={() => {
-                setLayoutId(id as keyof typeof HOME_LAYOUTS);
-                track("home_layout_changed", { layout: id });
-                setOpen(false);
-              }}
-              className={`block w-full px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
-                id === layoutId ? "font-semibold" : ""
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -292,12 +265,16 @@ export default function Home() {
   const data = useMemo(() => posted && withStandingMenus(posted), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
-  const [layoutId] = useHomeLayoutId();
+  const [layoutId, setLayoutId] = useHomeLayoutId();
+  const hasPickedLayout = useHasPickedHomeLayout();
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
+  // First visit (no stored choice yet), or explicitly reopened via "Change layout".
+  const showGallery = !hasPickedLayout || galleryOpen;
 
   useEffect(() => {
-    if (data && !hall) track("home_layout_viewed", { layout: layoutId });
-  }, [data, hall, layoutId]);
+    if (data && !hall && !showGallery) track("home_layout_viewed", { layout: layoutId });
+  }, [data, hall, layoutId, showGallery]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -309,9 +286,18 @@ export default function Home() {
           </p>
         ) : hall ? (
           <HallView key={hall.slug} hall={hall} data={data} now={now} />
+        ) : showGallery ? (
+          <LayoutGallery
+            current={layoutId}
+            onSelect={(id) => {
+              setLayoutId(id);
+              track("home_layout_changed", { layout: id, source: "gallery" });
+              setGalleryOpen(false);
+            }}
+          />
         ) : (
           <>
-            <LayoutSwitcher />
+            <ChangeLayoutButton onClick={() => setGalleryOpen(true)} />
             <HomeLayout data={data} now={now} />
           </>
         )}
