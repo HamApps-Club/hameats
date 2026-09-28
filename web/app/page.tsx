@@ -309,6 +309,8 @@ export default function Home() {
                 track("home_layout_changed", { layout: id, source: "gallery" });
                 history.pushState({ view: "home" }, "");
                 setGalleryOpen(false);
+                // Open the new layout at its top, not wherever the gallery was scrolled to.
+                window.scrollTo({ top: 0 });
               }}
             />
           </>
@@ -319,6 +321,7 @@ export default function Home() {
               onClick={() => {
                 history.pushState({ view: "gallery" }, "");
                 setGalleryOpen(true);
+                window.scrollTo({ top: 0 });
               }}
             />
             <HomeLayout data={data} now={now} />
