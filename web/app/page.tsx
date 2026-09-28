@@ -108,7 +108,7 @@ function ChangeLayoutButton({ onClick }: { onClick: () => void }) {
     <div className="fixed right-3 top-3 z-20">
       <button
         onClick={onClick}
-        className="rounded-lg border border-zinc-300 bg-zinc-50/90 px-2.5 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur hover:bg-zinc-200/70 dark:border-zinc-700 dark:bg-zinc-950/90 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className="rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white shadow-sm backdrop-blur hover:brightness-110"
       >
         Change layout
       </button>
