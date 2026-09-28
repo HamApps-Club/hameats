@@ -112,9 +112,9 @@ export function SiteFooter() {
       <hr className="border-zinc-200 dark:border-zinc-800" />
 
       <div className="flex items-center justify-center gap-4">
-        <a href="#" className="font-medium hover:underline">
+        <Link href="/about" className="font-medium hover:underline">
           About
-        </a>
+        </Link>
         <button onClick={() => setFeedbackOpen(true)} className="font-medium hover:underline">
           Feedback
         </button>
