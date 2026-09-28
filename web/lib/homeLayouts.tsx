@@ -46,7 +46,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   },
 };
 
-export const DEFAULT_HOME_LAYOUT: HomeLayoutId = "meal-first";
+export const DEFAULT_HOME_LAYOUT: HomeLayoutId = "classic";
 
 const STORAGE_KEY = "home-layout";
 
