@@ -13,7 +13,7 @@ import { hallBySlug, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
-import { withExtraMenuItems } from "@/lib/extraMenuItems";
+import { withSpecials } from "@/lib/specials";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
@@ -252,7 +252,7 @@ export default function Home() {
   const { data: posted, status } = useMenuData();
   // Posted Nutrislice menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
-  const data = useMemo(() => posted && withExtraMenuItems(withMirroredMenus(withStandingMenus(posted))), [posted]);
+  const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
