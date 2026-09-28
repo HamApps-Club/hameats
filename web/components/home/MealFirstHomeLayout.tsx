@@ -9,6 +9,7 @@ import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { ItemSheet } from "@/components/ItemSheet";
 import { SearchBar } from "@/components/SearchBar";
 import { SearchResults } from "@/components/SearchResults";
+import { track } from "@/lib/analytics";
 
 /**
  * An alternative home layout, browsed meal-first (à la Princeton's TigerMenus:
@@ -31,6 +32,7 @@ function useItemSheet() {
   const open = useCallback((s: Selected) => {
     history.pushState({ itemSheet: true }, "");
     setSelected(s);
+    track("item_opened", { item: s.item.name, context: s.context });
   }, []);
   const close = useCallback(() => {
     if (history.state?.itemSheet) history.back();
@@ -132,6 +134,14 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const results = useMemo(() => searchMenus(data, dates, query), [data, dates, query]);
   const { open, sheet } = useItemSheet();
 
+  const handleSearch = useCallback(
+    (q: string) => {
+      if (q.trim() && !query.trim()) track("search_used");
+      setQuery(q);
+    },
+    [query],
+  );
+
   const servingCount = HALLS.filter(
     (h) => windowFor(h, now.dow, meal) && mealNow(h.hours, now) === meal && statusAt(h.hours, now).open,
   ).length;
@@ -144,7 +154,7 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
         </h1>
       </header>
       <main className="mx-auto max-w-3xl space-y-5 px-4 py-6">
-        <SearchBar onSearch={setQuery} />
+        <SearchBar onSearch={handleSearch} />
         {query.trim() ? (
           <SearchResults
             rows={results}
