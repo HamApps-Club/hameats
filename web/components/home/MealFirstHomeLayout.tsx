@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { HALLS, type Hall } from "@/lib/halls";
+import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
@@ -74,7 +74,7 @@ function HallColumn({
   const win = windowFor(hall, now.dow, meal);
   const servingNow = win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
   const mealMenu = data.dates[now.iso]?.[hall.name]?.[meal];
-  const stations = Object.entries(mealMenu ?? {});
+  const stations = orderedStations(mealMenu, hall.stationOrder);
 
   return (
     <section className="space-y-2">
