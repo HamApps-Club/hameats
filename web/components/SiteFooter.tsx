@@ -85,6 +85,7 @@ export function SiteFooter() {
               <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">iPhone (Safari)</p>
               <ol className="list-decimal space-y-1 pl-6">
                 <li>Tap the three dots (•••) in the bottom-right corner.</li>
+                <li>Tap &quot;Share.&quot;</li>
                 <li>Tap &quot;View More.&quot;</li>
                 <li>Tap &quot;Add to Home Screen.&quot;</li>
                 <li>Tap &quot;Add.&quot;</li>
