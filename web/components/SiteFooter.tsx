@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const FEEDBACK_NAME = "Brandon Taylor";
 const FEEDBACK_EMAIL = "bntaylor@hamilton.edu";
@@ -51,6 +51,14 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
 export function SiteFooter() {
   const [homeScreenOpen, setHomeScreenOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const instructionsRef = useRef<HTMLDivElement>(null);
+
+  // Opening the instructions scrolls just far enough to show them (no scroll if they already fit).
+  useEffect(() => {
+    if (!homeScreenOpen) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    instructionsRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+  }, [homeScreenOpen]);
 
   return (
     <footer className="mx-auto w-full max-w-2xl space-y-2 px-4 py-6 text-xs text-zinc-500">
@@ -80,7 +88,10 @@ export function SiteFooter() {
           </svg>
         </button>
         {homeScreenOpen && (
-          <div className="mt-4 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 text-base text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <div
+            ref={instructionsRef}
+            className="mt-4 scroll-mb-4 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 text-base text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+          >
             <div>
               <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">iPhone (Safari)</p>
               <ol className="list-decimal space-y-1 pl-6">
