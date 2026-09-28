@@ -7,8 +7,13 @@ const lanAddresses = Object.values(networkInterfaces())
   .filter((a) => a && a.family === "IPv4" && !a.internal)
   .map((a) => a!.address);
 
+// One ID per deploy: the git commit on Vercel, a timestamp for local builds. The installed app compares it
+// with /api/version to know when Vercel has shipped something new (see components/AppUpdater.tsx).
+const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || `local-${Date.now()}`;
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: lanAddresses,
+  env: { BUILD_ID },
   async headers() {
     return [
       {
