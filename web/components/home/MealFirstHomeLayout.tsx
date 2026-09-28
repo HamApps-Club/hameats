@@ -80,12 +80,8 @@ function HallColumn({
 
   return (
     <section className="space-y-2">
-      <a href={`#${hall.slug}`} onClick={() => window.scrollTo({ top: 0 })} className="group block">
-        {/* 24px/500, matching TigerMenus' .dining-hall h2 */}
-        <h2 className="text-[24px] font-medium leading-[1.1] text-[#262626] group-hover:underline dark:text-zinc-100">
-          {hall.name}
-        </h2>
-      </a>
+      {/* 24px/500, matching TigerMenus' .dining-hall h2 */}
+      <h2 className="text-[24px] font-medium leading-[1.1] text-[#262626] dark:text-zinc-100">{hall.name}</h2>
 
       {servingNow && <p className={`text-sm font-semibold ${LINK_BLUE}`}>● Open now</p>}
 
@@ -99,12 +95,12 @@ function HallColumn({
 
       {stations.length > 0 ? (
         <div className="space-y-3">
-          {stations.slice(0, 3).map(([station, items]) => (
+          {stations.map(([station, items]) => (
             <div key={station}>
               {/* Bold, inherits body size — matches .menu-station */}
               <h3 className="mb-1.5 text-sm font-bold text-[#262626] dark:text-zinc-200">{station}</h3>
               <div className="space-y-1.5">
-                {items.slice(0, 4).map((it) => (
+                {items.map((it) => (
                   <button
                     key={it.name}
                     onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
@@ -113,15 +109,9 @@ function HallColumn({
                     {it.name}
                   </button>
                 ))}
-                {items.length > 4 && (
-                  <p className="text-sm text-[#606870] dark:text-zinc-500">+{items.length - 4} more</p>
-                )}
               </div>
             </div>
           ))}
-          {stations.length > 3 && (
-            <p className="text-sm text-[#606870] dark:text-zinc-500">+{stations.length - 3} more stations</p>
-          )}
         </div>
       ) : (
         win && <p className="text-sm text-[#606870] dark:text-zinc-500">No menu posted yet</p>
