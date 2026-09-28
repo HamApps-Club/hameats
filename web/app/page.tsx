@@ -1,17 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { HallList } from "@/components/HallList";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
 import { MenuList } from "@/components/MenuList";
-import { SearchBar } from "@/components/SearchBar";
-import { SearchResults } from "@/components/SearchResults";
 import { dayOfMonth, formatDate, shortWeekday } from "@/lib/dates";
-import { HALLS, hallBySlug, type Hall } from "@/lib/halls";
+import { hallBySlug, type Hall } from "@/lib/halls";
+import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
-import { searchMenus } from "@/lib/search";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 
@@ -97,12 +94,6 @@ function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
   return order.find((m) => hasMenu(day, hall, m)) ?? order[0] ?? preferred;
 }
 
-function greeting(minutes: number) {
-  if (minutes >= 5 * 60 && minutes < 12 * 60) return "Good Morning ☀️";
-  if (minutes >= 12 * 60 && minutes < 17 * 60) return "Good Afternoon 🌤️";
-  return "Good Evening 🌙";
-}
-
 const isPosted = (day: DayMenu | undefined) =>
   !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
 
@@ -122,38 +113,44 @@ const STATUS_DOT: Record<MenuStatus, string> = {
   error: "bg-red-500",
 };
 
-function HomeView({ data, now }: { data: MenuData; now: CampusTime }) {
-  const [query, setQuery] = useState("");
-  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
-  const results = useMemo(() => searchMenus(data, dates, query), [data, dates, query]);
-  const { open, sheet } = useItemSheet();
+/** "Layout" button in the corner of the home screen, opening a menu to switch layouts. */
+function LayoutSwitcher() {
+  const [layoutId, setLayoutId] = useHomeLayoutId();
+  const [open, setOpen] = useState(false);
 
   return (
-    <>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-        <h1 className="py-4 text-center text-3xl font-bold tracking-tight">
-          <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
-        </h1>
-      </header>
-      <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
-        <h2 className="text-3xl font-bold">{greeting(now.minutes)}</h2>
-        <SearchBar onSearch={setQuery} />
-        {query.trim() ? (
-          <SearchResults
-            rows={results}
-            query={query}
-            week
-            onSelect={(r) => open({ item: r.item, context: `${r.location} · ${r.station} · ${r.meal}` })}
-          />
-        ) : (
-          <section className="space-y-3">
-            <h2 className="text-2xl font-bold">All Dining Halls</h2>
-            <HallList halls={HALLS} now={now} />
-          </section>
-        )}
-      </main>
-      {sheet}
-    </>
+    <div className="fixed right-3 top-3 z-20">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="rounded-lg border border-zinc-300 bg-zinc-50/90 px-2.5 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur hover:bg-zinc-200/70 dark:border-zinc-700 dark:bg-zinc-950/90 dark:text-zinc-400 dark:hover:bg-zinc-800"
+      >
+        Layout
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-1 w-40 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
+        >
+          {Object.entries(HOME_LAYOUTS).map(([id, { label }]) => (
+            <button
+              key={id}
+              role="menuitem"
+              onClick={() => {
+                setLayoutId(id as keyof typeof HOME_LAYOUTS);
+                setOpen(false);
+              }}
+              className={`block w-full px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+                id === layoutId ? "font-semibold" : ""
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -288,6 +285,8 @@ export default function Home() {
   const data = useMemo(() => posted && withStandingMenus(posted), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
+  const [layoutId] = useHomeLayoutId();
+  const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -300,7 +299,10 @@ export default function Home() {
         ) : hall ? (
           <HallView key={hall.slug} hall={hall} data={data} now={now} />
         ) : (
-          <HomeView data={data} now={now} />
+          <>
+            <LayoutSwitcher />
+            <HomeLayout data={data} now={now} />
+          </>
         )}
       </div>
 
