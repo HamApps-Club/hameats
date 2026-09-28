@@ -287,7 +287,8 @@ export default function Home() {
       <div className="flex-1">
         {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (
-          <p className="py-20 text-center text-zinc-500">
+          // data-menu-loading: watched by the stuck-loading script in app/layout.tsx.
+          <p data-menu-loading className="py-20 text-center text-zinc-500">
             {status === "error" ? "Couldn't load menus." : "Loading menus…"}
           </p>
         ) : hall ? (
