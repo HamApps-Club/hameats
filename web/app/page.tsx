@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
@@ -271,6 +272,7 @@ export default function Home() {
   // Every fresh load of "/" starts at the gallery; picking a layout (or already having
   // one selected this session) keeps it out of the way until the next fresh load.
   const [galleryOpen, setGalleryOpen] = useState(true);
+  const [homeScreenOpen, setHomeScreenOpen] = useState(false);
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   useEffect(() => {
@@ -321,6 +323,68 @@ export default function Home() {
           </button>
         </div>
         <p>Unofficial student project, not affiliated with the college. Menus and hours can change.</p>
+
+        <hr className="border-zinc-200 dark:border-zinc-800" />
+
+        <div className="flex items-center gap-4">
+          <Link href="/hours" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            Dining hours
+          </Link>
+          <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            Bag lunch
+          </a>
+        </div>
+
+        <div>
+          <button
+            onClick={() => setHomeScreenOpen((o) => !o)}
+            aria-expanded={homeScreenOpen}
+            className="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300"
+          >
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+              className={`size-3.5 shrink-0 transition ${homeScreenOpen ? "rotate-90" : ""}`}
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.2 5.2a.75.75 0 0 1 1.06 0l4.27 4.27a.75.75 0 0 1 0 1.06l-4.27 4.27a.75.75 0 0 1-1.06-1.06L10.94 10 7.2 6.26a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add to Home Screen
+          </button>
+          {homeScreenOpen && (
+            <div className="mt-2 space-y-1.5 pl-5">
+              <p>
+                Open the{" "}
+                <Link href="/" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                  homepage
+                </Link>
+                . In Safari, open Share; in Chrome on Android, open the menu. Choose &quot;Add to Home
+                Screen.&quot;
+              </p>
+              <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                Step-by-step instructions
+              </a>
+            </div>
+          )}
+        </div>
+
+        <hr className="border-zinc-200 dark:border-zinc-800" />
+
+        <div className="flex items-center gap-4">
+          <a href="#" className="font-medium hover:underline">
+            About
+          </a>
+          <a href="#" className="font-medium hover:underline">
+            Feedback
+          </a>
+          <a href="#" className="font-medium hover:underline">
+            GitHub
+          </a>
+        </div>
       </footer>
     </div>
   );
