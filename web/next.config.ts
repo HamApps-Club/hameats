@@ -11,9 +11,23 @@ const lanAddresses = Object.values(networkInterfaces())
 // with /api/version to know when Vercel has shipped something new (see components/AppUpdater.tsx).
 const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || `local-${Date.now()}`;
 
+// PostHog is reached through /ingest on this site's own domain, so Firefox tracking protection and
+// ad-blockers (which block *.posthog.com) don't silently drop events. See lib/analytics.ts.
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
+const POSTHOG_ASSETS_HOST = POSTHOG_HOST.replace(".i.posthog.com", "-assets.i.posthog.com");
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: lanAddresses,
   env: { BUILD_ID },
+  // PostHog's API paths end in slashes; don't let Next redirect them away.
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      { source: "/ingest/static/:path*", destination: `${POSTHOG_ASSETS_HOST}/static/:path*` },
+      { source: "/ingest/array/:path*", destination: `${POSTHOG_ASSETS_HOST}/array/:path*` },
+      { source: "/ingest/:path*", destination: `${POSTHOG_HOST}/:path*` },
+    ];
+  },
   async headers() {
     return [
       {

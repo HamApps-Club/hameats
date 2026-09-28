@@ -8,7 +8,9 @@ export function initAnalytics() {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   if (!key) return;
   posthog.init(key, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
+    // Proxied through this site (see next.config.ts) so tracking protection doesn't block it.
+    api_host: "/ingest",
+    ui_host: (process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com").replace(".i.posthog.com", ".posthog.com"),
     person_profiles: "identified_only",
     capture_pageview: true,
     capture_pageleave: true,
