@@ -1,8 +1,12 @@
-// Ham Eats service worker: makes the app load offline and keeps the last menus on the device.
-// Bump VERSION to drop old caches after changing this file.
-const VERSION = "v3";
-const SHELL = `shell-${VERSION}`;
-const DATA = `data-${VERSION}`;
+// Served from a route (not public/) so the build ID can be written in: see the comment at the top of the script.
+export const dynamic = "force-static";
+
+const SCRIPT = `// Ham Eats service worker: makes the app load offline and keeps the last menus on the device.
+// VERSION is the deploy's build ID, so every Vercel deploy is a new service worker: phones install it,
+// and it drops the previous deploy's cached app files. Saved menus (DATA) are kept across deploys.
+const VERSION = "__BUILD_ID__";
+const SHELL = \`shell-\${VERSION}\`;
+const DATA = "data-v1";
 const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=3", "/icons/icon-512.png?v=3"];
 
 self.addEventListener("install", (event) => {
@@ -54,3 +58,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request));
   }
 });
+`;
+
+export function GET() {
+  return new Response(SCRIPT.replace("__BUILD_ID__", process.env.BUILD_ID ?? "dev"), {
+    headers: { "Content-Type": "application/javascript; charset=utf-8" },
+  });
+}
