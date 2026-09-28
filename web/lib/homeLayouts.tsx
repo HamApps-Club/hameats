@@ -3,11 +3,12 @@ import { useCallback, useSyncExternalStore } from "react";
 import { AccordionHomeLayout } from "@/components/home/AccordionHomeLayout";
 import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
 import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
+import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout";
 
 export type { HomeLayoutProps };
 
 // Extend this union as new home layouts are registered below.
-export type HomeLayoutId = "classic" | "meal-first" | "accordion";
+export type HomeLayoutId = "classic" | "meal-first" | "accordion" | "net-nutrition";
 
 type HomeLayoutEntry = {
   label: string;
@@ -35,6 +36,12 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     description: "Every hall on one page — tap to expand its menu in place, no navigating away.",
     Component: AccordionHomeLayout,
     previewSrc: "/layout-previews/accordion.png",
+  },
+  "net-nutrition": {
+    label: "Net Nutrition",
+    description: "Meal-first browsing with a filter panel to narrow every hall by allergen or diet at once.",
+    Component: NetNutritionHomeLayout,
+    previewSrc: "/layout-previews/net-nutrition.png",
   },
 };
 
