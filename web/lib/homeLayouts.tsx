@@ -70,18 +70,8 @@ export function useHomeLayoutId(): [HomeLayoutId, (id: HomeLayoutId) => void] {
 
   const set = useCallback((next: HomeLayoutId) => {
     localStorage.setItem(STORAGE_KEY, next);
-    localStorage.setItem(PICKED_KEY, "1");
     window.dispatchEvent(new Event(LOCAL_CHANGE_EVENT));
   }, []);
 
   return [id, set];
-}
-
-// Separate from STORAGE_KEY so we can tell "never chosen" (show the gallery)
-// apart from "explicitly chose the default layout" (don't show it again).
-const PICKED_KEY = "home-layout-picked";
-
-/** Whether the visitor has ever picked a layout — false only until their first choice. */
-export function useHasPickedHomeLayout(): boolean {
-  return useSyncExternalStore(subscribe, () => localStorage.getItem(PICKED_KEY) === "1", () => false);
 }

@@ -7,7 +7,7 @@ import { LayoutGallery } from "@/components/home/LayoutGallery";
 import { MenuList } from "@/components/MenuList";
 import { dayOfMonth, formatDate, shortWeekday } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { HOME_LAYOUTS, useHasPickedHomeLayout, useHomeLayoutId } from "@/lib/homeLayouts";
+import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
@@ -268,15 +268,14 @@ export default function Home() {
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
-  const hasPickedLayout = useHasPickedHomeLayout();
-  const [galleryOpen, setGalleryOpen] = useState(false);
+  // Every fresh load of "/" starts at the gallery; picking a layout (or already having
+  // one selected this session) keeps it out of the way until the next fresh load.
+  const [galleryOpen, setGalleryOpen] = useState(true);
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
-  // First visit (no stored choice yet), or explicitly reopened via "Change layout".
-  const showGallery = !hasPickedLayout || galleryOpen;
 
   useEffect(() => {
-    if (data && !hall && !showGallery) track("home_layout_viewed", { layout: layoutId });
-  }, [data, hall, layoutId, showGallery]);
+    if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: layoutId });
+  }, [data, hall, layoutId, galleryOpen]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -288,7 +287,7 @@ export default function Home() {
           </p>
         ) : hall ? (
           <HallView key={hall.slug} hall={hall} data={data} now={now} />
-        ) : showGallery ? (
+        ) : galleryOpen ? (
           <LayoutGallery
             current={layoutId}
             onSelect={(id) => {
