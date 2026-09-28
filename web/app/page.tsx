@@ -11,6 +11,7 @@ import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hou
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
+import { track } from "@/lib/analytics";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -47,6 +48,7 @@ function useItemSheet() {
   const open = useCallback((s: Selected) => {
     history.pushState({ itemSheet: true }, "");
     setSelected(s);
+    track("item_opened", { item: s.item.name, context: s.context });
   }, []);
   const close = useCallback(() => {
     if (history.state?.itemSheet) history.back();
@@ -139,6 +141,7 @@ function LayoutSwitcher() {
               role="menuitem"
               onClick={() => {
                 setLayoutId(id as keyof typeof HOME_LAYOUTS);
+                track("home_layout_changed", { layout: id });
                 setOpen(false);
               }}
               className={`block w-full px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
@@ -176,6 +179,10 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
   );
   const meal = pickedMeal ?? autoMeal;
   const standing = standingMenuFor(hall.slug);
+
+  useEffect(() => {
+    track("hall_opened", { hall: hall.slug });
+  }, [hall.slug]);
 
   return (
     <>
@@ -287,6 +294,10 @@ export default function Home() {
   const now = useCampusNow();
   const [layoutId] = useHomeLayoutId();
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
+
+  useEffect(() => {
+    if (data && !hall) track("home_layout_viewed", { layout: layoutId });
+  }, [data, hall, layoutId]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
