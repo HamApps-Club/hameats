@@ -3,7 +3,6 @@ import { useCallback, useSyncExternalStore } from "react";
 import { AccordionHomeLayout } from "@/components/home/AccordionHomeLayout";
 import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
 import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
-import { AccordionPreview, ClassicPreview, MealFirstPreview } from "@/components/home/LayoutPreviews";
 
 export type { HomeLayoutProps };
 
@@ -14,7 +13,8 @@ type HomeLayoutEntry = {
   label: string;
   description: string;
   Component: ComponentType<HomeLayoutProps>;
-  Preview: ComponentType;
+  /** Static screenshot of the layout's home screen, shown as a card thumbnail in the gallery. */
+  previewSrc: string;
 };
 
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
@@ -22,19 +22,19 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     label: "Classic",
     description: "A search bar up top and every dining hall listed below, ranked by what's open now.",
     Component: ClassicHomeLayout,
-    Preview: ClassicPreview,
+    previewSrc: "/layout-previews/classic.png",
   },
   "meal-first": {
     label: "Meal First",
     description: "Pick Breakfast, Lunch, or Dinner, then browse halls as cards scoped to that meal.",
     Component: MealFirstHomeLayout,
-    Preview: MealFirstPreview,
+    previewSrc: "/layout-previews/meal-first.png",
   },
   accordion: {
     label: "Accordion",
     description: "Every hall on one page — tap to expand its menu in place, no navigating away.",
     Component: AccordionHomeLayout,
-    Preview: AccordionPreview,
+    previewSrc: "/layout-previews/accordion.png",
   },
 };
 
