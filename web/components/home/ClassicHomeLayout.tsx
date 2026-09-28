@@ -18,7 +18,7 @@ export function ClassicHomeLayout({ now }: HomeLayoutProps) {
     <>
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
         <h1 className="py-4 text-center text-3xl font-bold tracking-tight">
-          <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
+          <span className="text-accent">Ham</span> Eats
         </h1>
       </header>
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">

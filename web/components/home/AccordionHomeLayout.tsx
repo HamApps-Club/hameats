@@ -188,7 +188,7 @@ export function AccordionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-10 bg-blue-500 dark:bg-blue-600">
+      <header className="sticky top-0 z-10 bg-accent">
         <h1 className="py-4 text-center text-xl font-semibold text-white">Ham Eats</h1>
       </header>
       <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
@@ -200,7 +200,7 @@ export function AccordionHomeLayout({ data, now }: HomeLayoutProps) {
               aria-pressed={d === date}
               className={`flex flex-col items-center rounded-xl py-2 ${
                 d === date
-                  ? "bg-blue-500 text-white dark:bg-blue-600"
+                  ? "bg-accent text-white"
                   : "text-zinc-600 hover:bg-zinc-200/70 dark:text-zinc-300 dark:hover:bg-zinc-800"
               }`}
             >

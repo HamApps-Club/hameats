@@ -19,13 +19,18 @@ export function LayoutGallery({
     <div className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-10 text-center">
         <h1 className="text-4xl font-bold tracking-tight">
-          <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
+          <span className="text-accent">Ham</span> Eats
         </h1>
         <p className="mt-2 text-zinc-500 dark:text-zinc-400">Choose how you&apos;d like to browse the dining halls.</p>
       </header>
 
+      <div className="mb-8 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
+        Welcome! This is a demo site where we&apos;re trying out a few different home page layouts to see what
+        works best — pick whichever one feels right to you.
+      </div>
+
       <div className="mb-4 flex items-center gap-3">
-        <span className="size-2.5 rounded-full bg-blue-600" aria-hidden />
+        <span className="size-2.5 rounded-full bg-accent" aria-hidden />
         <h2 className="text-lg font-semibold">Home Layouts</h2>
         <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
       </div>
@@ -40,7 +45,7 @@ export function LayoutGallery({
               aria-pressed={selected}
               className={`overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition active:scale-[0.99] dark:bg-zinc-900 ${
                 selected
-                  ? "border-blue-500 ring-1 ring-blue-500"
+                  ? "border-accent ring-1 ring-accent"
                   : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
               }`}
             >
