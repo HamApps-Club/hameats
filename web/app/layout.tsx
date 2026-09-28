@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppUpdater } from "@/components/AppUpdater";
 import { PostHogProvider } from "@/components/PostHogProvider";
+import { STUCK_LOADING_SCRIPT } from "@/lib/stuckLoadingScript";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <AppUpdater />
         </PostHogProvider>
+        <script dangerouslySetInnerHTML={{ __html: STUCK_LOADING_SCRIPT }} />
       </body>
     </html>
   );
