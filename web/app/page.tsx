@@ -10,6 +10,7 @@ import { hallBySlug, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, useHasPickedHomeLayout, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData, type MenuStatus } from "@/lib/menuData";
+import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
@@ -261,8 +262,9 @@ function HallView({ hall, data, now }: { hall: Hall; data: MenuData; now: Campus
 
 export default function Home() {
   const { data: posted, status, generatedAt, refresh } = useMenuData();
-  // Posted Nutrislice menus, plus standing menus (the Diner's PDF) wherever nothing was posted.
-  const data = useMemo(() => posted && withStandingMenus(posted), [posted]);
+  // Posted Nutrislice menus, plus standing menus (the Diner's PDF) and mirrored menus
+  // (Commons' breakfast from McEwen's) wherever nothing was posted.
+  const data = useMemo(() => posted && withMirroredMenus(withStandingMenus(posted)), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
