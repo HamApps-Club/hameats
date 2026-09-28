@@ -376,8 +376,8 @@ export default function Home() {
                     </Link>{" "}
                     in Safari.
                   </li>
-                  <li>Tap the Share button (the square with an arrow pointing up).</li>
-                  <li>Scroll down and tap &quot;Add to Home Screen.&quot;</li>
+                  <li>Tap the three dots (•••) in the bottom-right corner.</li>
+                  <li>Tap &quot;Share,&quot; then scroll down and tap &quot;Add to Home Screen.&quot;</li>
                   <li>Tap &quot;Add&quot; in the top-right corner.</li>
                 </ol>
               </div>
