@@ -339,17 +339,23 @@ export default function Home() {
           </a>
         </div>
 
-        <div className="text-center">
+        {/* Deliberately oversized: getting the app onto the home screen is the main thing we want people to do. */}
+        <div className="py-4">
           <button
             onClick={() => setHomeScreenOpen((o) => !o)}
             aria-expanded={homeScreenOpen}
-            className="mx-auto flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300"
+            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-600 px-6 py-6 text-2xl font-bold text-white shadow-md active:bg-blue-700 dark:bg-blue-500 dark:active:bg-blue-600"
           >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden className="size-9 shrink-0">
+              <rect x="6" y="2" width="12" height="20" rx="2.5" />
+              <path strokeLinecap="round" d="M12 8v6M9 11h6" />
+            </svg>
+            Add to Home Screen
             <svg
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden
-              className={`size-3.5 shrink-0 transition ${homeScreenOpen ? "rotate-90" : ""}`}
+              className={`size-7 shrink-0 transition ${homeScreenOpen ? "rotate-90" : ""}`}
             >
               <path
                 fillRule="evenodd"
@@ -357,21 +363,39 @@ export default function Home() {
                 clipRule="evenodd"
               />
             </svg>
-            Add to Home Screen
           </button>
           {homeScreenOpen && (
-            <div className="mt-2 space-y-1.5">
-              <p>
-                Open the{" "}
-                <Link href="/" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                  homepage
-                </Link>
-                . In Safari, open Share; in Chrome on Android, open the menu. Choose &quot;Add to Home
-                Screen.&quot;
-              </p>
-              <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                Step-by-step instructions
-              </a>
+            <div className="mt-4 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 text-base text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+              <div>
+                <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">iPhone (Safari)</p>
+                <ol className="list-decimal space-y-1 pl-6">
+                  <li>
+                    Open the{" "}
+                    <Link href="/" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                      homepage
+                    </Link>{" "}
+                    in Safari.
+                  </li>
+                  <li>Tap the Share button (the square with an arrow pointing up).</li>
+                  <li>Scroll down and tap &quot;Add to Home Screen.&quot;</li>
+                  <li>Tap &quot;Add&quot; in the top-right corner.</li>
+                </ol>
+              </div>
+              <div>
+                <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">Android (Chrome)</p>
+                <ol className="list-decimal space-y-1 pl-6">
+                  <li>
+                    Open the{" "}
+                    <Link href="/" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                      homepage
+                    </Link>{" "}
+                    in Chrome.
+                  </li>
+                  <li>Tap the menu (three dots) in the top-right corner.</li>
+                  <li>Tap &quot;Add to Home screen&quot; (or &quot;Install app&quot;).</li>
+                  <li>Tap &quot;Add&quot; to confirm.</li>
+                </ol>
+              </div>
             </div>
           )}
         </div>
