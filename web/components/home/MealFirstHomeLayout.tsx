@@ -12,12 +12,18 @@ import { SearchResults } from "@/components/SearchResults";
 import { track } from "@/lib/analytics";
 
 /**
- * An alternative home layout, browsed meal-first (à la Princeton's TigerMenus:
- * https://menus.tigerapps.org/, which leads with Breakfast/Lunch/Dinner tabs
- * rather than a hall-first list). Halls are shown as a card grid, each scoped
- * to the selected meal, with a live "serving now" indicator layered on top —
- * the one thing a static meal-nav site like TigerMenus doesn't have.
+ * An alternative home layout, browsed meal-first — a close visual match of
+ * Princeton's TigerMenus (https://menus.tigerapps.org/): its grey jumbotron
+ * header, plain-text Breakfast/Lunch/Dinner nav, Bootstrap link-blue accent
+ * (#337ab7), and flat, borderless hall columns with bold station headings
+ * and plain-line dishes, no card chrome. TigerMenus is light-only; dark mode
+ * here follows this app's existing zinc palette at the same hierarchy.
+ * Layered on top: a live "serving now" indicator, which a static site can't have.
  */
+
+// Bootstrap 3's default stack and link-blue, which TigerMenus never overrides.
+const SITE_FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+const LINK_BLUE = "text-[#337ab7] dark:text-blue-400";
 
 type Selected = { item: MenuItem; context: string };
 
@@ -54,7 +60,7 @@ function windowFor(hall: Hall, dow: number, meal: Meal) {
   return hall.hours[dow].find((p) => p.meal === meal);
 }
 
-function HallCard({
+function HallColumn({
   hall,
   meal,
   now,
@@ -70,60 +76,57 @@ function HallCard({
   const win = windowFor(hall, now.dow, meal);
   const servingNow = win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
   const mealMenu = data.dates[now.iso]?.[hall.name]?.[meal];
-  const stations = mealMenu ? Object.keys(mealMenu) : [];
-  const items = mealMenu ? Object.values(mealMenu).flat() : [];
+  const stations = Object.entries(mealMenu ?? {});
 
   return (
-    <a
-      href={`#${hall.slug}`}
-      onClick={() => window.scrollTo({ top: 0 })}
-      className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-lg font-semibold">{hall.name}</h3>
-        {servingNow && (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-400">
-            <span className="size-1.5 rounded-full bg-green-600 dark:bg-green-400" />
-            Now
-          </span>
-        )}
-      </div>
+    <section className="space-y-2">
+      <a href={`#${hall.slug}`} onClick={() => window.scrollTo({ top: 0 })} className="group block">
+        {/* 24px/500, matching TigerMenus' .dining-hall h2 */}
+        <h2 className="text-[24px] font-medium leading-[1.1] text-[#262626] group-hover:underline dark:text-zinc-100">
+          {hall.name}
+        </h2>
+      </a>
+
+      {servingNow && <p className={`text-sm font-semibold ${LINK_BLUE}`}>● Open now</p>}
 
       {win ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-[#606870] dark:text-zinc-400">
           {meal} · {compactRange(win.open, win.close)}
         </p>
       ) : (
-        <p className="text-sm text-zinc-400">No {meal.toLowerCase()} today</p>
+        <p className="text-sm text-[#606870] dark:text-zinc-400">No {meal.toLowerCase()} today</p>
       )}
 
       {stations.length > 0 ? (
-        <div className="space-y-1.5">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {stations.slice(0, 3).join(" · ")}
-            {stations.length > 3 && ` +${stations.length - 3} more`}
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            {items.slice(0, 3).map((it) => (
-              <button
-                key={it.name}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const station = stations.find((s) => mealMenu?.[s].includes(it)) ?? "";
-                  onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` });
-                }}
-                className="max-w-full truncate rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600"
-              >
-                {it.name}
-              </button>
-            ))}
-          </div>
+        <div className="space-y-3">
+          {stations.slice(0, 3).map(([station, items]) => (
+            <div key={station}>
+              {/* Bold, inherits body size — matches .menu-station */}
+              <h3 className="mb-1.5 text-sm font-bold text-[#262626] dark:text-zinc-200">{station}</h3>
+              <div className="space-y-1.5">
+                {items.slice(0, 4).map((it) => (
+                  <button
+                    key={it.name}
+                    onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
+                    className="block text-left text-sm text-[#262626] hover:text-[#337ab7] hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                  >
+                    {it.name}
+                  </button>
+                ))}
+                {items.length > 4 && (
+                  <p className="text-sm text-[#606870] dark:text-zinc-500">+{items.length - 4} more</p>
+                )}
+              </div>
+            </div>
+          ))}
+          {stations.length > 3 && (
+            <p className="text-sm text-[#606870] dark:text-zinc-500">+{stations.length - 3} more stations</p>
+          )}
         </div>
-      ) : win ? (
-        <p className="text-sm text-zinc-400">No menu posted yet</p>
-      ) : null}
-    </a>
+      ) : (
+        win && <p className="text-sm text-[#606870] dark:text-zinc-500">No menu posted yet</p>
+      )}
+    </section>
   );
 }
 
@@ -147,14 +150,35 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   ).length;
 
   return (
-    <>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-        <h1 className="py-4 text-center text-3xl font-bold tracking-tight">
+    <div style={{ fontFamily: SITE_FONT }}>
+      {/* TigerMenus' jumbotron: light grey band, big -1px-tracked title, plain-text meal nav */}
+      <header className="border-b border-[#e1e5e8] bg-[#eeeeee] px-4 pb-6 pt-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
+        <h1 className="text-[40px] font-medium tracking-[-1px] text-[#262626] dark:text-zinc-100">
           <span className="text-blue-600 dark:text-blue-400">Ham</span> Eats
         </h1>
+        {!query.trim() && (
+          <div role="tablist" aria-label="Meal" className="mt-2 flex justify-center gap-4 text-lg">
+            {MEALS.map((m) => (
+              <button
+                key={m}
+                role="tab"
+                aria-selected={m === meal}
+                onClick={() => setMeal(m)}
+                className={`min-h-11 px-1 ${
+                  m === meal ? "font-bold text-[#262626] dark:text-white" : `${LINK_BLUE} hover:underline`
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
-      <main className="mx-auto max-w-3xl space-y-5 px-4 py-6">
-        <SearchBar onSearch={handleSearch} />
+
+      <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-5">
+          <SearchBar onSearch={handleSearch} />
+        </div>
         {query.trim() ? (
           <SearchResults
             rows={results}
@@ -164,39 +188,21 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
           />
         ) : (
           <>
-            <div role="tablist" aria-label="Meal" className="flex gap-2">
-              {MEALS.map((m) => (
-                <button
-                  key={m}
-                  role="tab"
-                  aria-selected={m === meal}
-                  onClick={() => setMeal(m)}
-                  className={`flex-1 rounded-xl py-2.5 text-base font-semibold transition ${
-                    m === meal
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                      : "bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-
-            <p className="text-sm text-zinc-500">
+            <p className="mb-5 text-sm text-[#606870] dark:text-zinc-400">
               {servingCount > 0
                 ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
                 : `No halls serving ${meal.toLowerCase()} right now`}
             </p>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
               {HALLS.map((h) => (
-                <HallCard key={h.slug} hall={h} meal={meal} now={now} data={data} onSelect={open} />
+                <HallColumn key={h.slug} hall={h} meal={meal} now={now} data={data} onSelect={open} />
               ))}
             </div>
           </>
         )}
       </main>
       {sheet}
-    </>
+    </div>
   );
 }
