@@ -26,7 +26,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     previewSrc: "/layout-previews/classic.png",
   },
   "meal-first": {
-    label: "Meal First",
+    label: "Super Simplified",
     description: "Pick Breakfast, Lunch, or Dinner, then browse halls as cards scoped to that meal.",
     Component: MealFirstHomeLayout,
     previewSrc: "/layout-previews/meal-first.png",
