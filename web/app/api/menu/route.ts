@@ -2,8 +2,8 @@ import saved from "@/public/dining_menu.json";
 import { countItems, fetchMenus } from "@/lib/nutrislice";
 import type { MenuData } from "@/lib/types";
 
-// Rebuild at most every 30 minutes. Between rebuilds, Vercel serves the cached copy.
-export const revalidate = 1800;
+// Rebuild at most once a day (24 h). Between rebuilds, Vercel serves the cached copy.
+export const revalidate = 86400;
 
 export async function GET() {
   const live = await fetchMenus(7, revalidate).catch((e) => {
