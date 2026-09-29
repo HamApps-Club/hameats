@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { MenuData } from "./types";
 
 const STORAGE_KEY = "dining_menu_v1";
-/** Live menus, fetched from Nutrislice on the server and cached ~30 min. */
+/** Live menus, fetched from Nutrislice on the server and cached for a day. */
 const MENU_URL = "/api/menu";
 /** Last scraped snapshot, used if the live route fails. */
 const FALLBACK_URL = "/dining_menu.json";
