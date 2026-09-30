@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
-import { type Meal, type MenuData, type MenuItem } from "@/lib/types";
+import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
+import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { MealHeader, MealTabsBar } from "@/components/home/MealHeader";
 import { track } from "@/lib/analytics";
 
 /**
@@ -134,23 +134,49 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
 
 
   return (
-    <div style={{ fontFamily: SITE_FONT }}>
-      <MealHeader
-        dates={dates}
-        selected={date}
-        today={now.iso}
-        onSelectDate={(d) => {
-          setPickedDate(d);
-          track("comparison_day_picked", { date: d });
-        }}
-      />
+    <div>
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+        <h1 className="py-4 text-center text-3xl font-bold tracking-tight">
+          <span className="text-accent">Ham</span> Eats
+        </h1>
+      </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         <div className="mx-auto mb-5 max-w-2xl">
-          <MealTabsBar meal={meal} onSelectMeal={setMeal} />
+          <DayPicker
+            dates={dates}
+            selected={date}
+            today={now.iso}
+            onSelect={(d) => {
+              setPickedDate(d);
+              track("comparison_day_picked", { date: d });
+            }}
+          />
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
+        <div
+          role="tablist"
+          aria-label="Meal"
+          className="mx-auto mb-5 flex max-w-2xl border-b border-zinc-200 dark:border-zinc-800"
+        >
+          {MEALS.map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={m === meal}
+              onClick={() => setMeal(m)}
+              className={`-mb-px flex-1 border-b-2 py-2.5 text-base ${
+                m === meal
+                  ? "border-zinc-900 font-semibold dark:border-white"
+                  : "border-transparent text-zinc-500"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4" style={{ fontFamily: SITE_FONT }}>
           {HALLS.map((h) => (
             <HallColumn key={h.slug} hall={h} meal={meal} date={date} now={now} data={data} onSelect={open} />
           ))}
