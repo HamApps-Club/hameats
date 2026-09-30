@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
@@ -259,9 +260,15 @@ function HallColumn({
   return (
     <section
       id={sectionId(hall)}
-      className="scroll-mt-4 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+      className="scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
     >
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{hall.name}</h2>
+      <h2
+        id={`${sectionId(hall)}-title`}
+        tabIndex={-1}
+        className="-mx-2 rounded-lg px-2 py-0.5 text-lg font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-accent dark:text-zinc-100"
+      >
+        {hall.name}
+      </h2>
 
       {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
 
@@ -315,7 +322,7 @@ function HallColumn({
 /** Element id of a hall's card, for the scroller to jump to. (Not a #hash: those open the hall's own page.) */
 const sectionId = (hall: Hall) => `continental-${hall.slug}`;
 
-/** Short names so all four pills fit across a phone screen. */
+/** Short names so all four hall labels fit across a phone screen. */
 const SHORT_NAMES: Record<string, string> = {
   commons: "Commons",
   mcewen: "McEwen",
@@ -324,14 +331,14 @@ const SHORT_NAMES: Record<string, string> = {
 };
 
 /**
- * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a bar
- * pinned to the bottom of the screen with one pill per hall.
- * Tapping a pill scrolls to that hall's card; the hall currently on screen is highlighted. The bar
- * only shows while the halls are on screen, so it never covers the header or the page footer.
+ * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
+ * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
+ * outlines its heading; the hall on screen gets the big blue dot. It's rendered at the end of <body>
+ * and sticky to the bottom of the screen, so it rides along while scrolling and, at the very end of
+ * the page, comes to rest below the footer instead of covering it.
  */
 function HallScroller({ halls }: { halls: Hall[] }) {
   const [active, setActive] = useState(halls[0]?.slug);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     let frame = 0;
@@ -340,10 +347,6 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       const cards = halls.map((h) => document.getElementById(sectionId(h))).filter((el) => el !== null);
       if (!cards.length) return;
       const vh = window.innerHeight;
-      const top = cards[0].getBoundingClientRect().top;
-      const bottom = cards[cards.length - 1].getBoundingClientRect().bottom;
-      // Hide once the halls end, so the bar doesn't sit over the page footer.
-      setVisible(top < vh && bottom > vh * 0.75);
       // The active hall is the last one whose card has reached the top third of the screen. At the very
       // bottom of the page the last cards can't scroll that high, so there it's the last card on screen.
       const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
@@ -369,34 +372,49 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   const jump = (hall: Hall) => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById(sectionId(hall))?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    // Outline the hall's heading, like TigerMenus; it clears on the next tap elsewhere.
+    document.getElementById(`${sectionId(hall)}-title`)?.focus({ preventScroll: true });
     track("continental_hall_jumped", { hall: hall.slug });
   };
 
-  return (
+  return createPortal(
     <nav
       aria-label="Jump to dining hall"
-      className={`fixed inset-x-0 bottom-0 z-30 border-t sm:hidden border-zinc-200 bg-white/95 backdrop-blur transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900/95 ${
-        visible ? "translate-y-0" : "pointer-events-none translate-y-full"
-      }`}
+      className="sticky bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden"
     >
-      <div className="mx-auto flex max-w-2xl justify-center gap-2 overflow-x-auto px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:none]">
-        {halls.map((h) => (
-          <button
-            key={h.slug}
-            type="button"
-            aria-current={h.slug === active ? "location" : undefined}
-            onClick={() => jump(h)}
-            className={`min-h-10 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold ${
-              h.slug === active
-                ? "bg-blue-600 text-white dark:bg-blue-500"
-                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            }`}
-          >
-            {SHORT_NAMES[h.slug] ?? h.name}
-          </button>
-        ))}
+      <div className="relative grid grid-cols-4 rounded-2xl border border-zinc-200 bg-white/95 px-1 pb-2.5 pt-3 shadow-md backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/95">
+        {/* The line the dots sit on, from the first dot's center to the last's. */}
+        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[17px] h-px bg-zinc-300 dark:bg-zinc-600" />
+        {halls.map((h) => {
+          const isActive = h.slug === active;
+          return (
+            <button
+              key={h.slug}
+              type="button"
+              aria-current={isActive ? "location" : undefined}
+              onClick={() => jump(h)}
+              className="relative flex min-h-11 flex-col items-center gap-1.5"
+            >
+              <span className="flex size-3 items-center justify-center">
+                <span
+                  className={`rounded-full ${
+                    isActive ? "size-3 bg-accent" : "size-1.5 bg-zinc-400 dark:bg-zinc-500"
+                  }`}
+                />
+              </span>
+              <span
+                className={`text-[15px] ${
+                  isActive ? "font-semibold text-accent" : "text-zinc-600 dark:text-zinc-400"
+                }`}
+              >
+                {SHORT_NAMES[h.slug] ?? h.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
-    </nav>
+    </nav>,
+    document.body,
   );
 }
 
@@ -443,8 +461,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
     <div>
       <MealHeader meal={meal} onSelectMeal={setMeal} />
 
-      {/* Extra bottom padding on phones so the last hall can scroll clear of the hall scroller. */}
-      <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:pb-6">
+      <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mx-auto mb-5 max-w-2xl">
           <DayPicker
             dates={dates}
