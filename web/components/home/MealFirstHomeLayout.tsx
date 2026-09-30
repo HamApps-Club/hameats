@@ -5,9 +5,8 @@ import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { type Meal, type MenuData, type MenuItem } from "@/lib/types";
-import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { MealHeader } from "@/components/home/MealHeader";
+import { MealHeader, MealTabsBar } from "@/components/home/MealHeader";
 import { track } from "@/lib/analytics";
 
 /**
@@ -136,19 +135,19 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div style={{ fontFamily: SITE_FONT }}>
-      <MealHeader meal={meal} onSelectMeal={setMeal} />
+      <MealHeader
+        dates={dates}
+        selected={date}
+        today={now.iso}
+        onSelectDate={(d) => {
+          setPickedDate(d);
+          track("comparison_day_picked", { date: d });
+        }}
+      />
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         <div className="mx-auto mb-5 max-w-2xl">
-          <DayPicker
-            dates={dates}
-            selected={date}
-            today={now.iso}
-            onSelect={(d) => {
-              setPickedDate(d);
-              track("comparison_day_picked", { date: d });
-            }}
-          />
+          <MealTabsBar meal={meal} onSelectMeal={setMeal} />
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
