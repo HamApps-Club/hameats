@@ -10,7 +10,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { DEFAULT_HOME_LAYOUT, HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
+import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
 import { withSpecials } from "@/lib/specials";
@@ -256,22 +256,21 @@ export default function Home() {
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
-  // Every fresh load of "/" starts on the Classic layout; "Change layout"
-  // opens the gallery for anyone who wants to try a different one.
-  const [galleryOpen, setGalleryOpen] = useState(false);
+  // Every fresh load of "/" starts at the gallery; picking a layout (or already having
+  // one selected this session) keeps it out of the way until the next fresh load.
+  const [galleryOpen, setGalleryOpen] = useState(true);
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   useEffect(() => {
     if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: layoutId });
   }, [data, hall, layoutId, galleryOpen]);
 
-  // Reset to the default (Classic) layout on each fresh load, and tag the entry page load
-  // lands on as home, so back from the gallery (or from a hall reached from home)
-  // returns here instead of wherever the plain history stack would go.
+  // Tag the entry page load lands on as the gallery, so back button from a
+  // picked layout (or from a hall reached from it) returns here instead of
+  // wherever the plain history stack would otherwise send the user.
   useEffect(() => {
-    setLayoutId(DEFAULT_HOME_LAYOUT);
-    if (!window.location.hash) history.replaceState({ view: "home" }, "");
-  }, [setLayoutId]);
+    if (!window.location.hash) history.replaceState({ view: "gallery" }, "");
+  }, []);
 
   useEffect(() => {
     const onPop = (e: PopStateEvent) => {
