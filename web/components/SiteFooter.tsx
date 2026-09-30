@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from "react";
 
 const FEEDBACK_NAME = "Brandon Taylor";
 const FEEDBACK_EMAIL = "bntaylor@hamilton.edu";
+const FEEDBACK_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSfpML07xAkISCgrPiObM3c_yEJUv1_2p0OWrRTv4-1j84XtBQ/viewform";
 /** Hamilton's own dining site, for anything this app doesn't cover. */
 const OFFICIAL_DINING_URL = "https://www.hamilton.edu/dining";
 
-/** Who to contact with feedback, shown as a small centered window over the page. */
+/** The feedback form, plus who to email, shown as a small centered window over the page. */
 function FeedbackDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -28,8 +30,17 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         <h2 id="feedback-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
           Feedback
         </h2>
-        <p>Questions, bugs, or ideas? Reach out:</p>
-        <div>
+        <p>Questions, bugs, or ideas? Let us know:</p>
+        <a
+          href={FEEDBACK_FORM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full rounded-xl bg-blue-600 py-2.5 font-semibold text-white active:bg-blue-700 dark:bg-blue-500 dark:active:bg-blue-600"
+        >
+          Share feedback
+        </a>
+        <div className="pt-1">
+          <p className="text-sm">Or email</p>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">{FEEDBACK_NAME}</p>
           <a
             href={`mailto:${FEEDBACK_EMAIL}`}
@@ -40,7 +51,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         </div>
         <button
           onClick={onClose}
-          className="mt-2 w-full rounded-xl bg-zinc-900 py-2.5 font-medium text-white dark:bg-white dark:text-zinc-900"
+          className="mt-2 w-full rounded-xl bg-zinc-100 py-2.5 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
         >
           Close
         </button>
@@ -125,7 +136,7 @@ export function SiteFooter() {
 
       <hr className="border-zinc-200 dark:border-zinc-800" />
 
-      <div className="flex items-center justify-center gap-5 pt-1 text-sm text-zinc-700 dark:text-zinc-300">
+      <div className="flex items-center justify-center gap-6 pt-1 text-base text-zinc-900 dark:text-zinc-100">
         <Link href="/about" className="font-medium hover:underline">
           About
         </Link>
