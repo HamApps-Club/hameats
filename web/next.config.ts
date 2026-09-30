@@ -21,6 +21,18 @@ const nextConfig: NextConfig = {
   env: { BUILD_ID },
   // PostHog's API paths end in slashes; don't let Next redirect them away.
   skipTrailingSlashRedirect: true,
+  async redirects() {
+    return [
+      {
+        // Send the old Vercel address to the real domain, so each visitor has one identity (analytics,
+        // saved layout and theme are all per-domain). Only this exact host: preview deploys stay reachable.
+        source: "/:path*",
+        has: [{ type: "host", value: "hamilton-dining.vercel.app" }],
+        destination: "https://www.hameats.app/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: "/ingest/static/:path*", destination: `${POSTHOG_ASSETS_HOST}/static/:path*` },
