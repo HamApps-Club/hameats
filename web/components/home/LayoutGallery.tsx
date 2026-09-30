@@ -9,13 +9,7 @@ import { FEEDBACK_FORM_URL } from "@/lib/site";
  * layout"): a card per registered layout, styled after a campus "Our Apps"
  * gallery page — preview thumbnail, name, description, click to open.
  */
-export function LayoutGallery({
-  current,
-  onSelect,
-}: {
-  current: HomeLayoutId;
-  onSelect: (id: HomeLayoutId) => void;
-}) {
+export function LayoutGallery({ onSelect }: { onSelect: (id: HomeLayoutId) => void }) {
   const layouts = Object.entries(HOME_LAYOUTS).filter(([, layout]) => !layout.hidden);
   return (
     <div className="mx-auto max-w-3xl px-4 pb-2 pt-10">
@@ -37,17 +31,11 @@ export function LayoutGallery({
       {/* One row, side by side: each card shrinks to fit, thumbnails keep their aspect ratio. */}
       <div className="grid gap-3 sm:gap-4" style={{ gridTemplateColumns: `repeat(${layouts.length}, minmax(0, 1fr))` }}>
         {layouts.map(([id, layout]) => {
-          const selected = id === current;
           return (
             <button
               key={id}
               onClick={() => onSelect(id as HomeLayoutId)}
-              aria-pressed={selected}
-              className={`overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition active:scale-[0.99] dark:bg-zinc-900 ${
-                selected
-                  ? "border-accent ring-1 ring-accent"
-                  : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
-              }`}
+              className="overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
             >
               <Image
                 src={layout.previewSrc.mobile}
