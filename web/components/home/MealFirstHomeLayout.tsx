@@ -4,9 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
-import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
+import { type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
+import { MealHeader } from "@/components/home/MealHeader";
 import { track } from "@/lib/analytics";
 import { formatDate } from "@/lib/dates";
 
@@ -142,27 +143,7 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div style={{ fontFamily: SITE_FONT }}>
-      {/* TigerMenus' jumbotron: light grey band, big -1px-tracked title, plain-text meal nav */}
-      <header className="border-b border-[#e1e5e8] bg-[#eeeeee] px-4 pb-6 pt-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-[40px] font-medium tracking-[-1px] text-[#262626] dark:text-zinc-100">
-          <span className="text-accent">Ham</span> Eats
-        </h1>
-        <div role="tablist" aria-label="Meal" className="mt-2 flex justify-center gap-4 text-lg">
-          {MEALS.map((m) => (
-            <button
-              key={m}
-              role="tab"
-              aria-selected={m === meal}
-              onClick={() => setMeal(m)}
-              className={`min-h-11 px-1 ${
-                m === meal ? `font-bold ${LINK_BLUE}` : "text-[#262626] hover:underline dark:text-zinc-300"
-              }`}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </header>
+      <MealHeader meal={meal} onSelectMeal={setMeal} />
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         <div className="mx-auto mb-5 max-w-2xl">
