@@ -23,15 +23,11 @@ export function LayoutGallery({
         <h1 className="text-4xl font-bold tracking-tight">
           <span className="text-accent">Ham</span> Eats
         </h1>
-        <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-          This is a demo site, finding out which one of the two available layouts students on this campus prefer.
-        </p>
       </header>
 
       <div className="mb-8 space-y-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
         <p>
-          Thanks for all your feedback over the last two days! I&apos;d love to hear which one you&apos;d want to
-          be the main layout.
+          I&apos;d love to hear which one you&apos;d want to be the main layout.
         </p>
         <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className="inline-block font-semibold underline">
           Share your feedback
