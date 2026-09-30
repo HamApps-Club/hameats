@@ -27,7 +27,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   },
   "meal-first": {
     label: "Comparison",
-    description: "Compare Commons and McEwen side by side for the same meal. Pick a day and Breakfast, Lunch, or Dinner, then tap any item for details.",
+    description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
     Component: MealFirstHomeLayout,
     previewSrc: "/layout-previews/meal-first.png",
   },

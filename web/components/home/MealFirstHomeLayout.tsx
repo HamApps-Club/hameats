@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
-import { compactRange, dowOf, mealNow, statusAt } from "@/lib/hours";
+import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
-import { type Meal, type MenuItem } from "@/lib/types";
+import { type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { DayPicker } from "@/components/DayPicker";
+import { ItemSheet } from "@/components/ItemSheet";
 import { MealHeader } from "@/components/home/MealHeader";
 import { track } from "@/lib/analytics";
 
@@ -13,8 +14,8 @@ import { track } from "@/lib/analytics";
  * An alternative home layout, browsed meal-first — a close visual match of
  * Princeton's TigerMenus (https://menus.tigerapps.org/): its grey jumbotron
  * header, plain-text Breakfast/Lunch/Dinner nav, Bootstrap link-blue accent
- * (#337ab7), bold station headings and plain-line dishes (nothing to tap), with
- * each hall in a card and the two cards' station headings kept level. TigerMenus is light-only; dark mode
+ * (#337ab7), and flat, borderless hall columns with bold station headings
+ * and plain-line dishes, no card chrome. TigerMenus is light-only; dark mode
  * here follows this app's existing zinc palette at the same hierarchy.
  * Layered on top: a live "serving now" indicator, which a static site can't have.
  */
@@ -24,6 +25,29 @@ import { track } from "@/lib/analytics";
 const SITE_FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
 const LINK_BLUE = "text-accent";
 
+type Selected = { item: MenuItem; context: string };
+
+/** Same back-button-closes-the-sheet behavior as the main home layout. */
+function useItemSheet() {
+  const [selected, setSelected] = useState<Selected | null>(null);
+  useEffect(() => {
+    const onPop = () => setSelected(null);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const open = useCallback((s: Selected) => {
+    history.pushState({ itemSheet: true }, "");
+    setSelected(s);
+    track("item_opened", { item: s.item.name, context: s.context });
+  }, []);
+  const close = useCallback(() => {
+    if (history.state?.itemSheet) history.back();
+    else setSelected(null);
+  }, []);
+  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} onClose={close} />;
+  return { open, sheet };
+}
+
 /** Fallback meal for the day when nothing is currently open anywhere: go by time of day. */
 function mealByClock(minutes: number): Meal {
   if (minutes < 10 * 60 + 30) return "Breakfast";
@@ -31,86 +55,84 @@ function mealByClock(minutes: number): Meal {
   return "Dinner";
 }
 
-/** The two main dining halls, side by side; the Diner and Little Pub are left out of this layout. */
-const COMPARED_HALLS = HALLS.filter((h) => h.slug === "commons" || h.slug === "mcewen");
-
 /** This hall's first service window for `meal` on weekday `dow`, or undefined if it doesn't serve it. */
 function windowFor(hall: Hall, dow: number, meal: Meal) {
   return hall.hours[dow].find((p) => p.meal === meal);
 }
 
-/**
- * Station order in this layout, per hall. Stations a hall serves that aren't listed follow, in the
- * menu's own order.
- */
-const STATION_ORDER: Record<string, string[]> = {
-  commons: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo", "Oven"],
-  mcewen: ["Spoon & Fork", "Grill", "Fresh Stock", "Oven"],
-};
-
-// Nutrislice tends to list a station's main dish last ("Herb Roasted Fingerling Potato", then "Peach
-// Balsamic Chicken"); this moves meat and fish mains to the top. Everything else keeps its order.
-const MAIN_DISH = /\b(chicken|beef|pork|steak|turkey|ham|bacon|sausage|brisket|meatballs?|lamb|salmon|cod|haddock|tilapia|pollock|fish|shrimp|tuna)\b/i;
-const mainsFirst = (items: MenuItem[]) =>
-  [...items].sort((a, b) => Number(MAIN_DISH.test(b.name)) - Number(MAIN_DISH.test(a.name)));
-
-type Column = {
+function HallColumn({
+  hall,
+  meal,
+  date,
+  now,
+  data,
+  onSelect,
+}: {
   hall: Hall;
-  win: ReturnType<typeof windowFor>;
-  servingNow: boolean | undefined;
-  stations: [string, MenuItem[]][];
-};
+  meal: Meal;
+  date: string;
+  now: CampusTime;
+  data: MenuData;
+  onSelect: (s: Selected) => void;
+}) {
+  const isToday = date === now.iso;
+  const win = windowFor(hall, dowOf(date), meal);
+  const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
+  const mealMenu = data.dates[date]?.[hall.name]?.[meal];
+  const stations = orderedStations(mealMenu, hall.stationOrder);
 
-/** A hall's name, "Open now" and meal hours: the first row of its card. */
-function HallHeading({ column: { hall, win, servingNow }, meal, isToday }: { column: Column; meal: Meal; isToday: boolean }) {
   return (
-    <div className="space-y-2 pb-3">
+    <section className="space-y-2">
       {/* 24px/500, matching TigerMenus' .dining-hall h2 */}
       <h2 className="text-[24px] font-medium leading-[1.1] text-[#262626] dark:text-zinc-100">{hall.name}</h2>
+
       {servingNow && <p className={`text-sm font-semibold ${LINK_BLUE}`}>● Open now</p>}
-      <p className="text-sm text-[#606870] dark:text-zinc-400">
-        {win ? `${meal} · ${compactRange(win.open, win.close)}` : `No ${meal.toLowerCase()} ${isToday ? "today" : "this day"}`}
-      </p>
-    </div>
+
+      {win ? (
+        <p className="text-sm text-[#606870] dark:text-zinc-400">
+          {meal} · {compactRange(win.open, win.close)}
+        </p>
+      ) : (
+        <p className="text-sm text-[#606870] dark:text-zinc-400">
+          No {meal.toLowerCase()} {isToday ? "today" : "this day"}
+        </p>
+      )}
+
+      {stations.length > 0 ? (
+        <div className="space-y-3">
+          {stations.map(([station, items]) => (
+            <div key={station}>
+              {/* Bold, inherits body size — matches .menu-station */}
+              <h3 className="mb-1.5 text-sm font-bold text-[#262626] dark:text-zinc-200">{station}</h3>
+              <div className="space-y-1.5">
+                {items.map((it) => (
+                  <button
+                    key={it.name}
+                    onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
+                    className="block text-left text-sm text-[#262626] hover:text-accent hover:underline dark:text-zinc-300 dark:hover:text-accent"
+                  >
+                    {it.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        win && <p className="text-sm text-[#606870] dark:text-zinc-500">No menu posted yet</p>
+      )}
+    </section>
   );
 }
 
-/** One station: a bold heading and its dishes as plain text (nothing to tap). */
-function Station({ station }: { station: [string, MenuItem[]] | undefined }) {
-  if (!station) return <div />;
-  const [name, items] = station;
-  return (
-    <div className="pb-4">
-      <h3 className="mb-1.5 text-sm font-bold text-[#262626] dark:text-zinc-200">{name}</h3>
-      <ul className="space-y-1">
-        {items.map((it) => (
-          <li key={it.name} className="text-sm text-[#262626] dark:text-zinc-300">
-            {it.name}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/** Comparison layout: Commons and McEwen side by side in cards, station headings level across both. */
+/** Comparison layout: two halls side by side on phones, four across on wide screens. */
 export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
-  const isToday = date === now.iso;
+  const { open, sheet } = useItemSheet();
 
-  const columns: Column[] = COMPARED_HALLS.map((hall) => {
-    const win = windowFor(hall, dowOf(date), meal);
-    const stations = orderedStations(data.dates[date]?.[hall.name]?.[meal], STATION_ORDER[hall.slug]).map(
-      ([name, items]) => [name, mainsFirst(items)] as [string, MenuItem[]],
-    );
-    return { hall, win, servingNow: isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open, stations };
-  });
-  // Row 1 is each hall's heading; then one row per station slot, so both halls' Nth station headings
-  // line up across the two cards. At least one slot, for the "No menu posted yet" note.
-  const slots = Math.max(1, ...columns.map((c) => c.stations.length));
 
   return (
     <div style={{ fontFamily: SITE_FONT }}>
@@ -129,27 +151,13 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-x-3 sm:gap-x-4">
-          {columns.map((c) => (
-            // Each card spans every row and shares them (subgrid), which is what keeps headings level.
-            <section
-              key={c.hall.slug}
-              style={{ gridRow: `span ${slots + 1}` }}
-              className="grid grid-rows-subgrid rounded-2xl border border-zinc-200 bg-white px-4 pt-4 dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <HallHeading column={c} meal={meal} isToday={isToday} />
-              {c.stations.length > 0
-                ? Array.from({ length: slots }, (_, i) => <Station key={i} station={c.stations[i]} />)
-                : [
-                    <p key="empty" className="pb-4 text-sm text-[#606870] dark:text-zinc-500">
-                      {c.win ? "No menu posted yet" : ""}
-                    </p>,
-                    ...Array.from({ length: slots - 1 }, (_, i) => <div key={i} />),
-                  ]}
-            </section>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
+          {HALLS.map((h) => (
+            <HallColumn key={h.slug} hall={h} meal={meal} date={date} now={now} data={data} onSelect={open} />
           ))}
         </div>
       </main>
+      {sheet}
     </div>
   );
 }
