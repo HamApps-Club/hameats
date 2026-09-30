@@ -263,7 +263,7 @@ function HallColumn({
       <h2
         id={`${sectionId(hall)}-title`}
         tabIndex={-1}
-        className="-mx-2 rounded-lg px-2 py-0.5 text-lg font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-accent dark:text-zinc-100"
+        className="-mx-2 rounded-lg px-2 py-0.5 text-lg font-semibold text-zinc-900 outline-none dark:text-zinc-100"
       >
         {hall.name}
       </h2>
@@ -327,10 +327,10 @@ const SHORT_NAMES: Record<string, string> = {
 /**
  * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
  * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
- * outlines its heading; the hall on screen gets the big blue dot. It's rendered at the end of <body>
- * and sticky to the bottom of the screen, so it rides along while scrolling and, at the very end of
- * the page, comes to rest below the footer instead of covering it. In the home-screen app it rides a
- * little higher.
+ * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
+ * It's rendered at the end of <body> and sticky to the bottom of the screen, so it rides along while
+ * scrolling and, at the very end of the page, comes to rest below the footer instead of covering it.
+ * In the home-screen app it rides a little higher.
  */
 function HallScroller({ halls }: { halls: Hall[] }) {
   const [active, setActive] = useState(halls[0]?.slug);
@@ -367,7 +367,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   const jump = (hall: Hall) => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById(sectionId(hall))?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
-    // Outline the hall's heading, like TigerMenus; it clears on the next tap elsewhere.
+    // Move focus to the hall's heading so screen readers land there too; nothing is drawn around it.
     document.getElementById(`${sectionId(hall)}-title`)?.focus({ preventScroll: true });
     track("continental_hall_jumped", { hall: hall.slug });
   };
