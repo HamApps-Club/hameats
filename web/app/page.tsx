@@ -314,7 +314,6 @@ export default function Home() {
           <>
             <ThemeToggle />
             <LayoutGallery
-              current={layoutId}
               onSelect={(id) => {
                 setLayoutId(id);
                 track("home_layout_changed", { layout: HOME_LAYOUTS[id].label, source: "gallery" });
