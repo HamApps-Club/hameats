@@ -449,8 +449,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
   const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
   const [showIcons, setShowIcons] = useState(false);
-  // Halls folded down to just their name. Everything starts open.
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // Halls folded down to just their name. Everything starts collapsed; tap a hall to open it.
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(HALLS.map((h) => h.slug)));
   const { open, sheet } = useItemSheet();
 
   const toggleCollapsed = useCallback((hall: Hall) => {
