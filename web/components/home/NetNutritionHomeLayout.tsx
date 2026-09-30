@@ -83,6 +83,19 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
   );
 }
 
+/** Down chevron that flips to point up while its panel is open. */
+function Chevron({ open, className = "size-4" }: { open: boolean; className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className={`${className} shrink-0 transition ${open ? "rotate-180" : ""}`}>
+      <path
+        fillRule="evenodd"
+        d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
 /** A dropdown trigger showing how many of its options are on. */
 function FilterToggle({
   label,
@@ -110,18 +123,7 @@ function FilterToggle({
       {count > 0 && (
         <span className="rounded-full bg-blue-600 px-1.5 text-xs leading-5 text-white dark:bg-blue-500">{count}</span>
       )}
-      <svg
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        aria-hidden
-        className={`size-4 transition ${expanded ? "rotate-180" : ""}`}
-      >
-        <path
-          fillRule="evenodd"
-          d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
-          clipRule="evenodd"
-        />
-      </svg>
+      <Chevron open={expanded} />
     </button>
   );
 }
@@ -234,6 +236,8 @@ function HallColumn({
   excludeAllergens,
   requirePreferences,
   showIcons,
+  collapsed,
+  onToggleCollapsed,
   onSelect,
 }: {
   hall: Hall;
@@ -244,6 +248,8 @@ function HallColumn({
   excludeAllergens: Set<string>;
   requirePreferences: Set<string>;
   showIcons: boolean;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
@@ -258,56 +264,73 @@ function HallColumn({
   return (
     <section
       id={sectionId(hall)}
-      className="scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+      // Collapsed cards don't stretch to their grid row, so on wide screens they shrink to just the name.
+      className={`scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 ${
+        collapsed ? "self-start" : ""
+      }`}
     >
+      {/* The heading is the scroller's focus target (outlined on a jump); the button inside it collapses the card. */}
       <h2
         id={`${sectionId(hall)}-title`}
         tabIndex={-1}
         className="-mx-2 rounded-lg px-2 py-0.5 text-lg font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-accent dark:text-zinc-100"
       >
-        {hall.name}
+        <button
+          type="button"
+          aria-expanded={!collapsed}
+          aria-controls={`${sectionId(hall)}-body`}
+          onClick={onToggleCollapsed}
+          className="flex w-full items-center justify-between gap-2 text-left"
+        >
+          {hall.name}
+          <Chevron open={!collapsed} className="size-5 text-zinc-500 dark:text-zinc-400" />
+        </button>
       </h2>
 
-      {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
+      {!collapsed && (
+        <div id={`${sectionId(hall)}-body`} className="space-y-2">
+          {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
 
-      {win ? (
-        <p className="text-sm text-zinc-500">
-          {meal} · {compactRange(win.open, win.close)}
-        </p>
-      ) : (
-        <p className="text-sm text-zinc-500">
-          No {meal.toLowerCase()} {isToday ? "today" : "this day"}
-        </p>
-      )}
+          {win ? (
+            <p className="text-sm text-zinc-500">
+              {meal} · {compactRange(win.open, win.close)}
+            </p>
+          ) : (
+            <p className="text-sm text-zinc-500">
+              No {meal.toLowerCase()} {isToday ? "today" : "this day"}
+            </p>
+          )}
 
-      {stations.length > 0 ? (
-        // Each station gets room above and below plus a faint rule, so one category reads apart from the next.
-        <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
-          {stations.map(([station, items]) => (
-            <div key={station} className="py-4 first:pt-0 last:pb-0">
-              <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
-              <div className="space-y-1.5">
-                {items.map((it) => (
-                  <button
-                    key={it.name}
-                    onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                    className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
-                  >
-                    <span>{it.name}</span>
-                    {showIcons && <Tags tags={it.tags} />}
-                  </button>
-                ))}
-              </div>
+          {stations.length > 0 ? (
+            // Each station gets room above and below plus a faint rule, so one category reads apart from the next.
+            <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
+              {stations.map(([station, items]) => (
+                <div key={station} className="py-4 first:pt-0 last:pb-0">
+                  <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
+                  <div className="space-y-1.5">
+                    {items.map((it) => (
+                      <button
+                        key={it.name}
+                        onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
+                        className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                      >
+                        <span>{it.name}</span>
+                        {showIcons && <Tags tags={it.tags} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            win &&
+            (hadItems && isFiltering ? (
+              <p className="pt-1 text-sm text-zinc-400">No items match your filters</p>
+            ) : (
+              <p className="pt-1 text-sm text-zinc-400">No menu posted yet</p>
+            ))
+          )}
         </div>
-      ) : (
-        win &&
-        (hadItems && isFiltering ? (
-          <p className="pt-1 text-sm text-zinc-400">No items match your filters</p>
-        ) : (
-          <p className="pt-1 text-sm text-zinc-400">No menu posted yet</p>
-        ))
       )}
     </section>
   );
@@ -332,7 +355,7 @@ const SHORT_NAMES: Record<string, string> = {
  * the page, comes to rest below the footer instead of covering it. In the home-screen app it rides a
  * little higher.
  */
-function HallScroller({ halls }: { halls: Hall[] }) {
+function HallScroller({ halls, onJump }: { halls: Hall[]; onJump: (hall: Hall) => void }) {
   const [active, setActive] = useState(halls[0]?.slug);
 
   useEffect(() => {
@@ -365,6 +388,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   }, [halls]);
 
   const jump = (hall: Hall) => {
+    onJump(hall);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById(sectionId(hall))?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
     // Outline the hall's heading, like TigerMenus; it clears on the next tap elsewhere.
@@ -425,7 +449,28 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
   const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
   const [showIcons, setShowIcons] = useState(false);
+  // Halls folded down to just their name. Everything starts open.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const { open, sheet } = useItemSheet();
+
+  const toggleCollapsed = useCallback((hall: Hall) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(hall.slug)) next.delete(hall.slug);
+      else next.add(hall.slug);
+      track("continental_hall_collapsed", { hall: hall.slug, collapsed: next.has(hall.slug) });
+      return next;
+    });
+  }, []);
+  // Jumping to a hall from the scroller opens it if it was collapsed.
+  const expandHall = useCallback((hall: Hall) => {
+    setCollapsed((prev) => {
+      if (!prev.has(hall.slug)) return prev;
+      const next = new Set(prev);
+      next.delete(hall.slug);
+      return next;
+    });
+  }, []);
 
   const toggleAllergen = useCallback((value: string) => {
     setExcludeAllergens((prev) => {
@@ -526,12 +571,14 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               excludeAllergens={excludeAllergens}
               requirePreferences={requirePreferences}
               showIcons={showIcons}
+              collapsed={collapsed.has(h.slug)}
+              onToggleCollapsed={() => toggleCollapsed(h)}
               onSelect={open}
             />
           ))}
         </div>
       </main>
-      <HallScroller halls={HALLS} />
+      <HallScroller halls={HALLS} onJump={expandHall} />
       {sheet}
     </div>
   );
