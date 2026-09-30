@@ -18,7 +18,7 @@ export function LayoutGallery({
 }) {
   const layouts = Object.entries(HOME_LAYOUTS).filter(([, layout]) => !layout.hidden);
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-3xl px-4 pb-2 pt-10">
       <header className="mb-10 text-center">
         <h1 className="text-4xl font-bold tracking-tight">
           <span className="text-accent">Ham</span> Eats
