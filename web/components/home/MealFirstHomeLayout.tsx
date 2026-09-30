@@ -9,7 +9,6 @@ import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
 import { MealHeader } from "@/components/home/MealHeader";
 import { track } from "@/lib/analytics";
-import { formatDate } from "@/lib/dates";
 
 /**
  * An alternative home layout, browsed meal-first — a close visual match of
@@ -132,14 +131,8 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
-  const isToday = date === now.iso;
   const { open, sheet } = useItemSheet();
 
-  const servingCount = isToday
-    ? HALLS.filter(
-        (h) => windowFor(h, now.dow, meal) && mealNow(h.hours, now) === meal && statusAt(h.hours, now).open,
-      ).length
-    : 0;
 
   return (
     <div style={{ fontFamily: SITE_FONT }}>
@@ -157,14 +150,6 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
             }}
           />
         </div>
-
-        <p className="mb-5 text-sm text-[#606870] dark:text-zinc-400">
-          {!isToday
-            ? `${meal} on ${formatDate(date)}`
-            : servingCount > 0
-              ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
-              : `No halls serving ${meal.toLowerCase()} right now`}
-        </p>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
           {HALLS.map((h) => (
