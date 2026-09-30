@@ -32,7 +32,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     previewSrc: "/layout-previews/classic.png",
   },
   "net-nutrition": {
-    label: "Allergen Filter",
+    label: "Continental",
     description: "Hide foods with your allergens (dairy, egg, nuts and more) or show only vegan, vegetarian, gluten-friendly or halal options, across every hall at once.",
     Component: NetNutritionHomeLayout,
     previewSrc: "/layout-previews/net-nutrition.png",

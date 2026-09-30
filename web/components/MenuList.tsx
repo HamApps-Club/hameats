@@ -14,7 +14,8 @@ function macroLine(it: MenuItem) {
     .join(" · ");
 }
 
-function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => void }) {
+/** One food as a Classic-style card: name, calories/protein/carbs, and diet tags. */
+export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => void }) {
   const macros = macroLine(item);
   return (
     <button
