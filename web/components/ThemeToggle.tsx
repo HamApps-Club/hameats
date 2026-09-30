@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { track } from "@/lib/analytics";
 
 // The `dark` class on <html> is set before first paint by the script in app/layout.tsx
 // (saved choice, else the system setting); this button flips it and saves the choice.
@@ -20,6 +21,7 @@ export function ThemeToggle() {
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {}
+    track("night_mode_toggled", { mode: next ? "dark" : "light" });
   };
 
   return (

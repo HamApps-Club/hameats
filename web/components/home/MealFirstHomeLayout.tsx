@@ -149,7 +149,7 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
             today={now.iso}
             onSelect={(d) => {
               setPickedDate(d);
-              track("meal_first_day_picked", { date: d });
+              track("comparison_day_picked", { date: d });
             }}
           />
         </div>

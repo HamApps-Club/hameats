@@ -415,7 +415,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
       const next = new Set(prev);
       if (next.has(value)) next.delete(value);
       else next.add(value);
-      track("net_nutrition_filter_toggled", { kind: "allergen", value, active: next.has(value) });
+      track("continental_allergen_toggled", { allergen: value, active: next.has(value) });
       return next;
     });
   }, []);
@@ -424,7 +424,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
       const next = new Set(prev);
       if (next.has(value)) next.delete(value);
       else next.add(value);
-      track("net_nutrition_filter_toggled", { kind: "preference", value, active: next.has(value) });
+      track("continental_preference_toggled", { preference: value, active: next.has(value) });
       return next;
     });
   }, []);
@@ -452,7 +452,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
             today={now.iso}
             onSelect={(d) => {
               setPickedDate(d);
-              track("net_nutrition_day_picked", { date: d });
+              track("continental_day_picked", { date: d });
             }}
           />
         </div>
@@ -466,7 +466,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
             onClear={clearFilters}
             showNutrients={showNutrients}
             onToggleNutrients={() => {
-              track("net_nutrition_nutrients_toggled", { active: !showNutrients });
+              track("continental_nutrients_toggled", { active: !showNutrients });
               setShowNutrients(!showNutrients);
             }}
           />
