@@ -10,7 +10,6 @@ import { ItemSheet } from "@/components/ItemSheet";
 import { MealHeader } from "@/components/home/MealHeader";
 import { Tags } from "@/components/Tags";
 import { track } from "@/lib/analytics";
-import { formatDate } from "@/lib/dates";
 
 /**
  * A fourth home layout inspired by Bowdoin Dining's "Net Nutrition" tool: the
@@ -290,7 +289,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
-  const isToday = date === now.iso;
   const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
   const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
   const { open, sheet } = useItemSheet();
@@ -318,11 +316,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
     setRequirePreferences(new Set());
   }, []);
 
-  const servingCount = isToday
-    ? HALLS.filter(
-        (h) => windowFor(h, now.dow, meal) && mealNow(h.hours, now) === meal && statusAt(h.hours, now).open,
-      ).length
-    : 0;
 
   const mealMenus = useMemo(
     () => Object.fromEntries(HALLS.map((h) => [h.slug, data.dates[date]?.[h.name]?.[meal]])),
@@ -345,14 +338,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
             }}
           />
         </div>
-
-        <p className="mb-5 text-sm text-zinc-500">
-          {!isToday
-            ? `${meal} on ${formatDate(date)}`
-            : servingCount > 0
-            ? `${servingCount} of ${HALLS.length} halls serving ${meal.toLowerCase()} right now`
-            : `No halls serving ${meal.toLowerCase()} right now`}
-        </p>
 
         <div className="sticky top-0 z-10 -mx-4 mb-5 bg-zinc-50/95 px-4 py-3 backdrop-blur dark:bg-zinc-950/95">
           <FilterBar
