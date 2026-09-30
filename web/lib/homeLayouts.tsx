@@ -21,19 +21,19 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "meal-first": {
     label: "Comparison",
-    description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
+    description: "Compare every dining hall side by side for the same meal. Pick a day and Breakfast, Lunch, or Dinner, then tap any item for details.",
     Component: MealFirstHomeLayout,
     previewSrc: "/layout-previews/meal-first.png",
   },
   classic: {
     label: "Classic",
-    description: "A search bar up top and every dining hall listed below, ranked by what's open now.",
+    description: "Every dining hall as a card with today's hours and whether it's open now. Tap a hall to see its full menu.",
     Component: ClassicHomeLayout,
     previewSrc: "/layout-previews/classic.png",
   },
   "net-nutrition": {
     label: "Allergen Filter",
-    description: "Meal-first browsing with a filter panel to narrow every hall by allergen or diet at once.",
+    description: "Hide foods with your allergens (dairy, egg, nuts and more) or show only vegan, vegetarian, gluten-friendly or halal options, across every hall at once.",
     Component: NetNutritionHomeLayout,
     previewSrc: "/layout-previews/net-nutrition.png",
   },
