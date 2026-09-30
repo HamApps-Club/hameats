@@ -20,7 +20,7 @@ type HomeLayoutEntry = {
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "meal-first": {
-    label: "Double Column",
+    label: "Comparison",
     description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
     Component: MealFirstHomeLayout,
     previewSrc: "/layout-previews/meal-first.png",
@@ -32,7 +32,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     previewSrc: "/layout-previews/classic.png",
   },
   "net-nutrition": {
-    label: "Net Nutrition",
+    label: "Allergen Filter",
     description: "Meal-first browsing with a filter panel to narrow every hall by allergen or diet at once.",
     Component: NetNutritionHomeLayout,
     previewSrc: "/layout-previews/net-nutrition.png",
