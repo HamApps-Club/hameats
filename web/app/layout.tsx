@@ -46,6 +46,16 @@ export const viewport: Viewport = {
   themeColor: "#fafafa",
 };
 
+// Sends browser visits on the old Vercel address to the real domain, so each visitor has one identity (analytics,
+// saved layout and theme are all per-domain). Done here rather than as a server redirect so home-screen apps
+// installed from the old address are left alone: sent to another domain, iOS opens them in a browser sheet
+// with an address bar and Share button. Only this exact host, so preview deploys stay reachable.
+const MOVED_SCRIPT = `(() => {
+  if (location.hostname !== "hamilton-dining.vercel.app") return;
+  if (navigator.standalone || matchMedia("(display-mode: standalone)").matches) return;
+  location.replace("https://www.hameats.app" + location.pathname + location.search + location.hash);
+})();`;
+
 // Runs before the page paints so there's no flash: light by default, dark only if picked with the toggle.
 const THEME_SCRIPT = `(() => {
   let saved = null;
@@ -61,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: MOVED_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: WEBSITE_JSON_LD }} />
       </head>
