@@ -324,7 +324,8 @@ const SHORT_NAMES: Record<string, string> = {
 };
 
 /**
- * TigerMenus-style hall scroller: a bar pinned to the bottom of the screen with one pill per hall.
+ * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a bar
+ * pinned to the bottom of the screen with one pill per hall.
  * Tapping a pill scrolls to that hall's card; the hall currently on screen is highlighted. The bar
  * only shows while the halls are on screen, so it never covers the header or the page footer.
  */
@@ -374,7 +375,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   return (
     <nav
       aria-label="Jump to dining hall"
-      className={`fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 backdrop-blur transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900/95 ${
+      className={`fixed inset-x-0 bottom-0 z-30 border-t sm:hidden border-zinc-200 bg-white/95 backdrop-blur transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900/95 ${
         visible ? "translate-y-0" : "pointer-events-none translate-y-full"
       }`}
     >
@@ -442,8 +443,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
     <div>
       <MealHeader meal={meal} onSelectMeal={setMeal} />
 
-      {/* Extra bottom padding so the last hall can scroll clear of the hall scroller. */}
-      <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
+      {/* Extra bottom padding on phones so the last hall can scroll clear of the hall scroller. */}
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:pb-6">
         <div className="mx-auto mb-5 max-w-2xl">
           <DayPicker
             dates={dates}
