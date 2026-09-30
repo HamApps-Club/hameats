@@ -125,11 +125,8 @@ function HallColumn({
   );
 }
 
-/**
- * `columns` picks how many halls sit side by side on phones: 2 for the Double Column layout,
- * 1 for Single Column (which also keeps a narrower, single-column page on wide screens).
- */
-export function MealFirstHomeLayout({ data, now, columns = 2 }: HomeLayoutProps & { columns?: 1 | 2 }) {
+/** Double Column: two halls side by side on phones, four across on wide screens. */
+export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
@@ -167,7 +164,7 @@ export function MealFirstHomeLayout({ data, now, columns = 2 }: HomeLayoutProps 
         </div>
       </header>
 
-      <main className={`mx-auto px-4 py-6 ${columns === 1 ? "max-w-2xl" : "max-w-5xl"}`}>
+      <main className="mx-auto max-w-5xl px-4 py-6">
         <div className="mx-auto mb-5 max-w-2xl">
           <DayPicker
             dates={dates}
@@ -188,7 +185,7 @@ export function MealFirstHomeLayout({ data, now, columns = 2 }: HomeLayoutProps 
               : `No halls serving ${meal.toLowerCase()} right now`}
         </p>
 
-        <div className={`grid gap-x-6 gap-y-8 ${columns === 1 ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"}`}>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
           {HALLS.map((h) => (
             <HallColumn key={h.slug} hall={h} meal={meal} date={date} now={now} data={data} onSelect={open} />
           ))}
@@ -197,9 +194,4 @@ export function MealFirstHomeLayout({ data, now, columns = 2 }: HomeLayoutProps 
       {sheet}
     </div>
   );
-}
-
-/** The same layout with every hall stacked in one column. */
-export function SingleColumnHomeLayout(props: HomeLayoutProps) {
-  return <MealFirstHomeLayout {...props} columns={1} />;
 }
