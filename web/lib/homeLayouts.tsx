@@ -19,6 +19,12 @@ type HomeLayoutEntry = {
 
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
+  "net-nutrition": {
+    label: "Continental",
+    description: "Hide foods with your allergens (dairy, egg, nuts and more) or show only vegan, vegetarian, gluten-friendly or halal options, across every hall at once.",
+    Component: NetNutritionHomeLayout,
+    previewSrc: "/layout-previews/net-nutrition.png",
+  },
   "meal-first": {
     label: "Comparison",
     description: "Compare Commons and McEwen side by side for the same meal. Pick a day and Breakfast, Lunch, or Dinner, then tap any item for details.",
@@ -30,12 +36,6 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     description: "Every dining hall as a card with today's hours and whether it's open now. Tap a hall to see its full menu.",
     Component: ClassicHomeLayout,
     previewSrc: "/layout-previews/classic.png",
-  },
-  "net-nutrition": {
-    label: "Continental",
-    description: "Hide foods with your allergens (dairy, egg, nuts and more) or show only vegan, vegetarian, gluten-friendly or halal options, across every hall at once.",
-    Component: NetNutritionHomeLayout,
-    previewSrc: "/layout-previews/net-nutrition.png",
   },
 };
 

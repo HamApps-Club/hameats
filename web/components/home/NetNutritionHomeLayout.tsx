@@ -257,7 +257,10 @@ function HallColumn({
   const hadItems = Object.values(mealMenu ?? {}).some((items) => items.length > 0);
 
   return (
-    <section className="space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <section
+      id={sectionId(hall)}
+      className="scroll-mt-4 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+    >
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{hall.name}</h2>
 
       {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
@@ -309,6 +312,93 @@ function HallColumn({
   );
 }
 
+/** Element id of a hall's card, for the scroller to jump to. (Not a #hash: those open the hall's own page.) */
+const sectionId = (hall: Hall) => `continental-${hall.slug}`;
+
+/** Short names so all four pills fit across a phone screen. */
+const SHORT_NAMES: Record<string, string> = {
+  commons: "Commons",
+  mcewen: "McEwen",
+  diner: "Diner",
+  "little-pub": "Pub",
+};
+
+/**
+ * TigerMenus-style hall scroller: a bar pinned to the bottom of the screen with one pill per hall.
+ * Tapping a pill scrolls to that hall's card; the hall currently on screen is highlighted. The bar
+ * only shows while the halls are on screen, so it never covers the header or the page footer.
+ */
+function HallScroller({ halls }: { halls: Hall[] }) {
+  const [active, setActive] = useState(halls[0]?.slug);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const cards = halls.map((h) => document.getElementById(sectionId(h))).filter((el) => el !== null);
+      if (!cards.length) return;
+      const vh = window.innerHeight;
+      const top = cards[0].getBoundingClientRect().top;
+      const bottom = cards[cards.length - 1].getBoundingClientRect().bottom;
+      // Hide once the halls end, so the bar doesn't sit over the page footer.
+      setVisible(top < vh && bottom > vh * 0.75);
+      // The active hall is the last one whose card has reached the top third of the screen. At the very
+      // bottom of the page the last cards can't scroll that high, so there it's the last card on screen.
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      let current = halls[0].slug;
+      cards.forEach((el, i) => {
+        if (el.getBoundingClientRect().top <= (atBottom ? vh * 0.75 : vh / 3)) current = halls[i].slug;
+      });
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [halls]);
+
+  const jump = (hall: Hall) => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById(sectionId(hall))?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    track("continental_hall_jumped", { hall: hall.slug });
+  };
+
+  return (
+    <nav
+      aria-label="Jump to dining hall"
+      className={`fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 backdrop-blur transition-transform duration-200 dark:border-zinc-800 dark:bg-zinc-900/95 ${
+        visible ? "translate-y-0" : "pointer-events-none translate-y-full"
+      }`}
+    >
+      <div className="mx-auto flex max-w-2xl justify-center gap-2 overflow-x-auto px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:none]">
+        {halls.map((h) => (
+          <button
+            key={h.slug}
+            type="button"
+            aria-current={h.slug === active ? "location" : undefined}
+            onClick={() => jump(h)}
+            className={`min-h-10 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold ${
+              h.slug === active
+                ? "bg-blue-600 text-white dark:bg-blue-500"
+                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            }`}
+          >
+            {SHORT_NAMES[h.slug] ?? h.name}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
@@ -352,7 +442,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
     <div>
       <MealHeader meal={meal} onSelectMeal={setMeal} />
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      {/* Extra bottom padding so the last hall can scroll clear of the hall scroller. */}
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
         <div className="mx-auto mb-5 max-w-2xl">
           <DayPicker
             dates={dates}
@@ -398,6 +489,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           ))}
         </div>
       </main>
+      <HallScroller halls={HALLS} />
       {sheet}
     </div>
   );
