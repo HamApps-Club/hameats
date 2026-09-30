@@ -3,7 +3,9 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "About · Ham Eats",
+  title: "About",
+  description: "Why Ham Eats exists and who makes it: every dining hall menu in one place.",
+  alternates: { canonical: "/about" },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

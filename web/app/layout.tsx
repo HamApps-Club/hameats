@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppUpdater } from "@/components/AppUpdater";
 import { PostHogProvider } from "@/components/PostHogProvider";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { STUCK_LOADING_SCRIPT } from "@/lib/stuckLoadingScript";
 import "./globals.css";
 
@@ -16,12 +17,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ham Eats",
-  description: "Dining hall menus and hours",
-  applicationName: "Ham Eats",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Ham Eats · Dining Menus & Hours",
+    // Other pages set just their own name, e.g. "Dining Hours · Ham Eats".
+    template: "%s · Ham Eats",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: ["Ham Eats", "dining", "menu", "Soper Commons", "McEwen", "Howard Diner", "Little Pub", "dining hours"],
+  alternates: { canonical: "/" },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US" },
+  twitter: { card: "summary_large_image" },
   // Home-screen app on iPhone: full screen, named "Ham Eats".
-  appleWebApp: { capable: true, title: "Ham Eats", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };
+
+// Tells Google the site's name, so results show "Ham Eats" instead of the domain.
+const WEBSITE_JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+});
 
 export const viewport: Viewport = {
   themeColor: [
@@ -49,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: WEBSITE_JSON_LD }} />
       </head>
       <body className="min-h-full flex flex-col">
         <PostHogProvider>

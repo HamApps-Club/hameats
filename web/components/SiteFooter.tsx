@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 const FEEDBACK_NAME = "Brandon Taylor";
 const FEEDBACK_EMAIL = "bntaylor@hamilton.edu";
+/** Hamilton's own dining site, for anything this app doesn't cover. */
+const OFFICIAL_DINING_URL = "https://www.hamilton.edu/dining";
 
 /** Who to contact with feedback, shown as a small centered window over the page. */
 function FeedbackDialog({ onClose }: { onClose: () => void }) {
@@ -130,9 +132,14 @@ export function SiteFooter() {
         <button onClick={() => setFeedbackOpen(true)} className="font-medium hover:underline">
           Feedback
         </button>
-        <Link href="/hours" className="font-medium hover:underline">
-          Dining hours
-        </Link>
+        <a
+          href={OFFICIAL_DINING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium hover:underline"
+        >
+          More Information
+        </a>
       </div>
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
