@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { FEEDBACK_FORM_URL } from "@/lib/site";
 
 const FEEDBACK_NAME = "Brandon Taylor";
 const FEEDBACK_EMAIL = "bntaylor@hamilton.edu";
-const FEEDBACK_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSfpML07xAkISCgrPiObM3c_yEJUv1_2p0OWrRTv4-1j84XtBQ/viewform";
 /** Hamilton's own dining site, for anything this app doesn't cover. */
 const OFFICIAL_DINING_URL = "https://www.hamilton.edu/dining";
 
