@@ -379,9 +379,10 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       // scrolling near the bottom edge lag.
       className="sticky bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] standalone:pb-[max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))] sm:hidden"
     >
-      <div className="relative grid grid-cols-4 rounded-2xl border border-zinc-200 bg-white/95 px-1 pb-2.5 pt-1 shadow-md backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/95">
+      {/* Hamilton blue with a buff-gold highlight, in both themes, so it stands off the white menu cards. */}
+      <div className="relative grid grid-cols-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a3c9c] to-[#001f5c] px-1 pb-2.5 pt-1 shadow-lg shadow-[#001f5c]/30">
         {/* The line the dots sit on, from the first dot's center to the last's. */}
-        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-zinc-300 dark:bg-zinc-600" />
+        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/25" />
         {halls.map((h) => {
           const isActive = h.slug === active;
           return (
@@ -397,13 +398,13 @@ function HallScroller({ halls }: { halls: Hall[] }) {
               <span className="flex size-3 items-center justify-center">
                 <span
                   className={`rounded-full ${
-                    isActive ? "size-3 bg-accent" : "size-1.5 bg-zinc-400 dark:bg-zinc-500"
+                    isActive ? "size-3 bg-[#f2c75c] ring-4 ring-[#f2c75c]/25" : "size-1.5 bg-white/55"
                   }`}
                 />
               </span>
               <span
                 className={`text-[15px] ${
-                  isActive ? "font-semibold text-accent" : "text-zinc-600 dark:text-zinc-400"
+                  isActive ? "font-semibold text-[#f2c75c]" : "text-white/75"
                 }`}
               >
                 {SHORT_NAMES[h.slug] ?? h.name}
