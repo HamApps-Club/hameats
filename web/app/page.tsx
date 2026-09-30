@@ -257,8 +257,14 @@ export default function Home() {
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
   // Every fresh load of "/" starts at the gallery; picking a layout (or already having
-  // one selected this session) keeps it out of the way until the next fresh load.
-  const [galleryOpen, setGalleryOpen] = useState(true);
+  // one selected this session) keeps it out of the way until the next fresh load. Our
+  // pushState calls aren't Next's router, so navigating back to one of our entries
+  // reloads the page instead of a soft popstate — read the entry's tag up front so that
+  // reload lands back on "home" instead of resetting to the gallery.
+  const [galleryOpen, setGalleryOpen] = useState(() => {
+    if (typeof window === "undefined" || window.location.hash) return true;
+    return (window.history.state as { view?: string } | null)?.view !== "home";
+  });
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   useEffect(() => {
@@ -267,9 +273,14 @@ export default function Home() {
 
   // Tag the entry page load lands on as the gallery, so back button from a
   // picked layout (or from a hall reached from it) returns here instead of
-  // wherever the plain history stack would otherwise send the user.
+  // wherever the plain history stack would otherwise send the user — unless
+  // (see galleryOpen's initializer above) this load is actually a reload
+  // triggered by navigating back to an entry already tagged "home".
   useEffect(() => {
-    if (!window.location.hash) history.replaceState({ view: "gallery" }, "");
+    if (window.location.hash) return;
+    if ((history.state as { view?: string } | null)?.view !== "home") {
+      history.replaceState({ view: "gallery" }, "");
+    }
   }, []);
 
   useEffect(() => {
