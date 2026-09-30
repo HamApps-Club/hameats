@@ -25,17 +25,17 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     Component: NetNutritionHomeLayout,
     previewSrc: "/layout-previews/net-nutrition.png",
   },
-  "meal-first": {
-    label: "Comparison",
-    description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
-    Component: MealFirstHomeLayout,
-    previewSrc: "/layout-previews/meal-first.png",
-  },
   classic: {
     label: "Classic",
     description: "Every dining hall as a card with today's hours and whether it's open now. Tap a hall to see its full menu.",
     Component: ClassicHomeLayout,
     previewSrc: "/layout-previews/classic.png",
+  },
+  "meal-first": {
+    label: "Comparison",
+    description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
+    Component: MealFirstHomeLayout,
+    previewSrc: "/layout-previews/meal-first.png",
   },
 };
 
