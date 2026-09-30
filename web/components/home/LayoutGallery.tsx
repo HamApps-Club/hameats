@@ -49,15 +49,13 @@ export function LayoutGallery({
                   : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
               }`}
             >
-              <div className="flex aspect-[9/16] w-full items-start justify-center border-b border-zinc-200 bg-zinc-100 sm:hidden dark:border-zinc-800 dark:bg-zinc-800">
-                <Image
-                  src={layout.previewSrc.mobile}
-                  alt=""
-                  width={390}
-                  height={844}
-                  className="h-full w-[80%] object-cover object-top"
-                />
-              </div>
+              <Image
+                src={layout.previewSrc.mobile}
+                alt=""
+                width={390}
+                height={844}
+                className="aspect-[9/16] w-full border-b border-zinc-200 object-cover object-top sm:hidden dark:border-zinc-800"
+              />
               <Image
                 src={layout.previewSrc.desktop}
                 alt=""
