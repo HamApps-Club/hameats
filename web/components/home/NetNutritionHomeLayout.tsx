@@ -8,7 +8,6 @@ import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { type Meal, type MenuItem } from "@/lib/types";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { ItemCard } from "@/components/MenuList";
 import { MealHeader } from "@/components/home/MealHeader";
 import { Tags } from "@/components/Tags";
 import { track } from "@/lib/analytics";
@@ -130,7 +129,7 @@ function FilterToggle({
 
 /**
  * A compact row of dropdowns (Allergies, Preferences) above the halls. Opening one drops down its
- * options as a wrapped row of pills, next to the Nutrients toggle; tapping outside or pressing Escape closes it.
+ * options as a wrapped row of pills, next to the Icons toggle; tapping outside or pressing Escape closes it.
  */
 function FilterBar({
   excludeAllergens,
@@ -138,16 +137,16 @@ function FilterBar({
   onToggleAllergen,
   onTogglePreference,
   onClear,
-  showNutrients,
-  onToggleNutrients,
+  showIcons,
+  onToggleIcons,
 }: {
   excludeAllergens: Set<string>;
   requirePreferences: Set<string>;
   onToggleAllergen: (value: string) => void;
   onTogglePreference: (value: string) => void;
   onClear: () => void;
-  showNutrients: boolean;
-  onToggleNutrients: () => void;
+  showIcons: boolean;
+  onToggleIcons: () => void;
 }) {
   const [openGroup, setOpenGroup] = useState<FilterGroupId | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -188,18 +187,18 @@ function FilterBar({
           expanded={openGroup === "preferences"}
           onClick={() => toggleGroup("preferences")}
         />
-        {/* Not a filter: switches every item to a larger card with calories and protein. */}
+        {/* Not a filter: shows or hides the diet and allergen icons beside every item. */}
         <button
           type="button"
-          aria-pressed={showNutrients}
-          onClick={onToggleNutrients}
+          aria-pressed={showIcons}
+          onClick={onToggleIcons}
           className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${
-            showNutrients
+            showIcons
               ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
               : "border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
           }`}
         >
-          Nutrients
+          Icons
         </button>
         {hasFilters && (
           <button
@@ -235,7 +234,7 @@ function HallColumn({
   mealMenu,
   excludeAllergens,
   requirePreferences,
-  showNutrients,
+  showIcons,
   onSelect,
 }: {
   hall: Hall;
@@ -245,7 +244,7 @@ function HallColumn({
   mealMenu: Record<string, MenuItem[]> | undefined;
   excludeAllergens: Set<string>;
   requirePreferences: Set<string>;
-  showNutrients: boolean;
+  showIcons: boolean;
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
@@ -287,22 +286,17 @@ function HallColumn({
           {stations.map(([station, items]) => (
             <div key={station}>
               <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
-              <div className={showNutrients ? "space-y-2" : "space-y-1.5"}>
-                {items.map((it) => {
-                  const select = () => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` });
-                  return showNutrients ? (
-                    <ItemCard key={it.name} item={it} onSelect={select} />
-                  ) : (
-                    <button
-                      key={it.name}
-                      onClick={select}
-                      className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
-                    >
-                      <span>{it.name}</span>
-                      <Tags tags={it.tags} />
-                    </button>
-                  );
-                })}
+              <div className="space-y-1.5">
+                {items.map((it) => (
+                  <button
+                    key={it.name}
+                    onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
+                    className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                  >
+                    <span>{it.name}</span>
+                    {showIcons && <Tags tags={it.tags} />}
+                  </button>
+                ))}
               </div>
             </div>
           ))}
@@ -425,7 +419,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
   const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
   const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
-  const [showNutrients, setShowNutrients] = useState(false);
+  const [showIcons, setShowIcons] = useState(false);
   const { open, sheet } = useItemSheet();
 
   const toggleAllergen = useCallback((value: string) => {
@@ -481,16 +475,15 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
             onToggleAllergen={toggleAllergen}
             onTogglePreference={togglePreference}
             onClear={clearFilters}
-            showNutrients={showNutrients}
-            onToggleNutrients={() => {
-              track("continental_nutrients_toggled", { active: !showNutrients });
-              setShowNutrients(!showNutrients);
+            showIcons={showIcons}
+            onToggleIcons={() => {
+              track("continental_icons_toggled", { active: !showIcons });
+              setShowIcons(!showIcons);
             }}
           />
         </div>
 
-        {/* Nutrient cards need more room, so fewer halls per row while they're on. */}
-        <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showNutrients ? "" : "lg:grid-cols-4"}`}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {HALLS.map((h) => (
             <HallColumn
               key={h.slug}
@@ -501,7 +494,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               mealMenu={mealMenus[h.slug]}
               excludeAllergens={excludeAllergens}
               requirePreferences={requirePreferences}
-              showNutrients={showNutrients}
+              showIcons={showIcons}
               onSelect={open}
             />
           ))}

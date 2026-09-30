@@ -21,7 +21,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "net-nutrition": {
     label: "Continental",
-    description: "Scroll through today's menus with ease. Dietary-restriction friendly, with allergy and diet filters, plus a Nutrients view for calories, protein and carbs.",
+    description: "Scroll through today's menus with ease. Dietary-restriction friendly, with allergy and diet filters, plus an Icons button to show each item's diet and allergen icons.",
     Component: NetNutritionHomeLayout,
     previewSrc: "/layout-previews/net-nutrition.png",
   },
