@@ -4,7 +4,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
+  /* zinc-50 / zinc-950: the same as every page's background, so anything drawn straight on <body>
+     (the Continental hall scroller, overscroll) matches. */
+  --background: #fafafa;
   --foreground: #171717;
   --accent: #002f86;
 }
@@ -18,7 +20,7 @@
 }
 
 .dark {
-  --background: #0a0a0a;
+  --background: #09090b;
   --foreground: #ededed;
   --accent: #5b8def;
   color-scheme: dark;
