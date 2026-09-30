@@ -336,6 +336,9 @@ function HallColumn({
   );
 }
 
+/** The bottom hall scroller is switched off for now; set to true to bring it back. */
+const SHOW_HALL_SCROLLER = false;
+
 /** Element id of a hall's card, for the scroller to jump to. (Not a #hash: those open the hall's own page.) */
 const sectionId = (hall: Hall) => `continental-${hall.slug}`;
 
@@ -578,7 +581,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           ))}
         </div>
       </main>
-      <HallScroller halls={HALLS} onJump={expandHall} />
+      {SHOW_HALL_SCROLLER && <HallScroller halls={HALLS} onJump={expandHall} />}
       {sheet}
     </div>
   );
