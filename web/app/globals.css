@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Dark mode follows the `dark` class on <html> (see app/layout.tsx), so the in-app toggle can override the system. */
+/* Dark mode follows the `dark` class on <html> (see app/layout.tsx), so it's off by default and only the in-app toggle turns it on. */
 @custom-variant dark (&:where(.dark, .dark *));
 /* Opened from the home screen as an installed app (PWA), not in a browser tab. */
 @custom-variant standalone (@media (display-mode: standalone));

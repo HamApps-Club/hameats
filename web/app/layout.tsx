@@ -42,20 +42,15 @@ const WEBSITE_JSON_LD = JSON.stringify({
 });
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
-  ],
+  // The app opens in light mode regardless of the system setting (see THEME_SCRIPT below).
+  themeColor: "#fafafa",
 };
 
-// Runs before the page paints so there's no light flash: a saved choice from the toggle wins, else the system
-// setting (and system changes are followed until the user picks one).
+// Runs before the page paints so there's no flash: light by default, dark only if picked with the toggle.
 const THEME_SCRIPT = `(() => {
-  const saved = () => { try { return localStorage.getItem("theme"); } catch { return null; } };
-  const mq = matchMedia("(prefers-color-scheme: dark)");
-  const apply = () => document.documentElement.classList.toggle("dark", saved() ? saved() === "dark" : mq.matches);
-  apply();
-  mq.addEventListener("change", () => { if (!saved()) apply(); });
+  let saved = null;
+  try { saved = localStorage.getItem("theme"); } catch {}
+  document.documentElement.classList.toggle("dark", saved === "dark");
 })();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
