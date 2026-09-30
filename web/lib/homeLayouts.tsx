@@ -21,7 +21,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "net-nutrition": {
     label: "Continental",
-    description: "Hide foods with your allergens (dairy, egg, nuts and more) or show only vegan, vegetarian, gluten-friendly or halal options, across every hall at once.",
+    description: "Scroll through today's menus with ease. Dietary-restriction friendly, with allergy and diet filters, plus a Nutrients view for calories, protein and carbs.",
     Component: NetNutritionHomeLayout,
     previewSrc: "/layout-previews/net-nutrition.png",
   },
