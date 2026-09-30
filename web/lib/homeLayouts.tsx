@@ -1,20 +1,32 @@
+import type { StaticImageData } from "next/image";
 import type { ComponentType } from "react";
 import { useCallback, useSyncExternalStore } from "react";
 import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
+import { CollapsibleHomeLayout } from "@/components/home/CollapsibleHomeLayout";
 import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
 import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout";
+// Imported rather than referenced by URL, so each thumbnail gets a content-hashed URL and an updated
+// screenshot shows up right away instead of after the image optimizer's cache expires.
+import netNutritionMobilePreview from "@/public/layout-previews/net-nutrition-mobile.png";
+import netNutritionDesktopPreview from "@/public/layout-previews/net-nutrition-desktop.png";
+import classicMobilePreview from "@/public/layout-previews/classic-mobile.png";
+import classicDesktopPreview from "@/public/layout-previews/classic-desktop.png";
+import collapsibleMobilePreview from "@/public/layout-previews/collapsible-mobile.png";
+import collapsibleDesktopPreview from "@/public/layout-previews/collapsible-desktop.png";
+import mealFirstMobilePreview from "@/public/layout-previews/meal-first-mobile.png";
+import mealFirstDesktopPreview from "@/public/layout-previews/meal-first-desktop.png";
 
 export type { HomeLayoutProps };
 
 // Extend this union as new home layouts are registered below.
-export type HomeLayoutId = "classic" | "meal-first" | "net-nutrition";
+export type HomeLayoutId = "classic" | "meal-first" | "net-nutrition" | "collapsible";
 
 type HomeLayoutEntry = {
   label: string;
   description: string;
   Component: ComponentType<HomeLayoutProps>;
   /** Static screenshots of the layout's home screen, shown as a card thumbnail in the gallery. */
-  previewSrc: { mobile: string; desktop: string };
+  previewSrc: { mobile: StaticImageData; desktop: StaticImageData };
   /** Kept registered but left out of the gallery and not restored from storage. */
   hidden?: boolean;
 };
@@ -25,19 +37,25 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     label: "Continental",
     description: "Scroll through today's menus with ease. Dietary-restriction friendly, with allergy and diet filters, plus an Icons button to show each item's diet and allergen icons.",
     Component: NetNutritionHomeLayout,
-    previewSrc: { mobile: "/layout-previews/net-nutrition-mobile.png", desktop: "/layout-previews/net-nutrition-desktop.png" },
+    previewSrc: { mobile: netNutritionMobilePreview, desktop: netNutritionDesktopPreview },
   },
   classic: {
     label: "Classic",
     description: "Every dining hall as a card with today's hours and whether it's open now. Tap a hall to see its full menu.",
     Component: ClassicHomeLayout,
-    previewSrc: { mobile: "/layout-previews/classic-mobile.png", desktop: "/layout-previews/classic-desktop.png" },
+    previewSrc: { mobile: classicMobilePreview, desktop: classicDesktopPreview },
+  },
+  collapsible: {
+    label: "Collapsible",
+    description: "Every dining hall as a card with its hours and whether it's open now. Tap a hall to open today's menu right in the card, with allergy and diet filters.",
+    Component: CollapsibleHomeLayout,
+    previewSrc: { mobile: collapsibleMobilePreview, desktop: collapsibleDesktopPreview },
   },
   "meal-first": {
     label: "Comparison",
     description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
     Component: MealFirstHomeLayout,
-    previewSrc: { mobile: "/layout-previews/meal-first-mobile.png", desktop: "/layout-previews/meal-first-desktop.png" },
+    previewSrc: { mobile: mealFirstMobilePreview, desktop: mealFirstDesktopPreview },
     hidden: true,
   },
 };

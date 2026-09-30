@@ -24,9 +24,9 @@ import { track } from "@/lib/analytics";
 const ALLERGENS = ["Dairy", "Egg", "Fish", "Shellfish", "Pork", "Soy", "Wheat", "Sesame", "Tree Nut"] as const;
 const PREFERENCES = ["Vegan", "Vegetarian", "Gluten Friendly", "Halal"] as const;
 
-type Selected = { item: MenuItem; context: string };
+export type Selected = { item: MenuItem; context: string };
 
-function useItemSheet() {
+export function useItemSheet() {
   const [selected, setSelected] = useState<Selected | null>(null);
   useEffect(() => {
     const onPop = () => setSelected(null);
@@ -46,18 +46,18 @@ function useItemSheet() {
   return { open, sheet };
 }
 
-function mealByClock(minutes: number): Meal {
+export function mealByClock(minutes: number): Meal {
   if (minutes < 10 * 60 + 30) return "Breakfast";
   if (minutes < 16 * 60) return "Lunch";
   return "Dinner";
 }
 
-function windowFor(hall: Hall, dow: number, meal: Meal) {
+export function windowFor(hall: Hall, dow: number, meal: Meal) {
   return hall.hours[dow].find((p) => p.meal === meal);
 }
 
 /** Checking an allergen hides matching items; checking a preference keeps only items matching at least one. */
-function itemPasses(item: MenuItem, excludeAllergens: Set<string>, requirePreferences: Set<string>) {
+export function itemPasses(item: MenuItem, excludeAllergens: Set<string>, requirePreferences: Set<string>) {
   if (item.tags.some((t) => excludeAllergens.has(t))) return false;
   if (requirePreferences.size > 0 && !item.tags.some((t) => requirePreferences.has(t))) return false;
   return true;
@@ -80,19 +80,6 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
     >
       {label}
     </button>
-  );
-}
-
-/** Down chevron that flips to point up while its panel is open. */
-function Chevron({ open, className = "size-4" }: { open: boolean; className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className={`${className} shrink-0 transition ${open ? "rotate-180" : ""}`}>
-      <path
-        fillRule="evenodd"
-        d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
-        clipRule="evenodd"
-      />
-    </svg>
   );
 }
 
@@ -123,7 +110,18 @@ function FilterToggle({
       {count > 0 && (
         <span className="rounded-full bg-blue-600 px-1.5 text-xs leading-5 text-white dark:bg-blue-500">{count}</span>
       )}
-      <Chevron open={expanded} />
+      <svg
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden
+        className={`size-4 transition ${expanded ? "rotate-180" : ""}`}
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
+          clipRule="evenodd"
+        />
+      </svg>
     </button>
   );
 }
@@ -132,7 +130,7 @@ function FilterToggle({
  * A compact row of dropdowns (Allergies, Preferences) above the halls. Opening one drops down its
  * options as a wrapped row of pills, next to the Icons toggle; tapping outside or pressing Escape closes it.
  */
-function FilterBar({
+export function FilterBar({
   excludeAllergens,
   requirePreferences,
   onToggleAllergen,
@@ -236,8 +234,6 @@ function HallColumn({
   excludeAllergens,
   requirePreferences,
   showIcons,
-  collapsed,
-  onToggleCollapsed,
   onSelect,
 }: {
   hall: Hall;
@@ -248,8 +244,6 @@ function HallColumn({
   excludeAllergens: Set<string>;
   requirePreferences: Set<string>;
   showIcons: boolean;
-  collapsed: boolean;
-  onToggleCollapsed: () => void;
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
@@ -264,80 +258,60 @@ function HallColumn({
   return (
     <section
       id={sectionId(hall)}
-      // Collapsed cards don't stretch to their grid row, so on wide screens they shrink to just the name.
-      className={`scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 ${
-        collapsed ? "self-start" : ""
-      }`}
+      className="scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
     >
-      {/* The heading is the scroller's focus target (outlined on a jump); the button inside it collapses the card. */}
       <h2
         id={`${sectionId(hall)}-title`}
         tabIndex={-1}
         className="-mx-2 rounded-lg px-2 py-0.5 text-lg font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-accent dark:text-zinc-100"
       >
-        <button
-          type="button"
-          aria-expanded={!collapsed}
-          aria-controls={`${sectionId(hall)}-body`}
-          onClick={onToggleCollapsed}
-          className="flex w-full items-center justify-between gap-2 text-left"
-        >
-          {hall.name}
-          <Chevron open={!collapsed} className="size-5 text-zinc-500 dark:text-zinc-400" />
-        </button>
+        {hall.name}
       </h2>
 
-      {!collapsed && (
-        <div id={`${sectionId(hall)}-body`} className="space-y-2">
-          {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
+      {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
 
-          {win ? (
-            <p className="text-sm text-zinc-500">
-              {meal} · {compactRange(win.open, win.close)}
-            </p>
-          ) : (
-            <p className="text-sm text-zinc-500">
-              No {meal.toLowerCase()} {isToday ? "today" : "this day"}
-            </p>
-          )}
+      {win ? (
+        <p className="text-sm text-zinc-500">
+          {meal} · {compactRange(win.open, win.close)}
+        </p>
+      ) : (
+        <p className="text-sm text-zinc-500">
+          No {meal.toLowerCase()} {isToday ? "today" : "this day"}
+        </p>
+      )}
 
-          {stations.length > 0 ? (
-            // Each station gets room above and below plus a faint rule, so one category reads apart from the next.
-            <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
-              {stations.map(([station, items]) => (
-                <div key={station} className="py-4 first:pt-0 last:pb-0">
-                  <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
-                  <div className="space-y-1.5">
-                    {items.map((it) => (
-                      <button
-                        key={it.name}
-                        onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                        className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
-                      >
-                        <span>{it.name}</span>
-                        {showIcons && <Tags tags={it.tags} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+      {stations.length > 0 ? (
+        // Each station gets room above and below plus a faint rule, so one category reads apart from the next.
+        <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
+          {stations.map(([station, items]) => (
+            <div key={station} className="py-4 first:pt-0 last:pb-0">
+              <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
+              <div className="space-y-1.5">
+                {items.map((it) => (
+                  <button
+                    key={it.name}
+                    onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
+                    className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                  >
+                    <span>{it.name}</span>
+                    {showIcons && <Tags tags={it.tags} />}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            win &&
-            (hadItems && isFiltering ? (
-              <p className="pt-1 text-sm text-zinc-400">No items match your filters</p>
-            ) : (
-              <p className="pt-1 text-sm text-zinc-400">No menu posted yet</p>
-            ))
-          )}
+          ))}
         </div>
+      ) : (
+        win &&
+        (hadItems && isFiltering ? (
+          <p className="pt-1 text-sm text-zinc-400">No items match your filters</p>
+        ) : (
+          <p className="pt-1 text-sm text-zinc-400">No menu posted yet</p>
+        ))
       )}
     </section>
   );
 }
-
-/** The bottom hall scroller is switched off for now; set to true to bring it back. */
-const SHOW_HALL_SCROLLER = false;
 
 /** Element id of a hall's card, for the scroller to jump to. (Not a #hash: those open the hall's own page.) */
 const sectionId = (hall: Hall) => `continental-${hall.slug}`;
@@ -358,7 +332,7 @@ const SHORT_NAMES: Record<string, string> = {
  * the page, comes to rest below the footer instead of covering it. In the home-screen app it rides a
  * little higher.
  */
-function HallScroller({ halls, onJump }: { halls: Hall[]; onJump: (hall: Hall) => void }) {
+function HallScroller({ halls }: { halls: Hall[] }) {
   const [active, setActive] = useState(halls[0]?.slug);
 
   useEffect(() => {
@@ -391,7 +365,6 @@ function HallScroller({ halls, onJump }: { halls: Hall[]; onJump: (hall: Hall) =
   }, [halls]);
 
   const jump = (hall: Hall) => {
-    onJump(hall);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById(sectionId(hall))?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
     // Outline the hall's heading, like TigerMenus; it clears on the next tap elsewhere.
@@ -452,28 +425,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
   const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
   const [showIcons, setShowIcons] = useState(false);
-  // Halls folded down to just their name. Everything starts collapsed; tap a hall to open it.
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(HALLS.map((h) => h.slug)));
   const { open, sheet } = useItemSheet();
-
-  const toggleCollapsed = useCallback((hall: Hall) => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(hall.slug)) next.delete(hall.slug);
-      else next.add(hall.slug);
-      track("continental_hall_collapsed", { hall: hall.slug, collapsed: next.has(hall.slug) });
-      return next;
-    });
-  }, []);
-  // Jumping to a hall from the scroller opens it if it was collapsed.
-  const expandHall = useCallback((hall: Hall) => {
-    setCollapsed((prev) => {
-      if (!prev.has(hall.slug)) return prev;
-      const next = new Set(prev);
-      next.delete(hall.slug);
-      return next;
-    });
-  }, []);
 
   const toggleAllergen = useCallback((value: string) => {
     setExcludeAllergens((prev) => {
@@ -574,14 +526,12 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               excludeAllergens={excludeAllergens}
               requirePreferences={requirePreferences}
               showIcons={showIcons}
-              collapsed={collapsed.has(h.slug)}
-              onToggleCollapsed={() => toggleCollapsed(h)}
               onSelect={open}
             />
           ))}
         </div>
       </main>
-      {SHOW_HALL_SCROLLER && <HallScroller halls={HALLS} onJump={expandHall} />}
+      <HallScroller halls={HALLS} />
       {sheet}
     </div>
   );
