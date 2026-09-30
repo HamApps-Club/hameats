@@ -21,7 +21,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "meal-first": {
     label: "Comparison",
-    description: "Compare every dining hall side by side for the same meal. Pick a day and Breakfast, Lunch, or Dinner, then tap any item for details.",
+    description: "Compare Commons and McEwen side by side for the same meal. Pick a day and Breakfast, Lunch, or Dinner, then tap any item for details.",
     Component: MealFirstHomeLayout,
     previewSrc: "/layout-previews/meal-first.png",
   },
