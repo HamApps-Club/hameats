@@ -281,9 +281,10 @@ function HallColumn({
       )}
 
       {stations.length > 0 ? (
-        <div className="space-y-3 pt-1">
+        // Each station gets room above and below plus a faint rule, so one category reads apart from the next.
+        <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
           {stations.map(([station, items]) => (
-            <div key={station}>
+            <div key={station} className="py-4 first:pt-0 last:pb-0">
               <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
               <div className="space-y-1.5">
                 {items.map((it) => (
