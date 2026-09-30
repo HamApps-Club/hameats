@@ -16,6 +16,7 @@ export function LayoutGallery({
   current: HomeLayoutId;
   onSelect: (id: HomeLayoutId) => void;
 }) {
+  const layouts = Object.entries(HOME_LAYOUTS).filter(([, layout]) => !layout.hidden);
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-10 text-center">
@@ -23,7 +24,7 @@ export function LayoutGallery({
           <span className="text-accent">Ham</span> Eats
         </h1>
         <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-          This is a demo site, finding out which one of the three available layouts students on this campus prefer.
+          This is a demo site, finding out which one of the two available layouts students on this campus prefer.
         </p>
       </header>
 
@@ -43,8 +44,9 @@ export function LayoutGallery({
         <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {Object.entries(HOME_LAYOUTS).map(([id, layout]) => {
+      {/* One row, side by side: each card shrinks to fit, thumbnails keep their aspect ratio. */}
+      <div className="grid gap-3 sm:gap-4" style={{ gridTemplateColumns: `repeat(${layouts.length}, minmax(0, 1fr))` }}>
+        {layouts.map(([id, layout]) => {
           const selected = id === current;
           return (
             <button
@@ -71,9 +73,9 @@ export function LayoutGallery({
                 height={900}
                 className="hidden aspect-[8/5] w-full border-b border-zinc-200 object-cover object-top sm:block dark:border-zinc-800"
               />
-              <div className="min-w-0 p-4">
-                <h3 className="font-semibold text-blue-600 dark:text-blue-400">{layout.label}</h3>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{layout.description}</p>
+              <div className="min-w-0 p-3 sm:p-4">
+                <h3 className="text-sm font-semibold text-blue-600 sm:text-base dark:text-blue-400">{layout.label}</h3>
+                <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">{layout.description}</p>
               </div>
             </button>
           );

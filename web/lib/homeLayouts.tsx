@@ -15,6 +15,8 @@ type HomeLayoutEntry = {
   Component: ComponentType<HomeLayoutProps>;
   /** Static screenshots of the layout's home screen, shown as a card thumbnail in the gallery. */
   previewSrc: { mobile: string; desktop: string };
+  /** Kept registered but left out of the gallery and not restored from storage. */
+  hidden?: boolean;
 };
 
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
@@ -36,6 +38,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
     Component: MealFirstHomeLayout,
     previewSrc: { mobile: "/layout-previews/meal-first-mobile.png", desktop: "/layout-previews/meal-first-desktop.png" },
+    hidden: true,
   },
 };
 
@@ -44,7 +47,7 @@ export const DEFAULT_HOME_LAYOUT: HomeLayoutId = "classic";
 const STORAGE_KEY = "home-layout";
 
 function isHomeLayoutId(value: string | null): value is HomeLayoutId {
-  return !!value && value in HOME_LAYOUTS;
+  return !!value && value in HOME_LAYOUTS && !HOME_LAYOUTS[value as HomeLayoutId].hidden;
 }
 
 // localStorage's own "storage" event only fires in OTHER tabs/windows, so we
