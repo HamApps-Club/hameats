@@ -376,7 +376,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       aria-label="Jump to dining hall"
       // Sits a little higher in the home-screen app, clear of the home indicator's swipe area, where taps and
       // scrolling near the bottom edge lag.
-      className="sticky bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] standalone:pb-[max(1.75rem,calc(env(safe-area-inset-bottom)_+_1rem))] sm:hidden"
+      className="sticky bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] standalone:pb-[max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))] sm:hidden"
     >
       <div className="relative grid grid-cols-4 rounded-2xl border border-zinc-200 bg-white/95 px-1 pb-2.5 pt-1 shadow-md backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/95">
         {/* The line the dots sit on, from the first dot's center to the last's. */}
