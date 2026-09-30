@@ -1,13 +1,13 @@
 import type { ComponentType } from "react";
 import { useCallback, useSyncExternalStore } from "react";
 import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
-import { MealFirstHomeLayout, SingleColumnHomeLayout } from "@/components/home/MealFirstHomeLayout";
+import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
 import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout";
 
 export type { HomeLayoutProps };
 
 // Extend this union as new home layouts are registered below.
-export type HomeLayoutId = "classic" | "meal-first" | "single-column" | "net-nutrition";
+export type HomeLayoutId = "classic" | "meal-first" | "net-nutrition";
 
 type HomeLayoutEntry = {
   label: string;
@@ -30,12 +30,6 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     description: "A search bar up top and every dining hall listed below, ranked by what's open now.",
     Component: ClassicHomeLayout,
     previewSrc: "/layout-previews/classic.png",
-  },
-  "single-column": {
-    label: "Single Column",
-    description: "Same as Double Column, with every hall stacked in one column. You can tap any food item for more details.",
-    Component: SingleColumnHomeLayout,
-    previewSrc: "/layout-previews/single-column.png",
   },
   "net-nutrition": {
     label: "Net Nutrition",
