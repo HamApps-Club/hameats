@@ -50,11 +50,18 @@ export function LayoutGallery({
               }`}
             >
               <Image
-                src={layout.previewSrc}
+                src={layout.previewSrc.mobile}
                 alt=""
-                width={640}
-                height={399}
-                className="aspect-[8/5] w-full border-b border-zinc-200 object-cover object-top dark:border-zinc-800"
+                width={390}
+                height={844}
+                className="aspect-[9/16] w-full border-b border-zinc-200 object-cover object-top sm:hidden dark:border-zinc-800"
+              />
+              <Image
+                src={layout.previewSrc.desktop}
+                alt=""
+                width={1440}
+                height={900}
+                className="hidden aspect-[8/5] w-full border-b border-zinc-200 object-cover object-top sm:block dark:border-zinc-800"
               />
               <div className="min-w-0 p-4">
                 <h3 className="font-semibold text-blue-600 dark:text-blue-400">{layout.label}</h3>
