@@ -27,8 +27,8 @@ export function LayoutGallery({
 
       <div className="mb-8 space-y-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
         <p>
-          Thanks for all your feedback over the last two days! Specifically, I&apos;m interested in which layout
-          you&apos;d want to be the main one — the one you see at the start — and why not the others.
+          Thanks for all your feedback over the last two days! I&apos;d love to hear which one you&apos;d want to
+          be the main layout, and why not the others.
         </p>
         <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className="inline-block font-semibold underline">
           Share your feedback
