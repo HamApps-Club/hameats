@@ -6,9 +6,8 @@ import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { type Meal, type MenuItem } from "@/lib/types";
-import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { MealHeader } from "@/components/home/MealHeader";
+import { MealHeader, MealTabsBar } from "@/components/home/MealHeader";
 import { Tags } from "@/components/Tags";
 import { track } from "@/lib/analytics";
 
@@ -456,19 +455,19 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div>
-      <MealHeader meal={meal} onSelectMeal={setMeal} />
+      <MealHeader
+        dates={dates}
+        selected={date}
+        today={now.iso}
+        onSelectDate={(d) => {
+          setPickedDate(d);
+          track("continental_day_picked", { date: d });
+        }}
+      />
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mx-auto mb-5 max-w-2xl">
-          <DayPicker
-            dates={dates}
-            selected={date}
-            today={now.iso}
-            onSelect={(d) => {
-              setPickedDate(d);
-              track("continental_day_picked", { date: d });
-            }}
-          />
+          <MealTabsBar meal={meal} onSelectMeal={setMeal} />
         </div>
 
         <div className="mb-5">
