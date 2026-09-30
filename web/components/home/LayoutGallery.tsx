@@ -34,12 +34,6 @@ export function LayoutGallery({
         </a>
       </div>
 
-      <div className="mb-4 flex items-center gap-3">
-        <span className="size-2.5 rounded-full bg-accent" aria-hidden />
-        <h2 className="text-lg font-semibold">Home Layouts</h2>
-        <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-      </div>
-
       {/* One row, side by side: each card shrinks to fit, thumbnails keep their aspect ratio. */}
       <div className="grid gap-3 sm:gap-4" style={{ gridTemplateColumns: `repeat(${layouts.length}, minmax(0, 1fr))` }}>
         {layouts.map(([id, layout]) => {
