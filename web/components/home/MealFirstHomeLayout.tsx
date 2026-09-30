@@ -125,7 +125,7 @@ function HallColumn({
   );
 }
 
-/** Double Column: two halls side by side on phones, four across on wide screens. */
+/** Comparison layout: two halls side by side on phones, four across on wide screens. */
 export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
