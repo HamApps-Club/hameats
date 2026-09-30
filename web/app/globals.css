@@ -2,6 +2,8 @@
 
 /* Dark mode follows the `dark` class on <html> (see app/layout.tsx), so the in-app toggle can override the system. */
 @custom-variant dark (&:where(.dark, .dark *));
+/* Opened from the home screen as an installed app (PWA), not in a browser tab. */
+@custom-variant standalone (@media (display-mode: standalone));
 
 :root {
   /* zinc-50 / zinc-950: the same as every page's background, so anything drawn straight on <body>
