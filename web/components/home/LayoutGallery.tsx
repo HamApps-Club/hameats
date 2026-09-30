@@ -28,14 +28,14 @@ export function LayoutGallery({ onSelect }: { onSelect: (id: HomeLayoutId) => vo
         </a>
       </div>
 
-      {/* One row, side by side: each card shrinks to fit, thumbnails keep their aspect ratio. */}
-      <div className="grid gap-3 sm:gap-4" style={{ gridTemplateColumns: `repeat(${layouts.length}, minmax(0, 1fr))` }}>
+      {/* Two side by side per row: each card shrinks to fit, thumbnails keep their aspect ratio. */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {layouts.map(([id, layout]) => {
           return (
             <button
               key={id}
               onClick={() => onSelect(id as HomeLayoutId)}
-              className="overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+              className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
             >
               <Image
                 src={layout.previewSrc.mobile}
