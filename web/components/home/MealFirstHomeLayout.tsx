@@ -55,6 +55,9 @@ function mealByClock(minutes: number): Meal {
   return "Dinner";
 }
 
+/** The two main dining halls, side by side; the Diner and Little Pub are left out of this layout. */
+const COMPARED_HALLS = HALLS.filter((h) => h.slug === "commons" || h.slug === "mcewen");
+
 /** This hall's first service window for `meal` on weekday `dow`, or undefined if it doesn't serve it. */
 function windowFor(hall: Hall, dow: number, meal: Meal) {
   return hall.hours[dow].find((p) => p.meal === meal);
@@ -82,7 +85,7 @@ function HallColumn({
   const stations = orderedStations(mealMenu, hall.stationOrder);
 
   return (
-    <section className="space-y-2">
+    <section className="space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
       {/* 24px/500, matching TigerMenus' .dining-hall h2 */}
       <h2 className="text-[24px] font-medium leading-[1.1] text-[#262626] dark:text-zinc-100">{hall.name}</h2>
 
@@ -125,7 +128,7 @@ function HallColumn({
   );
 }
 
-/** Comparison layout: two halls side by side on phones, four across on wide screens. */
+/** Comparison layout: Commons and McEwen side by side, each in its own card. */
 export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
@@ -151,8 +154,8 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
-          {HALLS.map((h) => (
+        <div className="grid grid-cols-2 items-start gap-3 sm:gap-4">
+          {COMPARED_HALLS.map((h) => (
             <HallColumn key={h.slug} hall={h} meal={meal} date={date} now={now} data={data} onSelect={open} />
           ))}
         </div>
