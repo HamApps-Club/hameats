@@ -262,7 +262,7 @@ export default function Home() {
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   useEffect(() => {
-    if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: layoutId });
+    if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: HOME_LAYOUTS[layoutId].label });
   }, [data, hall, layoutId, galleryOpen]);
 
   // Tag the entry page load lands on as the gallery, so back button from a
@@ -306,7 +306,7 @@ export default function Home() {
               current={layoutId}
               onSelect={(id) => {
                 setLayoutId(id);
-                track("home_layout_changed", { layout: id, source: "gallery" });
+                track("home_layout_changed", { layout: HOME_LAYOUTS[id].label, source: "gallery" });
                 history.pushState({ view: "home" }, "");
                 setGalleryOpen(false);
                 // Open the new layout at its top, not wherever the gallery was scrolled to.
