@@ -108,12 +108,15 @@ const isPosted = (day: DayMenu | undefined) =>
 /** Small entry point back to the layout gallery, shown in the corner of the home screen. */
 function ChangeLayoutButton({ onClick }: { onClick: () => void }) {
   return (
-    <div className="fixed right-3 top-3 z-20">
+    <div className="fixed left-3 top-3 z-20">
       <button
         onClick={onClick}
+        aria-label="Change layout"
         className="rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white shadow-sm backdrop-blur hover:brightness-110"
       >
-        Change layout
+        {/* Shorter on phones so it clears the centered "Ham Eats" title. */}
+        <span className="sm:hidden">Layouts</span>
+        <span className="hidden sm:inline">Change layout</span>
       </button>
     </div>
   );
