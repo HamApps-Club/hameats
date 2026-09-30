@@ -22,7 +22,9 @@ export function LayoutGallery({
         <h1 className="text-4xl font-bold tracking-tight">
           <span className="text-accent">Ham</span> Eats
         </h1>
-        <p className="mt-2 text-zinc-500 dark:text-zinc-400">Choose how you&apos;d like to browse the dining halls.</p>
+        <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+          This is a demo site, finding out which one of the three available layouts students on this campus prefer.
+        </p>
       </header>
 
       <div className="mb-8 space-y-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
