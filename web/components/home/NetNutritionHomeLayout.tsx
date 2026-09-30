@@ -379,10 +379,11 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       // scrolling near the bottom edge lag.
       className="sticky bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] standalone:pb-[max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))] sm:hidden"
     >
-      {/* Hamilton blue with a buff-gold highlight, in both themes, so it stands off the white menu cards. */}
-      <div className="relative grid grid-cols-4 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a3c9c] to-[#001f5c] px-1 pb-2.5 pt-1 shadow-lg shadow-[#001f5c]/30">
+      {/* Frosted light gray with a crisp edge and a soft lift, so it reads apart from the white menu cards;
+          the hall you're on is picked out in gold. */}
+      <div className="relative grid grid-cols-4 rounded-2xl bg-zinc-100/95 px-1 pb-2.5 pt-1 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/10 backdrop-blur-md dark:bg-zinc-800/95 dark:shadow-black/40 dark:ring-white/10">
         {/* The line the dots sit on, from the first dot's center to the last's. */}
-        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/25" />
+        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-zinc-300 dark:bg-zinc-600" />
         {halls.map((h) => {
           const isActive = h.slug === active;
           return (
@@ -398,13 +399,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
               <span className="flex size-3 items-center justify-center">
                 <span
                   className={`rounded-full ${
-                    isActive ? "size-3 bg-[#f2c75c] ring-4 ring-[#f2c75c]/25" : "size-1.5 bg-white/55"
+                    isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-zinc-400 dark:bg-zinc-500"
                   }`}
                 />
               </span>
               <span
                 className={`text-[15px] ${
-                  isActive ? "font-semibold text-[#f2c75c]" : "text-white/75"
+                  // A deeper gold for the label: bright gold text is too faint on light gray.
+                  isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-zinc-500 dark:text-zinc-400"
                 }`}
               >
                 {SHORT_NAMES[h.slug] ?? h.name}
