@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 
 // The `dark` class on <html> is set before first paint by the script in app/layout.tsx
-// (saved choice, else the system setting); this button flips it and saves the choice.
+// (saved choice, else light); this button flips it and saves the choice.
 const subscribe = (cb: () => void) => {
   const observer = new MutationObserver(cb);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
