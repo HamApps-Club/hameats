@@ -4,13 +4,12 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
-import { LayoutGallery } from "@/components/home/LayoutGallery";
 import { MenuList } from "@/components/MenuList";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId } from "@/lib/homeLayouts";
+import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId, type HomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
 import { withSpecials } from "@/lib/specials";
@@ -105,18 +104,19 @@ function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
 const isPosted = (day: DayMenu | undefined) =>
   !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
 
-/** Small entry point back to the layout gallery, shown in the corner of the home screen. */
-function ChangeLayoutButton({ onClick }: { onClick: () => void }) {
+/** Flips straight to the other layout, shown in the corner of the home screen. */
+function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
   return (
     <div className="fixed left-3 top-3 z-20">
       <button
         onClick={onClick}
-        aria-label="Change layout"
-        className="rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white shadow-sm backdrop-blur hover:brightness-110"
+        className="flex min-h-10 items-center gap-1.5 rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110 sm:px-4 sm:text-base"
       >
-        {/* Shorter on phones so it clears the centered "Ham Eats" title. */}
-        <span className="sm:hidden">Layouts</span>
-        <span className="hidden sm:inline">Change layout</span>
+        {/* Two arrows passing each other: swap. */}
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-4 shrink-0">
+          <path d="M3 7h12m0 0-3-3m3 3-3 3M17 13H5m0 0 3-3m-3 3 3 3" />
+        </svg>
+        Switch Layout
       </button>
     </div>
   );
@@ -259,47 +259,37 @@ export default function Home() {
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
-  // Every load of "/" opens the visitor's layout (the default until they pick one); the
-  // gallery only opens from the Change layout button. Our pushState calls aren't Next's
-  // router, so navigating back to one of our entries reloads the page instead of a soft
-  // popstate — read the entry's tag up front so that reload lands back on the gallery
-  // if that's where it was.
-  const [galleryOpen, setGalleryOpen] = useState(() => {
-    if (typeof window === "undefined" || window.location.hash) return false;
-    return (window.history.state as { view?: string } | null)?.view === "gallery";
-  });
+  // Every load of "/" opens the last layout the visitor was on (the default until they switch).
+  // The layout gallery (components/home/LayoutGallery.tsx) is out of use for now: the
+  // Switch Layout button flips straight between the layouts it would have listed.
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
+  const switchLayout = () => {
+    const visible = (Object.keys(HOME_LAYOUTS) as HomeLayoutId[]).filter((id) => !HOME_LAYOUTS[id].hidden);
+    const next = visible[(visible.indexOf(layoutId) + 1) % visible.length];
+    track("home_layout_changed", {
+      layout: HOME_LAYOUTS[next].analyticsName,
+      layout_label: HOME_LAYOUTS[next].label,
+      from_layout: HOME_LAYOUTS[layoutId].analyticsName,
+      // false when this is their first switch, i.e. they're leaving the default.
+      had_chosen_before: hasChosenLayout(),
+      source: "switch_button",
+    });
+    // After tracking, so had_chosen_before reflects the state before this switch. Saved, so
+    // their next visit opens on this layout.
+    setLayoutId(next);
+    window.scrollTo({ top: 0 });
+  };
+
   useEffect(() => {
-    if (data && !hall && !galleryOpen)
+    if (data && !hall)
       track("home_layout_viewed", {
         layout: HOME_LAYOUTS[layoutId].analyticsName,
         layout_label: HOME_LAYOUTS[layoutId].label,
         // false while they're still on the default layout new visitors land on.
         chosen: hasChosenLayout(),
       });
-  }, [data, hall, layoutId, galleryOpen]);
-
-  // Tag the entry page load lands on as home, so the back button from the gallery (or
-  // from a hall reached from home) returns here instead of wherever the plain history
-  // stack would otherwise send the user — unless (see galleryOpen's initializer above)
-  // this load is a reload triggered by navigating back to an entry tagged "gallery".
-  useEffect(() => {
-    if (window.location.hash) return;
-    if ((history.state as { view?: string } | null)?.view !== "gallery") {
-      history.replaceState({ view: "home" }, "");
-    }
-  }, []);
-
-  useEffect(() => {
-    const onPop = (e: PopStateEvent) => {
-      const view = (e.state as { view?: string } | null)?.view;
-      if (view === "gallery") setGalleryOpen(true);
-      else if (view === "home") setGalleryOpen(false);
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
+  }, [data, hall, layoutId]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
@@ -316,40 +306,12 @@ export default function Home() {
             hall={hall}
             data={data}
             now={now}
-            homeState={{ view: galleryOpen ? "gallery" : "home" }}
+            homeState={{ view: "home" }}
           />
-        ) : galleryOpen ? (
-          <>
-            <ThemeToggle />
-            <LayoutGallery
-              onSelect={(id) => {
-                track("home_layout_changed", {
-                  layout: HOME_LAYOUTS[id].analyticsName,
-                  layout_label: HOME_LAYOUTS[id].label,
-                  from_layout: HOME_LAYOUTS[layoutId].analyticsName,
-                  // false when this is the first time they've picked, i.e. they're leaving the default.
-                  had_chosen_before: hasChosenLayout(),
-                  source: "gallery",
-                });
-                // After tracking, so had_chosen_before reflects the state before this pick.
-                setLayoutId(id);
-                history.pushState({ view: "home" }, "");
-                setGalleryOpen(false);
-                // Open the new layout at its top, not wherever the gallery was scrolled to.
-                window.scrollTo({ top: 0 });
-              }}
-            />
-          </>
         ) : (
           <>
             <ThemeToggle />
-            <ChangeLayoutButton
-              onClick={() => {
-                history.pushState({ view: "gallery" }, "");
-                setGalleryOpen(true);
-                window.scrollTo({ top: 0 });
-              }}
-            />
+            <SwitchLayoutButton onClick={switchLayout} />
             <HomeLayout data={data} now={now} />
           </>
         )}
