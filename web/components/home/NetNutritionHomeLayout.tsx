@@ -396,10 +396,10 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   return createPortal(
     <nav
       aria-label="Jump to dining hall"
-      // Raised 35px (about half a card height) above the bottom edge in both the browser and the home-screen app,
+      // Raised 45px above the bottom edge in both the browser and the home-screen app,
       // where it also sits a little higher still, clear of the home indicator's swipe area (taps and scrolling
       // near the bottom edge lag there).
-      className="sticky bottom-0 z-30 px-3 pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_35px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_35px)] sm:hidden"
+      className="sticky bottom-0 z-30 px-3 pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
     >
       {/* Frosted light gray with a crisp edge and a soft lift, so it reads apart from the white menu cards;
           the hall you're on is picked out in gold. */}
