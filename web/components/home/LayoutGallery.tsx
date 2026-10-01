@@ -15,7 +15,7 @@ export function LayoutGallery({ onSelect }: { onSelect: (id: HomeLayoutId) => vo
     <div className="mx-auto max-w-3xl px-4 pb-2 pt-10">
       <header className="mb-10 text-center">
         <h1 className="text-4xl font-bold tracking-tight">
-          <span className="text-accent">Ham</span> Eats
+          <span className="text-accent">Ham</span>Eats
         </h1>
       </header>
 

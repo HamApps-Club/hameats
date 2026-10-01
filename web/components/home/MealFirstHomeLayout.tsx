@@ -20,7 +20,7 @@ import { track } from "@/lib/analytics";
  */
 
 // Bootstrap 3's default stack, which TigerMenus never overrides. The link-blue
-// itself is Ham Eats' shared accent color, not TigerMenus' Bootstrap blue.
+// itself is HamEats' shared accent color, not TigerMenus' Bootstrap blue.
 const SITE_FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
 const LINK_BLUE = "text-accent";
 
@@ -138,7 +138,7 @@ export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
         {/* On phones the title centers in the gap between the Switch Layout button and the theme toggle. */}
         <h1 className="py-4 pl-36 pr-14 text-center text-2xl font-bold tracking-tight sm:px-0 sm:text-3xl">
-          <span className="text-accent">Ham</span> Eats
+          <span className="text-accent">Ham</span>Eats
         </h1>
       </header>
 

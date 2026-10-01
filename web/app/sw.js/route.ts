@@ -1,13 +1,13 @@
 // Served from a route (not public/) so the build ID can be written in: see the comment at the top of the script.
 export const dynamic = "force-static";
 
-const SCRIPT = `// Ham Eats service worker: makes the app load offline and keeps the last menus on the device.
+const SCRIPT = `// HamEats service worker: makes the app load offline and keeps the last menus on the device.
 // VERSION is the deploy's build ID, so every Vercel deploy is a new service worker: phones install it,
 // and it drops the previous deploy's cached app files. Saved menus (DATA) are kept across deploys.
 const VERSION = "__BUILD_ID__";
 const SHELL = \`shell-\${VERSION}\`;
 const DATA = "data-v1";
-const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=3", "/icons/icon-512.png?v=3"];
+const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=4", "/icons/icon-512.png?v=4"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));

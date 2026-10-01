@@ -80,7 +80,7 @@ export function AppUpdater() {
       className="fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
       <div className="flex w-full max-w-md items-center justify-between gap-3 rounded-2xl bg-zinc-900 px-4 py-3 text-sm text-white shadow-lg dark:bg-white dark:text-zinc-900">
-        <span>A new version of Ham Eats is ready.</span>
+        <span>A new version of HamEats is ready.</span>
         <button
           onClick={() => window.location.reload()}
           className="rounded-lg bg-white px-3 py-1.5 font-semibold text-zinc-900 dark:bg-zinc-900 dark:text-white"
