@@ -50,6 +50,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     description: "Every dining hall as a card with its hours and whether it's open now. Tap a hall to open today's menu right in the card, with allergy and diet filters.",
     Component: CollapsibleHomeLayout,
     previewSrc: { mobile: collapsibleMobilePreview, desktop: collapsibleDesktopPreview },
+    hidden: true,
   },
   "meal-first": {
     label: "Comparison",
