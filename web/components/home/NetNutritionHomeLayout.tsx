@@ -285,13 +285,13 @@ function HallColumn({
         <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
           {stations.map(([station, items]) => (
             <div key={station} className="py-4 first:pt-0 last:pb-0">
-              <h3 className="mb-1.5 text-sm font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
+              <h3 className="mb-3 text-lg font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
               <div className="space-y-1.5">
                 {items.map((it) => (
                   <button
                     key={it.name}
                     onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                    className="flex w-full items-center justify-between gap-2 text-left text-sm text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                    className="flex w-full items-center justify-between gap-2 text-left text-base text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
                   >
                     <span>{it.name}</span>
                     {showIcons && <Tags tags={it.tags} />}
