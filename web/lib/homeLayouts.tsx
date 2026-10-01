@@ -22,7 +22,10 @@ export type { HomeLayoutProps };
 export type HomeLayoutId = "classic" | "meal-first" | "net-nutrition" | "collapsible";
 
 type HomeLayoutEntry = {
+  /** Shown in the gallery. Kept neutral (Layout A, B) so the name doesn't sway the choice. */
   label: string;
+  /** Sent to analytics as the layout's name. Never change it: renaming would split the data. */
+  analyticsName: string;
   description: string;
   Component: ComponentType<HomeLayoutProps>;
   /** Static screenshots of the layout's home screen, shown as a card thumbnail in the gallery. */
@@ -34,19 +37,22 @@ type HomeLayoutEntry = {
 export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   // Listed in gallery order.
   "net-nutrition": {
-    label: "Continental",
-    description: "Scroll through today's menus with ease. Dietary-restriction friendly, with allergy and diet filters, plus an Icons button to show each item's diet and allergen icons.",
+    label: "Layout A",
+    analyticsName: "Continental",
+    description: "Every dining hall's menu on one page, with allergy and diet filters.",
     Component: NetNutritionHomeLayout,
     previewSrc: { mobile: netNutritionMobilePreview, desktop: netNutritionDesktopPreview },
   },
   classic: {
-    label: "Classic",
-    description: "Every dining hall as a card with today's hours and whether it's open now. Tap a hall to see its full menu.",
+    label: "Layout B",
+    analyticsName: "Classic",
+    description: "Every dining hall as a card with its hours. Tap a hall for its menu.",
     Component: ClassicHomeLayout,
     previewSrc: { mobile: classicMobilePreview, desktop: classicDesktopPreview },
   },
   collapsible: {
     label: "Collapsible",
+    analyticsName: "Collapsible",
     description: "Every dining hall as a card with its hours and whether it's open now. Tap a hall to open today's menu right in the card, with allergy and diet filters.",
     Component: CollapsibleHomeLayout,
     previewSrc: { mobile: collapsibleMobilePreview, desktop: collapsibleDesktopPreview },
@@ -54,6 +60,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   },
   "meal-first": {
     label: "Comparison",
+    analyticsName: "Comparison",
     description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
     Component: MealFirstHomeLayout,
     previewSrc: { mobile: mealFirstMobilePreview, desktop: mealFirstDesktopPreview },
@@ -61,7 +68,8 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   },
 };
 
-export const DEFAULT_HOME_LAYOUT: HomeLayoutId = "classic";
+/** What new visitors land on, until they pick a layout themselves. */
+export const DEFAULT_HOME_LAYOUT: HomeLayoutId = "net-nutrition";
 
 const STORAGE_KEY = "home-layout";
 
@@ -77,6 +85,15 @@ const LOCAL_CHANGE_EVENT = "home-layout-change";
 function readStoredLayoutId(): HomeLayoutId {
   const stored = localStorage.getItem(STORAGE_KEY);
   return isHomeLayoutId(stored) ? stored : DEFAULT_HOME_LAYOUT;
+}
+
+/** Whether this visitor has picked a layout themselves, rather than being on the default. */
+export function hasChosenLayout(): boolean {
+  try {
+    return isHomeLayoutId(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return false;
+  }
 }
 
 function subscribe(onChange: () => void) {
