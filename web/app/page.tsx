@@ -10,7 +10,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { HOME_LAYOUTS, useHomeLayoutId } from "@/lib/homeLayouts";
+import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
 import { withSpecials } from "@/lib/specials";
@@ -259,30 +259,35 @@ export default function Home() {
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   const [layoutId, setLayoutId] = useHomeLayoutId();
-  // Every fresh load of "/" starts at the gallery; picking a layout (or already having
-  // one selected this session) keeps it out of the way until the next fresh load. Our
-  // pushState calls aren't Next's router, so navigating back to one of our entries
-  // reloads the page instead of a soft popstate — read the entry's tag up front so that
-  // reload lands back on "home" instead of resetting to the gallery.
+  // Every load of "/" opens the visitor's layout (the default until they pick one); the
+  // gallery only opens from the Change layout button. Our pushState calls aren't Next's
+  // router, so navigating back to one of our entries reloads the page instead of a soft
+  // popstate — read the entry's tag up front so that reload lands back on the gallery
+  // if that's where it was.
   const [galleryOpen, setGalleryOpen] = useState(() => {
-    if (typeof window === "undefined" || window.location.hash) return true;
-    return (window.history.state as { view?: string } | null)?.view !== "home";
+    if (typeof window === "undefined" || window.location.hash) return false;
+    return (window.history.state as { view?: string } | null)?.view === "gallery";
   });
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
   useEffect(() => {
-    if (data && !hall && !galleryOpen) track("home_layout_viewed", { layout: HOME_LAYOUTS[layoutId].label });
+    if (data && !hall && !galleryOpen)
+      track("home_layout_viewed", {
+        layout: HOME_LAYOUTS[layoutId].analyticsName,
+        layout_label: HOME_LAYOUTS[layoutId].label,
+        // false while they're still on the default layout new visitors land on.
+        chosen: hasChosenLayout(),
+      });
   }, [data, hall, layoutId, galleryOpen]);
 
-  // Tag the entry page load lands on as the gallery, so back button from a
-  // picked layout (or from a hall reached from it) returns here instead of
-  // wherever the plain history stack would otherwise send the user — unless
-  // (see galleryOpen's initializer above) this load is actually a reload
-  // triggered by navigating back to an entry already tagged "home".
+  // Tag the entry page load lands on as home, so the back button from the gallery (or
+  // from a hall reached from home) returns here instead of wherever the plain history
+  // stack would otherwise send the user — unless (see galleryOpen's initializer above)
+  // this load is a reload triggered by navigating back to an entry tagged "gallery".
   useEffect(() => {
     if (window.location.hash) return;
-    if ((history.state as { view?: string } | null)?.view !== "home") {
-      history.replaceState({ view: "gallery" }, "");
+    if ((history.state as { view?: string } | null)?.view !== "gallery") {
+      history.replaceState({ view: "home" }, "");
     }
   }, []);
 
@@ -318,8 +323,16 @@ export default function Home() {
             <ThemeToggle />
             <LayoutGallery
               onSelect={(id) => {
+                track("home_layout_changed", {
+                  layout: HOME_LAYOUTS[id].analyticsName,
+                  layout_label: HOME_LAYOUTS[id].label,
+                  from_layout: HOME_LAYOUTS[layoutId].analyticsName,
+                  // false when this is the first time they've picked, i.e. they're leaving the default.
+                  had_chosen_before: hasChosenLayout(),
+                  source: "gallery",
+                });
+                // After tracking, so had_chosen_before reflects the state before this pick.
                 setLayoutId(id);
-                track("home_layout_changed", { layout: HOME_LAYOUTS[id].label, source: "gallery" });
                 history.pushState({ view: "home" }, "");
                 setGalleryOpen(false);
                 // Open the new layout at its top, not wherever the gallery was scrolled to.
