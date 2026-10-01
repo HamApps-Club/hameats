@@ -19,13 +19,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Ham Eats · Dining Menus & Hours",
+    default: "Ham Eats · Hamilton College Dining Menus & Hours",
     // Other pages set just their own name, e.g. "Dining Hours · Ham Eats".
     template: "%s · Ham Eats",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  keywords: ["Ham Eats", "dining", "menu", "Soper Commons", "McEwen", "Howard Diner", "Little Pub", "dining hours"],
+  keywords: ["Ham Eats", "Hamilton College", "Hamilton College dining", "dining", "menu", "Soper Commons", "McEwen", "Howard Diner", "Little Pub", "dining hours"],
   alternates: { canonical: "/" },
   openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US" },
   twitter: { card: "summary_large_image" },
@@ -38,6 +38,7 @@ const WEBSITE_JSON_LD = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: SITE_NAME,
+  alternateName: ["HamEats", "Ham Eats App"],
   url: SITE_URL,
 });
 
