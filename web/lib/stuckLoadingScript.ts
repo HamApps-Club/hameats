@@ -37,7 +37,7 @@ export const STUCK_LOADING_SCRIPT = `(() => {
     bar.innerHTML =
       '<div style="display:flex;align-items:center;gap:12px;width:100%;max-width:28rem;padding:14px 16px;' +
       'border-radius:16px;background:#18181b;color:#fff;box-shadow:0 10px 25px rgba(0,0,0,.3);font-size:15px">' +
-      '<span style="flex:1">Ham Eats was updated. Tap Refresh to load the menus.</span>' +
+      '<span style="flex:1">HamEats was updated. Tap Refresh to load the menus.</span>' +
       '<button type="button" style="flex:none;border:0;border-radius:10px;background:#2563eb;color:#fff;' +
       'font:inherit;font-weight:600;padding:10px 16px">Refresh</button></div>';
     const button = bar.querySelector("button");

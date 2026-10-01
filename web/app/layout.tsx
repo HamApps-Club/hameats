@@ -19,26 +19,26 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Ham Eats · Hamilton College Dining Menus & Hours",
-    // Other pages set just their own name, e.g. "Dining Hours · Ham Eats".
-    template: "%s · Ham Eats",
+    default: "HamEats · Hamilton College Dining Menus & Hours",
+    // Other pages set just their own name, e.g. "Dining Hours · HamEats".
+    template: "%s · HamEats",
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  keywords: ["Ham Eats", "Hamilton College", "Hamilton College dining", "dining", "menu", "Soper Commons", "McEwen", "Howard Diner", "Little Pub", "dining hours"],
+  keywords: ["HamEats", "Ham Eats", "Hamilton College", "Hamilton College dining", "dining", "menu", "Soper Commons", "McEwen", "Howard Diner", "Little Pub", "dining hours"],
   alternates: { canonical: "/" },
   openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US" },
   twitter: { card: "summary_large_image" },
-  // Home-screen app on iPhone: full screen, named "Ham Eats".
+  // Home-screen app on iPhone: full screen, named "HamEats".
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };
 
-// Tells Google the site's name, so results show "Ham Eats" instead of the domain.
+// Tells Google the site's name, so results show "HamEats" instead of the domain.
 const WEBSITE_JSON_LD = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: SITE_NAME,
-  alternateName: ["HamEats", "Ham Eats App"],
+  alternateName: ["Ham Eats", "HamEats App"],
   url: SITE_URL,
 });
 

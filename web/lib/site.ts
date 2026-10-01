@@ -1,6 +1,6 @@
 /** The public address search engines and link previews should use. */
 export const SITE_URL = "https://www.hameats.app";
-export const SITE_NAME = "Ham Eats";
+export const SITE_NAME = "HamEats";
 export const SITE_DESCRIPTION =
   "Every Hamilton College dining hall menu and hours: Soper Commons, McEwen, the Diner and the Little Pub, in one place.";
 

@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Ham Eats",
-    short_name: "Ham Eats",
+    name: "HamEats",
+    short_name: "HamEats",
     description: "Dining hall menus and hours",
     start_url: "/",
     scope: "/",
@@ -11,9 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#fafafa",
     theme_color: "#fafafa",
     icons: [
-      { src: "/icons/icon-192.png?v=3", sizes: "192x192", type: "image/png" },
-      { src: "/icons/icon-512.png?v=3", sizes: "512x512", type: "image/png" },
-      { src: "/icons/icon-maskable-512.png?v=3", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-192.png?v=4", sizes: "192x192", type: "image/png" },
+      { src: "/icons/icon-512.png?v=4", sizes: "512x512", type: "image/png" },
+      { src: "/icons/icon-maskable-512.png?v=4", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }
