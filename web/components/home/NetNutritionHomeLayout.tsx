@@ -349,9 +349,11 @@ const SHORT_NAMES: Record<string, string> = {
  * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
  * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
  * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
- * It's rendered at the end of <body> and sticky to the bottom of the screen, so it rides along while
- * scrolling and, at the very end of the page, comes to rest below the footer instead of covering it.
- * In the home-screen app it rides a little higher.
+ * It's rendered at the end of <body>. In the browser it's fixed to the bottom of the screen, because
+ * a sticky one slides around while mobile Safari's toolbar shows and hides; a spacer of the same
+ * height ends the page, so the footer still scrolls clear of it. In the home-screen app (no toolbar)
+ * it's sticky instead, coming to rest below the footer at the very end of the page, and rides a
+ * little higher.
  */
 function HallScroller({ halls }: { halls: Hall[] }) {
   const [active, setActive] = useState(halls[0]?.slug);
@@ -394,50 +396,54 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   };
 
   return createPortal(
-    <nav
-      aria-label="Jump to dining hall"
-      // Raised 45px above the bottom edge in both the browser and the home-screen app,
-      // where it also sits a little higher still, clear of the home indicator's swipe area (taps and scrolling
-      // near the bottom edge lag there).
-      className="sticky bottom-0 z-30 px-3 pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
-    >
-      {/* Frosted light gray with a crisp edge and a soft lift, so it reads apart from the white menu cards;
-          the hall you're on is picked out in gold. */}
-      <div className="relative grid grid-cols-4 rounded-2xl bg-zinc-100/95 px-1 pb-2.5 pt-1 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/10 backdrop-blur-md dark:bg-zinc-800/95 dark:shadow-black/40 dark:ring-white/10">
-        {/* The line the dots sit on, from the first dot's center to the last's. */}
-        <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-zinc-300 dark:bg-zinc-600" />
-        {halls.map((h) => {
-          const isActive = h.slug === active;
-          return (
-            <button
-              key={h.slug}
-              type="button"
-              aria-current={isActive ? "location" : undefined}
-              onClick={() => jump(h)}
-              // Tall top padding is part of the button, so a tap near the card's top edge picks a hall
-              // instead of falling through to the menu item behind it.
-              className="relative flex min-h-11 flex-col items-center gap-1.5 pt-4"
-            >
-              <span className="flex size-3 items-center justify-center">
-                <span
-                  className={`rounded-full ${
-                    isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-zinc-400 dark:bg-zinc-500"
-                  }`}
-                />
-              </span>
-              <span
-                className={`text-[15px] ${
-                  // A deeper gold for the label: bright gold text is too faint on light gray.
-                  isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-zinc-500 dark:text-zinc-400"
-                }`}
+    <>
+      {/* Browser only: room at the end of the page for the fixed scroller (card height + its bottom padding). */}
+      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_115.5px)] standalone:hidden sm:hidden" />
+      <nav
+        aria-label="Jump to dining hall"
+        // Raised 45px above the bottom edge in both the browser and the home-screen app,
+        // where it also sits a little higher still, clear of the home indicator's swipe area (taps and scrolling
+        // near the bottom edge lag there).
+        className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
+      >
+        {/* Frosted light gray with a crisp edge and a soft lift, so it reads apart from the white menu cards;
+            the hall you're on is picked out in gold. */}
+        <div className="relative grid grid-cols-4 rounded-2xl bg-zinc-100/95 px-1 pb-2.5 pt-1 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/10 backdrop-blur-md dark:bg-zinc-800/95 dark:shadow-black/40 dark:ring-white/10">
+          {/* The line the dots sit on, from the first dot's center to the last's. */}
+          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-zinc-300 dark:bg-zinc-600" />
+          {halls.map((h) => {
+            const isActive = h.slug === active;
+            return (
+              <button
+                key={h.slug}
+                type="button"
+                aria-current={isActive ? "location" : undefined}
+                onClick={() => jump(h)}
+                // Tall top padding is part of the button, so a tap near the card's top edge picks a hall
+                // instead of falling through to the menu item behind it.
+                className="relative flex min-h-11 flex-col items-center gap-1.5 pt-4"
               >
-                {SHORT_NAMES[h.slug] ?? h.name}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>,
+                <span className="flex size-3 items-center justify-center">
+                  <span
+                    className={`rounded-full ${
+                      isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-zinc-400 dark:bg-zinc-500"
+                    }`}
+                  />
+                </span>
+                <span
+                  className={`text-[15px] ${
+                    // A deeper gold for the label: bright gold text is too faint on light gray.
+                    isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-zinc-500 dark:text-zinc-400"
+                  }`}
+                >
+                  {SHORT_NAMES[h.slug] ?? h.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </>,
     document.body,
   );
 }
