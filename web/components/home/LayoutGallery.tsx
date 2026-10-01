@@ -41,7 +41,7 @@ export function LayoutGallery({ onSelect }: { onSelect: (id: HomeLayoutId) => vo
                 src={layout.previewSrc.mobile}
                 alt=""
                 width={390}
-                height={844}
+                height={693}
                 className="aspect-[9/16] w-full border-b border-zinc-200 object-cover object-top sm:hidden dark:border-zinc-800"
               />
               <Image
