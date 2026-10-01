@@ -161,6 +161,11 @@ export function SiteFooter() {
         </a>
       </div>
 
+      {/* Plain text in the page from the first byte, so search engines see what the site is without running the app. */}
+      <p className="pt-3 text-center">
+        Ham Eats: Hamilton College dining menus and hours for Soper Commons, McEwen, the Diner and the Little Pub.
+      </p>
+
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
     </footer>
   );
