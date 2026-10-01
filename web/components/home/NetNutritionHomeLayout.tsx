@@ -271,11 +271,11 @@ function HallColumn({
       {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
 
       {win ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-base text-zinc-500">
           {meal} · {compactRange(win.open, win.close)}
         </p>
       ) : (
-        <p className="text-sm text-zinc-500">
+        <p className="text-base text-zinc-500">
           No {meal.toLowerCase()} {isToday ? "today" : "this day"}
         </p>
       )}
