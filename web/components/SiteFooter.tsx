@@ -115,6 +115,15 @@ export function SiteFooter() {
               </ol>
             </div>
             <div>
+              <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">iPhone (Chrome)</p>
+              <ol className="list-decimal space-y-1 pl-6">
+                <li>Tap the Share button on the right side of the address bar.</li>
+                <li>Tap &quot;View More.&quot;</li>
+                <li>Scroll down a little and tap &quot;Add to Home Screen.&quot;</li>
+                <li>Tap &quot;Add.&quot;</li>
+              </ol>
+            </div>
+            <div>
               <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">Android (Chrome)</p>
               <ol className="list-decimal space-y-1 pl-6">
                 <li>
