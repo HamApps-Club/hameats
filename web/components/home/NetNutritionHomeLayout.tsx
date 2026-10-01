@@ -24,6 +24,27 @@ import { track } from "@/lib/analytics";
 const ALLERGENS = ["Dairy", "Egg", "Fish", "Shellfish", "Pork", "Soy", "Wheat", "Sesame", "Tree Nut"] as const;
 const PREFERENCES = ["Vegan", "Vegetarian", "Gluten Friendly", "Halal"] as const;
 
+// Filters stay on across visits (saved in this browser) until the visitor turns them off or taps Clear.
+const SAVED_ALLERGENS_KEY = "continental-allergens";
+const SAVED_PREFERENCES_KEY = "continental-preferences";
+
+/** A saved filter set, keeping only options that still exist. */
+function readSavedFilters(key: string, options: readonly string[]): Set<string> {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
+    return new Set(Array.isArray(saved) ? saved.filter((v) => options.includes(v)) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveFilters(key: string, values: Set<string>) {
+  try {
+    if (values.size) localStorage.setItem(key, JSON.stringify([...values]));
+    else localStorage.removeItem(key);
+  } catch {}
+}
+
 export type Selected = { item: MenuItem; context: string };
 
 export function useItemSheet() {
@@ -425,8 +446,12 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
-  const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
-  const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
+  const [excludeAllergens, setExcludeAllergens] = useState(() => readSavedFilters(SAVED_ALLERGENS_KEY, ALLERGENS));
+  const [requirePreferences, setRequirePreferences] = useState(() =>
+    readSavedFilters(SAVED_PREFERENCES_KEY, PREFERENCES),
+  );
+  useEffect(() => saveFilters(SAVED_ALLERGENS_KEY, excludeAllergens), [excludeAllergens]);
+  useEffect(() => saveFilters(SAVED_PREFERENCES_KEY, requirePreferences), [requirePreferences]);
   const [showIcons, setShowIcons] = useState(false);
   const { open, sheet } = useItemSheet();
 
