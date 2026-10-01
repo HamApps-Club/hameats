@@ -263,7 +263,7 @@ function HallColumn({
       <h2
         id={`${sectionId(hall)}-title`}
         tabIndex={-1}
-        className="-mx-2 rounded-lg px-2 py-0.5 text-lg font-semibold text-zinc-900 outline-none dark:text-zinc-100"
+        className="-mx-2 rounded-lg px-2 py-0.5 text-[22px] font-semibold text-zinc-900 outline-none dark:text-zinc-100"
       >
         {hall.name}
       </h2>
