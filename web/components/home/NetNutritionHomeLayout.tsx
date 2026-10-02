@@ -448,14 +448,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 <span className="flex size-3 items-center justify-center">
                   <span
                     className={`rounded-full ${
-                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-1.5 bg-white/70"
+                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-2.5 bg-white/70"
                     }`}
                   />
                 </span>
                 <span
-                  className={`text-[15px] ${
+                  className={`text-[15px] font-bold ${
                     // Gold on navy in light mode; white on the lighter blue in dark mode, where gold text is too faint.
-                    isActive ? "font-semibold text-gold dark:text-white" : "text-white/85"
+                    isActive ? "text-gold dark:text-white" : "text-white/85"
                   }`}
                 >
                   {SHORT_NAMES[h.slug] ?? h.name}
