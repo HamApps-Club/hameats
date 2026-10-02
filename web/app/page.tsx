@@ -129,12 +129,9 @@ function ReportButton() {
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track("report_menu_clicked")}
-        className="flex min-h-10 items-center gap-1.5 rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110 sm:px-4 sm:text-base"
+        aria-label="Report an inaccurate menu"
+        className="flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
-        {/* A flag: report a problem. */}
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-4 shrink-0">
-          <path d="M4 17V3.5m0 0h9.5l-2 3.5 2 3.5H4" />
-        </svg>
         Report
       </a>
     </div>
