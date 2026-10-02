@@ -62,7 +62,7 @@ export function ItemSheet({
         onClick={(e) => e.stopPropagation()}
         className="h-full w-full overflow-y-auto bg-zinc-50 text-zinc-900 sm:h-auto sm:max-h-full sm:max-w-lg sm:rounded-xl dark:bg-background dark:text-zinc-100"
       >
-        <div className="sticky top-0 z-10 bg-background px-2 py-2">
+        <div className="sticky top-0 z-10 bg-zinc-50/90 px-2 py-2 backdrop-blur dark:bg-background/90">
           <button
             onClick={onClose}
             autoFocus

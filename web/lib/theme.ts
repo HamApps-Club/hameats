@@ -16,12 +16,6 @@ export const THEME_COLORS = { light: "#fafafa", dark: "#131316" } as const;
 export function applyTheme(dark: boolean) {
   document.documentElement.classList.toggle("dark", dark);
   setThemeColor(dark ? THEME_COLORS.dark : THEME_COLORS.light);
-  // Safari (and Chrome, which uses Safari's engine on iPhone) no longer reads theme-color: it tints the top
-  // of the screen from the solid header stuck to the top of the page, and only looks again when the page
-  // scrolls. A one-pixel scroll and back makes it pick up the new theme right away.
-  const y = window.scrollY;
-  window.scrollTo(0, y + 1);
-  requestAnimationFrame(() => window.scrollTo(0, y));
 }
 
 function setThemeColor(color: string) {
