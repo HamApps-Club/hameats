@@ -350,7 +350,9 @@ const SHORT_NAMES: Record<string, string> = {
  * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
  * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
  * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
- * It's rendered at the end of <body>. In the browser it's fixed to the bottom of the screen, because
+ * When the halls after the tapped one are short (nothing served), the page can't scroll it all the way to
+ * the top, so the tapped hall keeps the gold dot until you scroll yourself, and its card flashes gold so
+ * you can spot it. It's rendered at the end of <body>. In the browser it's fixed to the bottom of the screen, because
  * a sticky one slides around while mobile Safari's toolbar shows and hides; a spacer of the same
  * height ends the page, so the footer still scrolls clear of it. In the home-screen app (no toolbar)
  * it's sticky instead, coming to rest below the footer at the very end of the page, and rides a
@@ -358,39 +360,69 @@ const SHORT_NAMES: Record<string, string> = {
  */
 function HallScroller({ halls }: { halls: Hall[] }) {
   const [active, setActive] = useState(halls[0]?.slug);
+  // The hall last tapped, which keeps the gold dot until the user scrolls on their own.
+  const pinned = useRef<string | null>(null);
 
   useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
+      if (pinned.current) return;
       const cards = halls.map((h) => document.getElementById(sectionId(h))).filter((el) => el !== null);
       if (!cards.length) return;
-      const vh = window.innerHeight;
-      // The active hall is the last one whose card has reached the top third of the screen. At the very
-      // bottom of the page the last cards can't scroll that high, so there it's the last card on screen.
-      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      // The active hall is the last one whose card has reached a line just under the sticky header (where a
+      // jump puts a card's top). A line lower down, like the top third, would pass a short card (a hall with
+      // nothing served) on to the next hall while the short one still sits at the top of the screen.
+      const line = parseFloat(getComputedStyle(cards[0]).scrollMarginTop) + 40;
       let current = halls[0].slug;
       cards.forEach((el, i) => {
-        if (el.getBoundingClientRect().top <= (atBottom ? vh * 0.75 : vh / 3)) current = halls[i].slug;
+        if (el.getBoundingClientRect().top <= line) current = halls[i].slug;
       });
       setActive(current);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
+    // Touching, wheeling or pressing a key starts the user's own scroll, so the dot follows the page again.
+    const unpin = () => {
+      pinned.current = null;
+    };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    for (const type of ["touchstart", "wheel", "keydown"]) window.addEventListener(type, unpin, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      for (const type of ["touchstart", "wheel", "keydown"]) window.removeEventListener(type, unpin);
     };
   }, [halls]);
 
   const jump = (hall: Hall) => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById(sectionId(hall))?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    pinned.current = hall.slug;
+    setActive(hall.slug);
+    const card = document.getElementById(sectionId(hall));
+    if (!card) return;
+    // A gold ring that fades out once the scroll has landed, so the eye finds the card wherever it stopped.
+    // It starts on scrollend; right away when the card is already in place (no scroll, so no scrollend);
+    // and after a moment at the latest, for browsers without scrollend.
+    let flashed = false;
+    const flash = () => {
+      if (flashed) return;
+      flashed = true;
+      window.removeEventListener("scrollend", flash);
+      card.animate(
+        [{ boxShadow: "0 0 0 3px rgb(234 179 8 / 0.7)" }, { boxShadow: "0 0 0 3px rgb(234 179 8 / 0)" }],
+        { duration: 1200, easing: "ease-out" },
+      );
+    };
+    const startY = window.scrollY;
+    window.addEventListener("scrollend", flash);
+    card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    setTimeout(() => window.scrollY === startY && flash(), 100);
+    setTimeout(flash, 1200);
     // Move focus to the hall's heading so screen readers land there too; nothing is drawn around it.
     document.getElementById(`${sectionId(hall)}-title`)?.focus({ preventScroll: true });
     track("continental_hall_jumped", { hall: hall.slug });
@@ -399,13 +431,13 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   return createPortal(
     <>
       {/* Browser only: room at the end of the page for the fixed scroller (card height + its bottom padding). */}
-      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_115.5px)] standalone:hidden sm:hidden" />
+      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_145.5px)] standalone:hidden sm:hidden" />
       <nav
         aria-label="Jump to dining hall"
-        // Raised 45px above the bottom edge in both the browser and the home-screen app,
+        // Raised 75px above the bottom edge in both the browser and the home-screen app,
         // where it also sits a little higher still, clear of the home indicator's swipe area (taps and scrolling
         // near the bottom edge lag there).
-        className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_75px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_75px)] sm:hidden"
       >
         {/* Frosted light blue with a crisp edge and a soft lift, so it reads apart from the white menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
