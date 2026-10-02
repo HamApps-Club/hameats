@@ -107,12 +107,10 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
       type="button"
       aria-pressed={selected}
       onClick={onToggle}
-      className={`min-h-9 rounded-full border px-3 text-sm font-medium ${
-        selected
-          ? "border-navy bg-navy text-white dark:border-blue-500 dark:bg-blue-500"
-          : "border-bright bg-bright text-white hover:brightness-110 dark:border-navy dark:bg-navy dark:text-blue-100 dark:hover:brightness-125"
-      }`}
+      // On and off are the same blue, so a check marks the filters that are on.
+      className="flex min-h-9 items-center gap-1 rounded-full border border-accent bg-accent px-3 text-sm font-medium text-white hover:brightness-110"
     >
+      {selected && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
       {label}
     </button>
   );
@@ -135,15 +133,11 @@ function FilterToggle({
       type="button"
       aria-expanded={expanded}
       onClick={onClick}
-      className={`flex min-h-10 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
-        expanded || count > 0
-          ? "border-navy text-white dark:border-blue-400 dark:text-blue-300"
-          : "border-bright text-white dark:border-navy dark:text-blue-100"
-      } bg-bright dark:bg-navy`}
+      className="flex min-h-10 items-center gap-1 rounded-full border border-accent bg-accent px-3 text-sm font-semibold text-white"
     >
       {label}
       {count > 0 && (
-        <span className="rounded-full bg-navy px-1.5 text-xs leading-5 text-white dark:bg-blue-500">{count}</span>
+        <span className="rounded-full bg-white px-1.5 text-xs leading-5 text-accent">{count}</span>
       )}
       <svg
         viewBox="0 0 20 20"
@@ -226,12 +220,9 @@ export function FilterBar({
           type="button"
           aria-pressed={showIcons}
           onClick={onToggleIcons}
-          className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${
-            showIcons
-              ? "border-navy bg-navy text-white dark:border-blue-500 dark:bg-blue-500"
-              : "border-bright bg-bright text-white dark:border-navy dark:bg-navy dark:text-blue-100"
-          }`}
+          className="flex min-h-10 items-center gap-1 rounded-full border border-accent bg-accent px-3 text-sm font-semibold text-white"
         >
+          {showIcons && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
           Icons
         </button>
         {hasFilters && (
@@ -437,11 +428,11 @@ function HallScroller({ halls }: { halls: Hall[] }) {
         // near the bottom edge lag there).
         className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_75px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_75px)] sm:hidden"
       >
-        {/* Frosted blue (lighter in light mode, navy in dark mode), with a crisp edge and a soft lift, so it reads apart from the menu cards;
+        {/* Frosted brand blue (navy in light mode, the lighter blue in dark mode), with a crisp edge and a soft lift, so it reads apart from the menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-bright/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-bright dark:bg-navy/95 dark:shadow-black/40 dark:android:bg-navy">
+        <div className="relative grid grid-cols-4 rounded-2xl bg-accent/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-accent dark:shadow-black/40">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
-          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/40 dark:bg-blue-800" />
+          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/40" />
           {halls.map((h) => {
             const isActive = h.slug === active;
             return (
@@ -457,14 +448,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 <span className="flex size-3 items-center justify-center">
                   <span
                     className={`rounded-full ${
-                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-1.5 bg-white/70 dark:bg-blue-700"
+                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-1.5 bg-white/70"
                     }`}
                   />
                 </span>
                 <span
                   className={`text-[15px] ${
-                    // White on the lighter blue card in light mode (gold text is too faint on it); gold on navy in dark mode.
-                    isActive ? "font-semibold text-white dark:text-gold" : "text-white/85 dark:text-blue-300/80"
+                    // Gold on navy in light mode; white on the lighter blue in dark mode, where gold text is too faint.
+                    isActive ? "font-semibold text-gold dark:text-white" : "text-white/85"
                   }`}
                 >
                   {SHORT_NAMES[h.slug] ?? h.name}
@@ -568,7 +559,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               onClick={() => setMeal(m)}
               className={`-mb-px flex-1 border-b-2 py-2.5 text-base ${
                 m === meal
-                  ? "border-bright font-semibold text-bright dark:border-navy dark:text-inherit"
+                  ? "border-accent font-semibold text-accent dark:text-inherit"
                   : "border-transparent text-zinc-500"
               }`}
             >
