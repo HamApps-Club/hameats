@@ -112,7 +112,7 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
       <button
         onClick={onClick}
         aria-label="Switch layout"
-        className="flex min-h-10 items-center rounded-xl bg-navy px-3 text-sm font-semibold text-white shadow-sm hover:brightness-125"
+        className="flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
         Layouts
       </button>
@@ -130,7 +130,7 @@ function ReportButton() {
         rel="noopener noreferrer"
         onClick={() => track("report_menu_clicked")}
         aria-label="Report an inaccurate menu"
-        className="flex min-h-10 items-center rounded-xl bg-navy px-3 text-sm font-semibold text-white shadow-sm hover:brightness-125"
+        className="flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
         Report
       </a>
