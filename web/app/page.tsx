@@ -110,13 +110,10 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
     <div className="fixed left-3 top-3 z-20">
       <button
         onClick={onClick}
-        className="flex min-h-10 items-center gap-1.5 rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110 sm:px-4 sm:text-base"
+        aria-label="Switch layout"
+        className="flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
-        {/* Two arrows passing each other: swap. */}
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-4 shrink-0">
-          <path d="M3 7h12m0 0-3-3m3 3-3 3M17 13H5m0 0 3-3m-3 3 3 3" />
-        </svg>
-        Switch Layout
+        Layouts
       </button>
     </div>
   );
