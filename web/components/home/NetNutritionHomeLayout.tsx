@@ -10,6 +10,7 @@ import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
 import { Tags } from "@/components/Tags";
 import { track } from "@/lib/analytics";
+import { takeReloadScroll } from "@/lib/theme";
 import { SiteTitle } from "@/components/SiteTitle";
 
 /**
@@ -487,14 +488,16 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const { open, sheet } = useItemSheet();
 
   // Open scrolled just past the day picker and meal tabs, so the first screen starts at the filters and the
-  // menus; scrolling up brings the day and meal back.
+  // menus; scrolling up brings the day and meal back. After the theme toggle reloads the page, go back to
+  // where it was tapped instead.
   const headerRef = useRef<HTMLElement>(null);
   const mealTabsRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const header = headerRef.current;
     const tabs = mealTabsRef.current;
     if (!header || !tabs) return;
-    window.scrollTo({ top: tabs.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight });
+    const saved = takeReloadScroll();
+    window.scrollTo({ top: saved ?? tabs.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight });
   }, []);
 
   const toggleAllergen = useCallback((value: string) => {
