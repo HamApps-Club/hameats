@@ -16,12 +16,34 @@ export const THEME_COLORS = { light: "#fafafa", dark: "#131316" } as const;
 export function applyTheme(dark: boolean) {
   document.documentElement.classList.toggle("dark", dark);
   setThemeColor(dark ? THEME_COLORS.dark : THEME_COLORS.light);
-  // Safari (and Chrome, which uses Safari's engine on iPhone) no longer reads theme-color: it tints the top
-  // of the screen from the solid header stuck to the top of the page, and only looks again when the page
-  // scrolls. A one-pixel scroll and back makes it pick up the new theme right away.
-  const y = window.scrollY;
-  window.scrollTo(0, y + 1);
-  requestAnimationFrame(() => window.scrollTo(0, y));
+}
+
+/** Where the page was scrolled when the theme toggle reloaded it (see ThemeToggle), so the reload lands back
+ *  in the same spot instead of where a fresh visit opens. */
+const RELOAD_SCROLL_KEY = "theme-reload-scroll";
+
+export function saveReloadScroll() {
+  try {
+    sessionStorage.setItem(RELOAD_SCROLL_KEY, String(window.scrollY));
+  } catch {}
+}
+
+let reloadScroll: number | null | undefined;
+
+/** The scroll position saved before a theme reload. It's cleared from storage as it's read, but kept for a
+ *  moment so a layout that mounts twice in a row (React does this in development) gets it both times. */
+export function takeReloadScroll(): number | null {
+  if (reloadScroll === undefined) {
+    try {
+      const saved = sessionStorage.getItem(RELOAD_SCROLL_KEY);
+      sessionStorage.removeItem(RELOAD_SCROLL_KEY);
+      reloadScroll = saved === null ? null : Number(saved);
+    } catch {
+      reloadScroll = null;
+    }
+    setTimeout(() => (reloadScroll = null), 1000);
+  }
+  return reloadScroll;
 }
 
 function setThemeColor(color: string) {
