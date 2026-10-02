@@ -261,8 +261,10 @@ export default function Home() {
   // Switch Layout button flips straight between the layouts it would have listed.
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
+  // Only Continental is offered right now (Classic is hidden), so the button stays out of sight
+  // until there's another layout to switch to.
+  const visible = (Object.keys(HOME_LAYOUTS) as HomeLayoutId[]).filter((id) => !HOME_LAYOUTS[id].hidden);
   const switchLayout = () => {
-    const visible = (Object.keys(HOME_LAYOUTS) as HomeLayoutId[]).filter((id) => !HOME_LAYOUTS[id].hidden);
     const next = visible[(visible.indexOf(layoutId) + 1) % visible.length];
     track("home_layout_changed", {
       layout: HOME_LAYOUTS[next].analyticsName,
@@ -308,7 +310,7 @@ export default function Home() {
         ) : (
           <>
             <ThemeToggle />
-            <SwitchLayoutButton onClick={switchLayout} />
+            {visible.length > 1 && <SwitchLayoutButton onClick={switchLayout} />}
             <HomeLayout data={data} now={now} />
           </>
         )}
