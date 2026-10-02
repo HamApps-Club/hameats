@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
-import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
+import { clock, compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { DayPicker } from "@/components/DayPicker";
@@ -345,17 +345,26 @@ const SHORT_NAMES: Record<string, string> = {
   "little-pub": "Pub",
 };
 
+/** The line under a hall's name in the jump bar: "till 2 PM", "opens 5 PM", or "Closed" when it's not open again today. */
+function hoursHint(hall: Hall, now: CampusTime) {
+  const s = statusAt(hall.hours, now);
+  if (s.open) return `till ${clock(s.closesAt)}`;
+  // "tomorrow 7:30 AM" / "Mon 7:30 AM" don't fit a quarter of a phone screen.
+  return s.opens && /^\d/.test(s.opens) ? `opens ${s.opens}` : "Closed";
+}
+
 /**
- * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
- * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
- * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
+ * Hall jump bar, phones only (wider screens show the halls side by side): a floating card with one
+ * button per hall, its short name over when it closes (or opens) right now, so the bar is worth a look
+ * before you've scrolled at all. Tapping one scrolls to that hall and moves focus to its heading
+ * (without drawing an outline); the hall on screen is filled in the accent color.
  * It's rendered at the end of <body>. In the browser it's fixed to the bottom of the screen, because
  * a sticky one slides around while mobile Safari's toolbar shows and hides; a spacer of the same
  * height ends the page, so the footer still scrolls clear of it. In the home-screen app (no toolbar)
  * it's sticky instead, coming to rest below the footer at the very end of the page, and rides a
  * little higher.
  */
-function HallScroller({ halls }: { halls: Hall[] }) {
+function HallScroller({ halls, now }: { halls: Hall[]; now: CampusTime }) {
   const [active, setActive] = useState(halls[0]?.slug);
 
   useEffect(() => {
@@ -398,7 +407,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   return createPortal(
     <>
       {/* Browser only: room at the end of the page for the fixed scroller (card height + its bottom padding). */}
-      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_115.5px)] standalone:hidden sm:hidden" />
+      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_109px)] standalone:hidden sm:hidden" />
       <nav
         aria-label="Jump to dining hall"
         // Raised 45px above the bottom edge in both the browser and the home-screen app,
@@ -406,11 +415,10 @@ function HallScroller({ halls }: { halls: Hall[] }) {
         // near the bottom edge lag there).
         className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
       >
-        {/* Frosted light blue with a crisp edge and a soft lift, so it reads apart from the white menu cards;
-            the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-50/95 px-1 pb-2.5 pt-1 shadow-lg shadow-blue-900/10 ring-1 ring-blue-900/10 backdrop-blur-md android:bg-blue-50 dark:bg-blue-950/95 dark:shadow-black/40 dark:ring-white/10 dark:android:bg-blue-950">
-          {/* The line the dots sit on, from the first dot's center to the last's. */}
-          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-blue-200 dark:bg-blue-800" />
+        {/* Frosted light blue with a crisp edge and a soft lift, so it reads apart from the white menu cards.
+            Each hall is a solid tile so it reads as a button; the hall you're on is filled in.
+            Solid on Android, which drops the blur (see globals.css). */}
+        <div className="grid grid-cols-4 gap-1 rounded-[20px] bg-blue-50/95 p-1.5 shadow-lg shadow-blue-900/10 ring-1 ring-blue-900/10 backdrop-blur-md android:bg-blue-50 dark:bg-blue-950/95 dark:shadow-black/40 dark:ring-white/10 dark:android:bg-blue-950">
           {halls.map((h) => {
             const isActive = h.slug === active;
             return (
@@ -419,24 +427,15 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 type="button"
                 aria-current={isActive ? "location" : undefined}
                 onClick={() => jump(h)}
-                // Tall top padding is part of the button, so a tap near the card's top edge picks a hall
-                // instead of falling through to the menu item behind it.
-                className="relative flex min-h-11 flex-col items-center gap-1.5 pt-4"
+                className={`flex min-h-[52px] flex-col items-center justify-center rounded-[14px] transition-colors ${
+                  isActive
+                    ? "bg-accent text-white dark:text-zinc-950"
+                    : "bg-white text-zinc-900 ring-1 ring-zinc-200 active:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-800"
+                }`}
               >
-                <span className="flex size-3 items-center justify-center">
-                  <span
-                    className={`rounded-full ${
-                      isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-blue-300 dark:bg-blue-700"
-                    }`}
-                  />
-                </span>
-                <span
-                  className={`text-[15px] ${
-                    // A deeper gold for the label: bright gold text is too faint on light blue.
-                    isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-blue-900/70 dark:text-blue-300/80"
-                  }`}
-                >
-                  {SHORT_NAMES[h.slug] ?? h.name}
+                <span className="text-[15px] font-semibold leading-tight">{SHORT_NAMES[h.slug] ?? h.name}</span>
+                <span className={`text-xs ${isActive ? "opacity-85" : "text-zinc-500 dark:text-zinc-400"}`}>
+                  {hoursHint(h, now)}
                 </span>
               </button>
             );
@@ -567,7 +566,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           ))}
         </div>
       </main>
-      <HallScroller halls={HALLS} />
+      <HallScroller halls={HALLS} now={now} />
       {sheet}
     </div>
   );
