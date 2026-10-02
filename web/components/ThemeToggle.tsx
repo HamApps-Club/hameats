@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
-import { applyTheme, saveReloadScroll, THEME_STORAGE_KEY } from "@/lib/theme";
+import { applyTheme, THEME_STORAGE_KEY } from "@/lib/theme";
 
 // The `dark` class on <html> is set before first paint by THEME_SCRIPT in lib/theme.ts
 // (saved choice, else the device's light/dark setting); this button flips it and saves the choice.
@@ -23,11 +23,6 @@ export function ThemeToggle() {
       localStorage.setItem(THEME_STORAGE_KEY, next ? "dark" : "light");
     } catch {}
     track("night_mode_toggled", { mode: next ? "dark" : "light" });
-    // iPhone browsers color the area behind the clock and battery when the page loads and don't repaint it
-    // for a theme switched in place, so reload into the saved theme. The new colors are already showing, so
-    // there's no flash, and PostHog sends the event above as the page unloads.
-    saveReloadScroll();
-    location.reload();
   };
 
   return (
