@@ -35,7 +35,7 @@ function Badge({ tag }: { tag: string }) {
       title={icon.label}
       aria-label={icon.label}
       role="img"
-      className={`inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1 text-[11px] font-bold leading-none ${icon.style}`}
+      className={`inline-flex h-6 min-w-6 items-center justify-center rounded px-1 text-[11px] font-bold leading-none ${icon.style}`}
     >
       {icon.code}
     </span>
@@ -71,7 +71,7 @@ export function TagList({ tags }: { tags: string[] }) {
 /** Key to every icon. */
 export function IconLegend() {
   return (
-    <details className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-surface">
+    <details className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-surface">
       <summary className="cursor-pointer font-medium">What do the icons mean?</summary>
       <p className="mt-3 mb-2 text-xs text-zinc-500">Filled icons describe the dish; outlined icons mean it contains that allergen.</p>
       <TagList tags={ORDER} />
@@ -88,7 +88,7 @@ export function TagPills({ tags }: { tags: string[] }) {
       {sortTags(tags).map((t) => {
         const icon = iconFor(t);
         return (
-          <li key={t} className={`rounded-md px-2 py-0.5 text-xs font-semibold ${icon.style}`}>
+          <li key={t} className={`rounded px-2 py-0.5 text-xs font-semibold ${icon.style}`}>
             {icon.label}
           </li>
         );

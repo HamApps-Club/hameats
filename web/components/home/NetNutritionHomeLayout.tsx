@@ -236,7 +236,7 @@ export function FilterBar({
         )}
       </div>
       {openGroup && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-surface">
+        <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-surface">
           <p className="mb-2 text-xs text-zinc-500">
             {openGroup === "allergies" ? "Hide items that contain:" : "Only show items that are:"}
           </p>
@@ -284,12 +284,12 @@ function HallColumn({
   return (
     <section
       id={sectionId(hall)}
-      className="scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-surface"
+      className="scroll-mt-16 space-y-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-surface"
     >
       <h2
         id={`${sectionId(hall)}-title`}
         tabIndex={-1}
-        className="-mx-2 rounded-lg px-2 py-0.5 text-[22px] font-semibold text-zinc-900 outline-none dark:text-zinc-100"
+        className="-mx-2 rounded-md px-2 py-0.5 text-[22px] font-semibold text-zinc-900 outline-none dark:text-zinc-100"
       >
         {hall.name}
       </h2>
@@ -430,7 +430,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       >
         {/* Frosted brand blue (navy in light mode, the lighter blue in dark mode), with a crisp edge and a soft lift, so it reads apart from the menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-accent/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-accent dark:shadow-black/40">
+        <div className="relative grid grid-cols-4 rounded-xl bg-accent/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-accent dark:shadow-black/40">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
           <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/40" />
           {halls.map((h) => {

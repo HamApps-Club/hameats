@@ -12,7 +12,7 @@ export function HallList({ halls, now }: { halls: Hall[]; now: CampusTime }) {
             key={h.slug}
             href={`#${h.slug}`}
             onClick={() => window.scrollTo({ top: 0 })}
-            className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700"
+            className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700"
           >
             <div className="min-w-0 flex-1 space-y-1.5">
               <h3 className="text-xl font-semibold">{h.name}</h3>

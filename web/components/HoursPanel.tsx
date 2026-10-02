@@ -40,7 +40,7 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
   const status = statusAt(hours, now);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
+    <section className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
       <button
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
@@ -66,14 +66,14 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
 
       {expanded && (
         <div className="space-y-3 border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <div role="tablist" aria-label="Meal" className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+          <div role="tablist" aria-label="Meal" className="flex rounded-md bg-zinc-100 p-0.5 dark:bg-zinc-800">
             {meals.map((m) => (
               <button
                 key={m}
                 role="tab"
                 aria-selected={m === meal}
                 onClick={() => setMeal(m)}
-                className={`flex-1 rounded-md py-1.5 text-sm font-medium ${
+                className={`flex-1 rounded py-1.5 text-sm font-medium ${
                   m === meal ? "bg-white shadow-sm dark:bg-background" : "text-zinc-500"
                 }`}
               >

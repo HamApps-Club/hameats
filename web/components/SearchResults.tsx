@@ -25,7 +25,7 @@ export function SearchResults({
 }) {
   if (!rows.length) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center text-zinc-500 dark:border-zinc-700">
+      <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center text-zinc-500 dark:border-zinc-700">
         <p className="font-medium">
           No &ldquo;{query.trim()}&rdquo; on any menu {week ? "this week" : "this day"}.
         </p>
@@ -47,7 +47,7 @@ export function SearchResults({
         <div key={date} className="space-y-3">
           {week && <h2 className="text-base font-semibold">{formatDate(date)}</h2>}
           {[...groupBy(dateRows, (r) => r.location)].map(([location, locRows]) => (
-            <section key={location} className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
+            <section key={location} className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
               <h3 className="border-b border-zinc-200 px-4 py-2.5 font-semibold dark:border-zinc-800">{location}</h3>
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {[...locRows]
