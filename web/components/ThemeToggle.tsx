@@ -33,15 +33,15 @@ export function ThemeToggle() {
         className="flex size-10 items-center justify-center rounded-lg bg-white/90 text-accent shadow-sm ring-1 ring-zinc-200 backdrop-blur hover:bg-white dark:bg-zinc-800/90 dark:text-gold dark:ring-zinc-700 dark:hover:bg-zinc-700"
       >
         {dark ? (
-          // Sun, in gold: tap for light
+          // Sun, filled in gold: tap for light
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden className="size-5">
-            <circle cx="12" cy="12" r="4" />
+            <circle cx="12" cy="12" r="4" fill="currentColor" />
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
           </svg>
         ) : (
-          // Moon, in the brand navy: tap for dark
+          // Moon, filled in the brand navy: tap for dark
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-5">
-            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" fill="currentColor" />
           </svg>
         )}
       </button>
