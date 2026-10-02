@@ -84,6 +84,11 @@ export default function AboutPage() {
           <p>
             Created by Brandon Taylor &apos;28. Launched September 23, 2026.
           </p>
+          <p>
+            HamEats is an independent student project and isn&apos;t affiliated with or endorsed by Hamilton College or
+            its dining services. Menus come from Nutrislice and can change; check with the dining hall if you have an
+            allergy.
+          </p>
         </Section>
       </main>
 

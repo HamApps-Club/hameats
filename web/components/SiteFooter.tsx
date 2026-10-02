@@ -165,6 +165,7 @@ export function SiteFooter() {
       <p className="pt-3 text-center">
         HamEats: Hamilton College dining menus and hours for Soper Commons, McEwen, the Diner and the Little Pub.
       </p>
+      <p className="text-center">A student project, not affiliated with Hamilton College.</p>
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
     </footer>
