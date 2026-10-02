@@ -96,7 +96,7 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
       className={`min-h-9 rounded-full border px-3 text-sm font-medium ${
         selected
           ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
-          : "border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+          : "border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 dark:hover:bg-blue-900"
       }`}
     >
       {label}
@@ -124,8 +124,8 @@ function FilterToggle({
       className={`flex min-h-10 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
         expanded || count > 0
           ? "border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300"
-          : "border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
-      } bg-zinc-100 dark:bg-zinc-800`}
+          : "border-blue-200 text-blue-900 dark:border-blue-900 dark:text-blue-200"
+      } bg-blue-50 dark:bg-blue-950`}
     >
       {label}
       {count > 0 && (
@@ -215,7 +215,7 @@ export function FilterBar({
           className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${
             showIcons
               ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
-              : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+              : "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200"
           }`}
         >
           Icons
@@ -406,11 +406,11 @@ function HallScroller({ halls }: { halls: Hall[] }) {
         // near the bottom edge lag there).
         className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
       >
-        {/* Frosted light gray with a crisp edge and a soft lift, so it reads apart from the white menu cards;
+        {/* Frosted light blue with a crisp edge and a soft lift, so it reads apart from the white menu cards;
             the hall you're on is picked out in gold. */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-zinc-100/95 px-1 pb-2.5 pt-1 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/10 backdrop-blur-md dark:bg-zinc-800/95 dark:shadow-black/40 dark:ring-white/10">
+        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-50/95 px-1 pb-2.5 pt-1 shadow-lg shadow-blue-900/10 ring-1 ring-blue-900/10 backdrop-blur-md dark:bg-blue-950/95 dark:shadow-black/40 dark:ring-white/10">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
-          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-zinc-300 dark:bg-zinc-600" />
+          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-blue-200 dark:bg-blue-800" />
           {halls.map((h) => {
             const isActive = h.slug === active;
             return (
@@ -426,14 +426,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 <span className="flex size-3 items-center justify-center">
                   <span
                     className={`rounded-full ${
-                      isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-zinc-400 dark:bg-zinc-500"
+                      isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-blue-300 dark:bg-blue-700"
                     }`}
                   />
                 </span>
                 <span
                   className={`text-[15px] ${
-                    // A deeper gold for the label: bright gold text is too faint on light gray.
-                    isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-zinc-500 dark:text-zinc-400"
+                    // A deeper gold for the label: bright gold text is too faint on light blue.
+                    isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-blue-900/70 dark:text-blue-300/80"
                   }`}
                 >
                   {SHORT_NAMES[h.slug] ?? h.name}
