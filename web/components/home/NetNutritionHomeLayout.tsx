@@ -447,8 +447,8 @@ function HallScroller({ halls }: { halls: Hall[] }) {
               >
                 <span className="flex size-3 items-center justify-center">
                   <span
-                    className={`rounded-full ${
-                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-2.5 bg-white/70"
+                    className={`shrink-0 rounded-full ${
+                      isActive ? "size-4 bg-gold ring-[6px] ring-gold/25" : "size-2.5 bg-white/70"
                     }`}
                   />
                 </span>
