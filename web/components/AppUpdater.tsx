@@ -31,6 +31,7 @@ function reloadFor(version: string) {
 /**
  * Keeps the installed app on the latest Vercel deploy:
  * - registers the service worker and asks for a new one whenever the app is opened or brought back;
+ * - in the home-screen app, asks for persistent storage so saved data isn't cleared;
  * - checks /api/version at those moments and every 10 minutes. Opening or returning to the app reloads
  *   straight into the new version; while it's in use, an "Update" bar appears instead.
  */
@@ -55,6 +56,14 @@ export function AppUpdater() {
           // Not fatal: the site still works, just without offline support.
         });
     }
+
+    // In the home-screen app, ask for persistent storage so the phone doesn't clear the saved menus,
+    // layout, theme and filters when it runs low on space. Chrome grants it silently for installed
+    // apps; only asked there because some desktop browsers show a permission prompt for it.
+    const installed =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (installed) void navigator.storage?.persist?.().catch(() => {});
 
     // First check on launch, after mount (same pattern as the menu loader).
     void Promise.resolve().then(() => check(true));

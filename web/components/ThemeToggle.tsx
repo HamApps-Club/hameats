@@ -2,9 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
+import { applyTheme, THEME_STORAGE_KEY } from "@/lib/theme";
 
-// The `dark` class on <html> is set before first paint by the script in app/layout.tsx
-// (saved choice, else light); this button flips it and saves the choice.
+// The `dark` class on <html> is set before first paint by THEME_SCRIPT in lib/theme.ts
+// (saved choice, else the device's light/dark setting); this button flips it and saves the choice.
 const subscribe = (cb: () => void) => {
   const observer = new MutationObserver(cb);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
@@ -17,9 +18,9 @@ export function ThemeToggle() {
 
   const toggle = () => {
     const next = !isDark();
-    document.documentElement.classList.toggle("dark", next);
+    applyTheme(next);
     try {
-      localStorage.setItem("theme", next ? "dark" : "light");
+      localStorage.setItem(THEME_STORAGE_KEY, next ? "dark" : "light");
     } catch {}
     track("night_mode_toggled", { mode: next ? "dark" : "light" });
   };

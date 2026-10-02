@@ -407,8 +407,8 @@ function HallScroller({ halls }: { halls: Hall[] }) {
         className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
       >
         {/* Frosted light blue with a crisp edge and a soft lift, so it reads apart from the white menu cards;
-            the hall you're on is picked out in gold. */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-50/95 px-1 pb-2.5 pt-1 shadow-lg shadow-blue-900/10 ring-1 ring-blue-900/10 backdrop-blur-md dark:bg-blue-950/95 dark:shadow-black/40 dark:ring-white/10">
+            the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
+        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-50/95 px-1 pb-2.5 pt-1 shadow-lg shadow-blue-900/10 ring-1 ring-blue-900/10 backdrop-blur-md android:bg-blue-50 dark:bg-blue-950/95 dark:shadow-black/40 dark:ring-white/10 dark:android:bg-blue-950">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
           <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-blue-200 dark:bg-blue-800" />
           {halls.map((h) => {
