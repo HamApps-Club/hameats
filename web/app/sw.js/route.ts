@@ -7,7 +7,7 @@ const SCRIPT = `// HamEats service worker: makes the app load offline and keeps 
 const VERSION = "__BUILD_ID__";
 const SHELL = \`shell-\${VERSION}\`;
 const DATA = "data-v1";
-const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=5", "/icons/icon-512.png?v=5"];
+const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png?v=4", "/icons/icon-512.png?v=4"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
