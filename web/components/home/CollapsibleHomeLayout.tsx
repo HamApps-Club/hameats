@@ -153,7 +153,7 @@ function HallCard({
 }
 
 export function CollapsibleHomeLayout({ data, now }: HomeLayoutProps) {
-  const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
+  const [meal, setMeal] = useState<Meal>(() => mealByClock(now));
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;

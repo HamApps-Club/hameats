@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
@@ -68,9 +68,22 @@ export function useItemSheet() {
   return { open, sheet };
 }
 
-export function mealByClock(minutes: number): Meal {
-  if (minutes < 10 * 60 + 30) return "Breakfast";
-  if (minutes < 16 * 60) return "Lunch";
+/** The main dining halls, whose full-service hours decide when a meal is over. */
+const MAIN_HALLS = HALLS.filter((h) => h.slug === "commons" || h.slug === "mcewen");
+
+/**
+ * The meal to show on the home screen: the current one until its full service ends at the main dining halls,
+ * then the next one, so students see what's coming up without picking it. Breakfast switches to Lunch at
+ * 10 AM on weekdays (11 on weekends), Lunch to Dinner at 2 PM, ignoring the lighter "Light Lunch" style
+ * windows that follow. Dinner stays selected through the night.
+ */
+export function mealByClock(now: CampusTime): Meal {
+  for (const meal of ["Breakfast", "Lunch"] as const) {
+    const ends = MAIN_HALLS.flatMap((h) => h.hours[now.dow])
+      .filter((p) => p.meal === meal && !/^(Light|Late) /.test(p.name))
+      .map((p) => p.close);
+    if (ends.length > 0 && now.minutes < Math.max(...ends)) return meal;
+  }
   return "Dinner";
 }
 
@@ -482,7 +495,9 @@ function HallScroller({ halls }: { halls: Hall[] }) {
 }
 
 export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
-  const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
+  // Follows the clock (moving on as each meal ends) until the student picks a meal themselves.
+  const [pickedMeal, setMeal] = useState<Meal | null>(null);
+  const meal = pickedMeal ?? mealByClock(now);
   const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
@@ -494,6 +509,17 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   useEffect(() => saveFilters(SAVED_PREFERENCES_KEY, requirePreferences), [requirePreferences]);
   const [showIcons, setShowIcons] = useState(false);
   const { open, sheet } = useItemSheet();
+
+  // Open scrolled just past the day picker and meal tabs, so the first screen starts at the filters and the
+  // menus; scrolling up brings the day and meal back.
+  const headerRef = useRef<HTMLElement>(null);
+  const mealTabsRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    const tabs = mealTabsRef.current;
+    if (!header || !tabs) return;
+    window.scrollTo({ top: tabs.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight });
+  }, []);
 
   const toggleAllergen = useCallback((value: string) => {
     setExcludeAllergens((prev) => {
@@ -526,7 +552,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+      <header ref={headerRef} className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
         <SiteTitle />
       </header>
 
@@ -544,6 +570,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
         </div>
 
         <div
+          ref={mealTabsRef}
           role="tablist"
           aria-label="Meal"
           className="mx-auto mb-5 flex max-w-2xl border-b border-zinc-200 dark:border-zinc-800"
