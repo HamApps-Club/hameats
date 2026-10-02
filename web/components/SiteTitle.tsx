@@ -8,14 +8,14 @@ export function SiteTitle() {
       {/* The same colors as the app icon in light and dark mode, so the mark never changes. Below 360px wide
           there's only room for the wordmark between the two corner buttons. */}
       <svg viewBox="0 0 48 48" aria-hidden className="hidden size-7 shrink-0 min-[360px]:block sm:size-8">
-        <rect width="48" height="48" rx="12" fill="#2448C9" />
+        <rect width="48" height="48" rx="12" fill="#002F86" />
         <path d="M10 24H38A14 14 0 0 1 10 24Z" fill="#FFFFFF" />
         <path
           d="M18 19c-2-2.5 2-4.5 0-8M24 19c-2-2.5 2-4.5 0-8M30 19c-2-2.5 2-4.5 0-8"
           fill="none"
           strokeWidth={3}
           strokeLinecap="round"
-          stroke="#E8532A"
+          stroke="#D6BA8B"
         />
       </svg>
       <span>
