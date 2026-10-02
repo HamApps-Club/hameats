@@ -559,7 +559,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               onClick={() => setMeal(m)}
               className={`-mb-px flex-1 border-b-2 py-2.5 text-base ${
                 m === meal
-                  ? "border-accent font-semibold text-accent dark:text-inherit"
+                  ? "border-accent font-semibold text-accent"
                   : "border-transparent text-zinc-500"
               }`}
             >
