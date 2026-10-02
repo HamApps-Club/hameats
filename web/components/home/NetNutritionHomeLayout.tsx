@@ -110,7 +110,7 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
       className={`min-h-9 rounded-full border px-3 text-sm font-medium ${
         selected
           ? "border-blue-500 bg-blue-500 text-white"
-          : "border-blue-900 bg-blue-950 text-blue-200 hover:bg-blue-900"
+          : "border-accent bg-accent text-blue-100 hover:brightness-125 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 dark:hover:bg-blue-900 dark:hover:brightness-100"
       }`}
     >
       {label}
@@ -138,8 +138,8 @@ function FilterToggle({
       className={`flex min-h-10 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
         expanded || count > 0
           ? "border-blue-400 text-blue-300"
-          : "border-blue-900 text-blue-200"
-      } bg-blue-950`}
+          : "border-accent text-blue-100 dark:border-blue-900 dark:text-blue-200"
+      } bg-accent dark:bg-blue-950`}
     >
       {label}
       {count > 0 && (
@@ -229,7 +229,7 @@ export function FilterBar({
           className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${
             showIcons
               ? "border-blue-500 bg-blue-500 text-white"
-              : "border-blue-900 bg-blue-950 text-blue-200"
+              : "border-accent bg-accent text-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200"
           }`}
         >
           Icons
@@ -439,7 +439,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       >
         {/* Frosted dark blue in light and dark mode, with a crisp edge and a soft lift, so it reads apart from the menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-950/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/40 ring-1 ring-white/10 backdrop-blur-md android:bg-blue-950">
+        <div className="relative grid grid-cols-4 rounded-2xl bg-accent/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/40 ring-1 ring-white/10 backdrop-blur-md android:bg-accent dark:bg-blue-950/95 dark:android:bg-blue-950">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
           <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-blue-800" />
           {halls.map((h) => {
@@ -568,7 +568,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               onClick={() => setMeal(m)}
               className={`-mb-px flex-1 border-b-2 py-2.5 text-base ${
                 m === meal
-                  ? "border-zinc-900 font-semibold dark:border-white"
+                  ? "border-accent font-semibold text-accent dark:border-white dark:text-inherit"
                   : "border-transparent text-zinc-500"
               }`}
             >
