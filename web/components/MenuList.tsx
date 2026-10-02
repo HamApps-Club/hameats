@@ -20,7 +20,7 @@ export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => v
   return (
     <button
       onClick={onSelect}
-      className="flex w-full items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700"
+      className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 text-left transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700"
     >
       <div className="min-w-0 flex-1 space-y-1.5">
         <p className="text-base font-medium">{item.name}</p>
@@ -55,7 +55,7 @@ export function MenuList({
   const entries = orderedStations(stations, stationOrder);
   if (!entries.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
+      <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">
         <p>{emptyText}</p>
         {note && <div className="mt-2 text-sm">{note}</div>}
       </div>

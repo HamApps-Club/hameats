@@ -19,7 +19,7 @@ export function LayoutGallery({ onSelect }: { onSelect: (id: HomeLayoutId) => vo
         </h1>
       </header>
 
-      <div className="mb-8 space-y-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
+      <div className="mb-8 space-y-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
         <p>
           I&apos;d love to hear which one you&apos;d want to be the main layout.
         </p>
@@ -35,7 +35,7 @@ export function LayoutGallery({ onSelect }: { onSelect: (id: HomeLayoutId) => vo
             <button
               key={id}
               onClick={() => onSelect(id as HomeLayoutId)}
-              className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white text-left shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700"
+              className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-sm transition hover:border-zinc-300 active:scale-[0.99] dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700"
             >
               <Image
                 src={layout.previewSrc.mobile}

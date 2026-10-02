@@ -30,7 +30,7 @@ export function ThemeToggle() {
       <button
         onClick={toggle}
         aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-        className="flex size-10 items-center justify-center rounded-lg bg-white/90 text-accent shadow-sm ring-1 ring-zinc-200 backdrop-blur hover:bg-white dark:bg-zinc-800/90 dark:text-gold dark:ring-zinc-700 dark:hover:bg-zinc-700"
+        className="flex size-10 items-center justify-center rounded-md bg-white/90 text-accent shadow-sm ring-1 ring-zinc-200 backdrop-blur hover:bg-white dark:bg-zinc-800/90 dark:text-gold dark:ring-zinc-700 dark:hover:bg-zinc-700"
       >
         {dark ? (
           // Sun, filled in gold: tap for light

@@ -24,7 +24,7 @@ export function DayPicker({
           key={d}
           onClick={() => onSelect(d)}
           aria-pressed={d === selected}
-          className={`flex flex-col items-center rounded-xl py-2 ${
+          className={`flex flex-col items-center rounded-lg py-2 ${
             d === selected
               ? "bg-accent text-white"
               : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"

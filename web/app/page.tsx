@@ -112,7 +112,7 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
       <button
         onClick={onClick}
         aria-label="Switch layout"
-        className="flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+        className="flex min-h-10 items-center rounded-lg bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
         Layouts
       </button>
@@ -130,7 +130,7 @@ function ReportButton() {
         rel="noopener noreferrer"
         onClick={() => track("report_menu_clicked")}
         aria-label="Report an inaccurate menu"
-        className="flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+        className="flex min-h-10 items-center rounded-lg bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
         Report
       </a>
@@ -182,7 +182,7 @@ function HallView({
           <button
             onClick={() => goHome(homeState)}
             aria-label="Back to all dining halls"
-            className="flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+            className="flex min-h-11 items-center gap-0.5 rounded-md px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-6">
               <path
@@ -231,7 +231,7 @@ function HallView({
 
         {date && <p className="text-sm text-zinc-500">{formatDate(date)}</p>}
         {standing && isStanding(hall.slug, meal, day?.[hall.name]?.[meal]) && (
-          <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-surface dark:text-zinc-400">
+          <div className="space-y-1 rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-surface dark:text-zinc-400">
             <p>{standing.note}</p>
             <p>
               From the posted menu ·{" "}

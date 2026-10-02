@@ -60,13 +60,13 @@ export function ItemSheet({
         aria-modal="true"
         aria-label={item.name}
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full overflow-y-auto bg-zinc-50 text-zinc-900 sm:h-auto sm:max-h-full sm:max-w-lg sm:rounded-2xl dark:bg-background dark:text-zinc-100"
+        className="h-full w-full overflow-y-auto bg-zinc-50 text-zinc-900 sm:h-auto sm:max-h-full sm:max-w-lg sm:rounded-xl dark:bg-background dark:text-zinc-100"
       >
         <div className="sticky top-0 z-10 bg-zinc-50/90 px-2 py-2 backdrop-blur dark:bg-background/90">
           <button
             onClick={onClose}
             autoFocus
-            className="flex min-h-11 items-center gap-0.5 rounded-lg px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+            className="flex min-h-11 items-center gap-0.5 rounded-md px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-6">
               <path
@@ -88,7 +88,7 @@ export function ItemSheet({
           </header>
 
           {!hasNumbers && (
-            <p className="rounded-2xl border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700">
+            <p className="rounded-xl border border-dashed border-zinc-300 p-4 text-center text-sm text-zinc-500 dark:border-zinc-700">
               Nutrition info isn&apos;t available for this item.
             </p>
           )}
@@ -103,7 +103,7 @@ export function ItemSheet({
           )}
 
           {(n.protein != null || n.carbs != null || n.fat != null) && (
-            <div className="grid grid-cols-3 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white text-center dark:divide-zinc-800 dark:border-zinc-800 dark:bg-surface">
+            <div className="grid grid-cols-3 divide-x divide-zinc-200 rounded-xl border border-zinc-200 bg-white text-center dark:divide-zinc-800 dark:border-zinc-800 dark:bg-surface">
               {(
                 [
                   ["protein", "Protein"],

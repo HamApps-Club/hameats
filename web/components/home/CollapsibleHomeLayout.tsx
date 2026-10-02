@@ -82,7 +82,7 @@ function HallCard({
   return (
     <section
       id={sectionId(hall)}
-      className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-surface"
+      className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-surface"
     >
       {/* Classic's hall card, as the button that opens and closes this one. */}
       <button
