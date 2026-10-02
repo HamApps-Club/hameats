@@ -17,6 +17,7 @@ import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
+import { REPORT_FORM_URL } from "@/lib/site";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -115,6 +116,27 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
       >
         Layouts
       </button>
+    </div>
+  );
+}
+
+/** Opens the form for reporting a menu that didn't match what was served, in the corner of the home screen. */
+function ReportButton() {
+  return (
+    <div className="fixed left-3 top-3 z-20">
+      <a
+        href={REPORT_FORM_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => track("report_menu_clicked")}
+        className="flex min-h-10 items-center gap-1.5 rounded-xl bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110 sm:px-4 sm:text-base"
+      >
+        {/* A flag: report a problem. */}
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-4 shrink-0">
+          <path d="M4 17V3.5m0 0h9.5l-2 3.5 2 3.5H4" />
+        </svg>
+        Report
+      </a>
     </div>
   );
 }
@@ -261,8 +283,8 @@ export default function Home() {
   // Switch Layout button flips straight between the layouts it would have listed.
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
-  // Only Continental is offered right now (Classic is hidden), so the button stays out of sight
-  // until there's another layout to switch to.
+  // Only Continental is offered right now (Classic is hidden), so the Report button takes the
+  // Switch Layout button's corner until there's another layout to switch to.
   const visible = (Object.keys(HOME_LAYOUTS) as HomeLayoutId[]).filter((id) => !HOME_LAYOUTS[id].hidden);
   const switchLayout = () => {
     const next = visible[(visible.indexOf(layoutId) + 1) % visible.length];
@@ -310,7 +332,7 @@ export default function Home() {
         ) : (
           <>
             <ThemeToggle />
-            {visible.length > 1 && <SwitchLayoutButton onClick={switchLayout} />}
+            {visible.length > 1 ? <SwitchLayoutButton onClick={switchLayout} /> : <ReportButton />}
             <HomeLayout data={data} now={now} />
           </>
         )}
