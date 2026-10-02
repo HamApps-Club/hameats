@@ -109,8 +109,8 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
       onClick={onToggle}
       className={`min-h-9 rounded-full border px-3 text-sm font-medium ${
         selected
-          ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
-          : "border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 dark:hover:bg-blue-900"
+          ? "border-blue-500 bg-blue-500 text-white"
+          : "border-blue-900 bg-blue-950 text-blue-200 hover:bg-blue-900"
       }`}
     >
       {label}
@@ -137,13 +137,13 @@ function FilterToggle({
       onClick={onClick}
       className={`flex min-h-10 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
         expanded || count > 0
-          ? "border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300"
-          : "border-blue-200 text-blue-900 dark:border-blue-900 dark:text-blue-200"
-      } bg-blue-50 dark:bg-blue-950`}
+          ? "border-blue-400 text-blue-300"
+          : "border-blue-900 text-blue-200"
+      } bg-blue-950`}
     >
       {label}
       {count > 0 && (
-        <span className="rounded-full bg-blue-600 px-1.5 text-xs leading-5 text-white dark:bg-blue-500">{count}</span>
+        <span className="rounded-full bg-blue-500 px-1.5 text-xs leading-5 text-white">{count}</span>
       )}
       <svg
         viewBox="0 0 20 20"
@@ -228,8 +228,8 @@ export function FilterBar({
           onClick={onToggleIcons}
           className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${
             showIcons
-              ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
-              : "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200"
+              ? "border-blue-500 bg-blue-500 text-white"
+              : "border-blue-900 bg-blue-950 text-blue-200"
           }`}
         >
           Icons
@@ -437,11 +437,11 @@ function HallScroller({ halls }: { halls: Hall[] }) {
         // near the bottom edge lag there).
         className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_75px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_75px)] sm:hidden"
       >
-        {/* Frosted light blue with a crisp edge and a soft lift, so it reads apart from the white menu cards;
+        {/* Frosted dark blue in light and dark mode, with a crisp edge and a soft lift, so it reads apart from the menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-50/95 px-1 pb-2.5 pt-1 shadow-lg shadow-blue-900/10 ring-1 ring-blue-900/10 backdrop-blur-md android:bg-blue-50 dark:bg-blue-950/95 dark:shadow-black/40 dark:ring-white/10 dark:android:bg-blue-950">
+        <div className="relative grid grid-cols-4 rounded-2xl bg-blue-950/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/40 ring-1 ring-white/10 backdrop-blur-md android:bg-blue-950">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
-          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-blue-200 dark:bg-blue-800" />
+          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-blue-800" />
           {halls.map((h) => {
             const isActive = h.slug === active;
             return (
@@ -457,14 +457,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 <span className="flex size-3 items-center justify-center">
                   <span
                     className={`rounded-full ${
-                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-1.5 bg-blue-300 dark:bg-blue-700"
+                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-1.5 bg-blue-700"
                     }`}
                   />
                 </span>
                 <span
                   className={`text-[15px] ${
-                    // A deeper gold for the label: bright gold text is too faint on light blue.
-                    isActive ? "font-semibold text-gold-ink" : "text-blue-900/70 dark:text-blue-300/80"
+                    // Gold label on the dark blue card, in light and dark mode alike.
+                    isActive ? "font-semibold text-gold" : "text-blue-300/80"
                   }`}
                 >
                   {SHORT_NAMES[h.slug] ?? h.name}
