@@ -26,7 +26,7 @@ export function DayPicker({
           aria-pressed={d === selected}
           className={`flex flex-col items-center rounded-xl py-2 ${
             d === selected
-              ? "bg-accent text-white dark:bg-white dark:text-zinc-900"
+              ? "bg-navy text-white"
               : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
           } ${isDimmed?.(d) ? "opacity-40" : ""}`}
         >

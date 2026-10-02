@@ -27,6 +27,9 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-gold: var(--gold);
+  /* The Report button's light-mode navy, kept the same in dark mode for the selected day and meal, the filter
+     pills, the hall scroller and Add to Home Screen. */
+  --color-navy: #002f86;
   --color-gold-ink: var(--gold-ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
