@@ -238,7 +238,7 @@ export function FilterBar({
           <button
             type="button"
             onClick={onClear}
-            className="ml-1 min-h-10 px-2 text-sm font-semibold text-red-700 hover:underline dark:text-red-400"
+            className="ml-1 min-h-10 px-2 text-sm font-semibold text-accent hover:underline"
           >
             Clear
           </button>
@@ -303,7 +303,11 @@ function HallColumn({
         {hall.name}
       </h2>
 
-      {servingNow && <p className="text-sm font-semibold text-green-700 dark:text-green-400">● Serving now</p>}
+      {servingNow && (
+        <p>
+          <span className="inline-block rounded-full bg-gold px-2 py-0.5 text-sm font-semibold text-zinc-950">Serving now</span>
+        </p>
+      )}
 
       {win ? (
         <p className="text-base text-zinc-500">
@@ -453,14 +457,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 <span className="flex size-3 items-center justify-center">
                   <span
                     className={`rounded-full ${
-                      isActive ? "size-3 bg-yellow-500 ring-4 ring-yellow-500/25" : "size-1.5 bg-blue-300 dark:bg-blue-700"
+                      isActive ? "size-3 bg-gold ring-4 ring-gold/25" : "size-1.5 bg-blue-300 dark:bg-blue-700"
                     }`}
                   />
                 </span>
                 <span
                   className={`text-[15px] ${
                     // A deeper gold for the label: bright gold text is too faint on light blue.
-                    isActive ? "font-semibold text-yellow-700 dark:text-yellow-400" : "text-blue-900/70 dark:text-blue-300/80"
+                    isActive ? "font-semibold text-gold-ink" : "text-blue-900/70 dark:text-blue-300/80"
                   }`}
                 >
                   {SHORT_NAMES[h.slug] ?? h.name}

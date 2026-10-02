@@ -5,7 +5,7 @@ export function Highlight({ text, query }: { text: string; query: string }) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="rounded bg-amber-200 px-0.5 text-inherit dark:bg-amber-500/40">
+      <mark className="rounded bg-gold/35 px-0.5 text-inherit dark:bg-gold/40">
         {text.slice(idx, idx + q.length)}
       </mark>
       {text.slice(idx + q.length)}

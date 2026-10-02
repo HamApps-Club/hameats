@@ -15,7 +15,7 @@ export function SiteTitle() {
           fill="none"
           strokeWidth={3}
           strokeLinecap="round"
-          stroke="#D6BA8B"
+          stroke="#F0B100"
         />
       </svg>
       <span>
