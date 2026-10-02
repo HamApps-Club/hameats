@@ -1,9 +1,10 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppUpdater } from "@/components/AppUpdater";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { STUCK_LOADING_SCRIPT } from "@/lib/stuckLoadingScript";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,11 +43,6 @@ const WEBSITE_JSON_LD = JSON.stringify({
   url: SITE_URL,
 });
 
-export const viewport: Viewport = {
-  // The app opens in light mode regardless of the system setting (see THEME_SCRIPT below).
-  themeColor: "#fafafa",
-};
-
 // Sends browser visits on the old Vercel address to the real domain, so each visitor has one identity (analytics,
 // saved layout and theme are all per-domain). Done here rather than as a server redirect so home-screen apps
 // installed from the old address are left alone: sent to another domain, iOS opens them in a browser sheet
@@ -55,13 +51,6 @@ const MOVED_SCRIPT = `(() => {
   if (location.hostname !== "hamilton-dining.vercel.app") return;
   if (navigator.standalone || matchMedia("(display-mode: standalone)").matches) return;
   location.replace("https://www.hameats.app" + location.pathname + location.search + location.hash);
-})();`;
-
-// Runs before the page paints so there's no flash: light by default, dark only if picked with the toggle.
-const THEME_SCRIPT = `(() => {
-  let saved = null;
-  try { saved = localStorage.getItem("theme"); } catch {}
-  document.documentElement.classList.toggle("dark", saved === "dark");
 })();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -73,6 +62,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: MOVED_SCRIPT }} />
+        {/* Also adds the theme-color tag (status bar color). It isn't set through Next's viewport export:
+            React would put the light color back after the script switched it to dark. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: WEBSITE_JSON_LD }} />
       </head>
