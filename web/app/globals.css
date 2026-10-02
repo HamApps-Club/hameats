@@ -41,6 +41,9 @@
   color-scheme: dark;
 }
 
+/* <html> gets the page background too: Safari tints its toolbar and the area behind the status bar
+   from it, so without it the top of the screen kept the old theme's color after a switch. */
+html,
 body {
   background: var(--background);
   color: var(--foreground);
