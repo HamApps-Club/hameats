@@ -92,7 +92,7 @@ export function AppUpdater() {
         <span>A new version of HamEats is ready.</span>
         <button
           onClick={() => window.location.reload()}
-          className="rounded-lg bg-white px-3 py-1.5 font-semibold text-zinc-900 dark:bg-zinc-900 dark:text-white"
+          className="rounded-lg bg-white px-3 py-1.5 font-semibold text-zinc-900 dark:bg-surface dark:text-white"
         >
           Update
         </button>

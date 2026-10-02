@@ -47,7 +47,7 @@ export function SearchResults({
         <div key={date} className="space-y-3">
           {week && <h2 className="text-base font-semibold">{formatDate(date)}</h2>}
           {[...groupBy(dateRows, (r) => r.location)].map(([location, locRows]) => (
-            <section key={location} className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <section key={location} className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
               <h3 className="border-b border-zinc-200 px-4 py-2.5 font-semibold dark:border-zinc-800">{location}</h3>
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {[...locRows]

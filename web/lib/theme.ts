@@ -8,7 +8,7 @@ export const THEME_STORAGE_KEY = "theme";
 
 /** The page background in each theme (zinc-50 / zinc-950, same as --background in globals.css), used
  *  for the browser's theme-color so the phone's status bar and title bar match the app. */
-export const THEME_COLORS = { light: "#fafafa", dark: "#09090b" } as const;
+export const THEME_COLORS = { light: "#fafafa", dark: "#131316" } as const;
 
 /** Applies a theme: the `dark` class, plus the theme-color the status bar is painted with. */
 export function applyTheme(dark: boolean) {

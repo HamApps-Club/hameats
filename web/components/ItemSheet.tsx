@@ -60,9 +60,9 @@ export function ItemSheet({
         aria-modal="true"
         aria-label={item.name}
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full overflow-y-auto bg-zinc-50 text-zinc-900 sm:h-auto sm:max-h-full sm:max-w-lg sm:rounded-2xl dark:bg-zinc-950 dark:text-zinc-100"
+        className="h-full w-full overflow-y-auto bg-zinc-50 text-zinc-900 sm:h-auto sm:max-h-full sm:max-w-lg sm:rounded-2xl dark:bg-background dark:text-zinc-100"
       >
-        <div className="sticky top-0 z-10 bg-zinc-50/90 px-2 py-2 backdrop-blur dark:bg-zinc-950/90">
+        <div className="sticky top-0 z-10 bg-zinc-50/90 px-2 py-2 backdrop-blur dark:bg-background/90">
           <button
             onClick={onClose}
             autoFocus
@@ -103,7 +103,7 @@ export function ItemSheet({
           )}
 
           {(n.protein != null || n.carbs != null || n.fat != null) && (
-            <div className="grid grid-cols-3 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white text-center dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="grid grid-cols-3 divide-x divide-zinc-200 rounded-2xl border border-zinc-200 bg-white text-center dark:divide-zinc-800 dark:border-zinc-800 dark:bg-surface">
               {(
                 [
                   ["protein", "Protein"],

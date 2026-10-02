@@ -71,7 +71,7 @@ export function TagList({ tags }: { tags: string[] }) {
 /** Key to every icon. */
 export function IconLegend() {
   return (
-    <details className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <details className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-surface">
       <summary className="cursor-pointer font-medium">What do the icons mean?</summary>
       <p className="mt-3 mb-2 text-xs text-zinc-500">Filled icons describe the dish; outlined icons mean it contains that allergen.</p>
       <TagList tags={ORDER} />
