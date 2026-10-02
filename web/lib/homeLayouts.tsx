@@ -49,6 +49,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     description: "Every dining hall as a card with its hours. Tap a hall for its menu.",
     Component: ClassicHomeLayout,
     previewSrc: { mobile: classicMobilePreview, desktop: classicDesktopPreview },
+    hidden: true,
   },
   collapsible: {
     label: "Collapsible",
