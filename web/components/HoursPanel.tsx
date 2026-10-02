@@ -17,7 +17,7 @@ export function StatusLine({ status, caps }: { status: Status; caps?: boolean })
     <p className="text-sm">
       <span
         className={`font-semibold ${caps ? "uppercase tracking-wide" : ""} ${
-          status.open ? "text-green-700 dark:text-green-400" : "text-zinc-500"
+          status.open ? "rounded-full bg-gold px-2 py-0.5 text-zinc-950" : "text-zinc-500"
         }`}
       >
         {status.open ? "Open" : "Closed"}
