@@ -245,7 +245,7 @@ export function FilterBar({
         )}
       </div>
       {openGroup && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-surface">
           <p className="mb-2 text-xs text-zinc-500">
             {openGroup === "allergies" ? "Hide items that contain:" : "Only show items that are:"}
           </p>
@@ -293,7 +293,7 @@ function HallColumn({
   return (
     <section
       id={sectionId(hall)}
-      className="scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+      className="scroll-mt-16 space-y-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-surface"
     >
       <h2
         id={`${sectionId(hall)}-title`}
@@ -533,7 +533,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div>
-      <header ref={headerRef} className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+      <header ref={headerRef} className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-background/90">
         <SiteTitle />
       </header>
 

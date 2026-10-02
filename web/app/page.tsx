@@ -177,7 +177,7 @@ function HallView({
 
   return (
     <>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-background/90">
         <div className="mx-auto grid max-w-2xl grid-cols-[5.5rem_1fr_5.5rem] items-center px-2 py-2">
           <button
             onClick={() => goHome(homeState)}
@@ -231,7 +231,7 @@ function HallView({
 
         {date && <p className="text-sm text-zinc-500">{formatDate(date)}</p>}
         {standing && isStanding(hall.slug, meal, day?.[hall.name]?.[meal]) && (
-          <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+          <div className="space-y-1 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-surface dark:text-zinc-400">
             <p>{standing.note}</p>
             <p>
               From the posted menu ·{" "}
@@ -310,7 +310,7 @@ export default function Home() {
   }, [data, hall, layoutId]);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-background dark:text-zinc-100">
       <div className="flex-1">
         {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (

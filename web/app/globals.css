@@ -8,15 +8,18 @@
 @custom-variant standalone (@media (display-mode: standalone));
 
 :root {
-  /* zinc-50 / zinc-950: the same as every page's background, so anything drawn straight on <body>
-     (the Continental hall scroller, overscroll) matches. */
+  /* Every page's background (bg-background), so anything drawn straight on <body> (the Continental
+     hall scroller, overscroll) matches. Dark mode uses a very dark gray rather than near-black. */
   --background: #fafafa;
+  /* Cards and panels (bg-surface): white on the light gray, and a step lighter than the dark gray. */
+  --surface: #ffffff;
   --foreground: #171717;
   --accent: #002f86;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
@@ -24,7 +27,8 @@
 }
 
 .dark {
-  --background: #09090b;
+  --background: #131316;
+  --surface: #1f1f23;
   --foreground: #ededed;
   --accent: #5b8def;
   color-scheme: dark;

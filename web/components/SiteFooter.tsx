@@ -24,7 +24,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-labelledby="feedback-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm space-y-3 rounded-2xl bg-white p-6 text-center text-base text-zinc-700 shadow-xl dark:bg-zinc-900 dark:text-zinc-300"
+        className="w-full max-w-sm space-y-3 rounded-2xl bg-white p-6 text-center text-base text-zinc-700 shadow-xl dark:bg-surface dark:text-zinc-300"
       >
         <h2 id="feedback-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
           Feedback
@@ -102,7 +102,7 @@ export function SiteFooter() {
         {homeScreenOpen && (
           <div
             ref={instructionsRef}
-            className="mt-4 scroll-mb-4 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 text-base text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+            className="mt-4 scroll-mb-4 space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 text-base text-zinc-700 dark:border-zinc-800 dark:bg-surface dark:text-zinc-300"
           >
             <div>
               <p className="mb-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">iPhone (Safari)</p>

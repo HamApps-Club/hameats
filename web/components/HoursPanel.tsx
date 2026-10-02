@@ -40,7 +40,7 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
   const status = statusAt(hours, now);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <section className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
       <button
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
@@ -74,7 +74,7 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
                 aria-selected={m === meal}
                 onClick={() => setMeal(m)}
                 className={`flex-1 rounded-md py-1.5 text-sm font-medium ${
-                  m === meal ? "bg-white shadow-sm dark:bg-zinc-950" : "text-zinc-500"
+                  m === meal ? "bg-white shadow-sm dark:bg-background" : "text-zinc-500"
                 }`}
               >
                 {tabLabel(m)}
