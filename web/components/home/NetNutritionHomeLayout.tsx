@@ -364,8 +364,7 @@ const SHORT_NAMES: Record<string, string> = {
  * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
  * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
  * When the halls after the tapped one are short (nothing served), the page can't scroll it all the way to
- * the top, so the tapped hall keeps the gold dot until you scroll yourself, and its card flashes gold so
- * you can spot it. It's rendered at the end of <body>. In the browser it's fixed to the bottom of the screen, because
+ * the top, so the tapped hall keeps the gold dot until you scroll yourself. It's rendered at the end of <body>. In the browser it's fixed to the bottom of the screen, because
  * a sticky one slides around while mobile Safari's toolbar shows and hides; a spacer of the same
  * height ends the page, so the footer still scrolls clear of it. In the home-screen app (no toolbar)
  * it's sticky instead, coming to rest below the footer at the very end of the page, and rides a
@@ -417,25 +416,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
     pinned.current = hall.slug;
     setActive(hall.slug);
     const card = document.getElementById(sectionId(hall));
-    if (!card) return;
-    // A gold ring that fades out once the scroll has landed, so the eye finds the card wherever it stopped.
-    // It starts on scrollend; right away when the card is already in place (no scroll, so no scrollend);
-    // and after a moment at the latest, for browsers without scrollend.
-    let flashed = false;
-    const flash = () => {
-      if (flashed) return;
-      flashed = true;
-      window.removeEventListener("scrollend", flash);
-      card.animate(
-        [{ boxShadow: "0 0 0 3px rgb(234 179 8 / 0.7)" }, { boxShadow: "0 0 0 3px rgb(234 179 8 / 0)" }],
-        { duration: 1200, easing: "ease-out" },
-      );
-    };
-    const startY = window.scrollY;
-    window.addEventListener("scrollend", flash);
-    card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
-    setTimeout(() => window.scrollY === startY && flash(), 100);
-    setTimeout(flash, 1200);
+    card?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
     // Move focus to the hall's heading so screen readers land there too; nothing is drawn around it.
     document.getElementById(`${sectionId(hall)}-title`)?.focus({ preventScroll: true });
     track("continental_hall_jumped", { hall: hall.slug });
