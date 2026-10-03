@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 // The preview card shown when a hameats.app link is shared in iMessage, Slack, GroupMe, etc. It's the home
-// screen's navy header band (see SiteTitle), scaled up: the cream bowl beside the HamEats wordmark in Zilla
+// screen's navy header band (see SiteTitle), scaled up: the cream bowl (gold H, gold steam) beside the HamEats wordmark in Zilla
 // Slab, "Eats" in gold, over the tagline.
 export const alt = "HamEats: Hamilton College dining menus and hours";
 export const size = { width: 1200, height: 630 };
@@ -31,6 +31,7 @@ export default function OpengraphImage() {
           <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
             <svg width="170" height="170" viewBox="0 0 48 48">
               <path d="M10 24H38A14 14 0 0 1 10 24Z" fill="#F6F1E7" />
+              <path d="M20.1 26h1.8a.6.6 0 0 1 .6.6v2.15h3v-2.15a.6.6 0 0 1 .6-.6h1.8a.6.6 0 0 1 .6.6v6.8a.6.6 0 0 1-.6.6h-1.8a.6.6 0 0 1-.6-.6v-2.15h-3v2.15a.6.6 0 0 1-.6.6h-1.8a.6.6 0 0 1-.6-.6v-6.8a.6.6 0 0 1 .6-.6Z" fill="#F0B100" />
               <path
                 d="M18 19c-2-2.5 2-4.5 0-8M24 19c-2-2.5 2-4.5 0-8M30 19c-2-2.5 2-4.5 0-8"
                 fill="none"
