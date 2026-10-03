@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
@@ -486,17 +486,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const [showIcons, setShowIcons] = useState(false);
   const { open, sheet } = useItemSheet();
 
-  // Open scrolled just past the day picker and meal tabs, so the first screen starts at the filters and the
-  // menus; scrolling up brings the day and meal back.
-  const headerRef = useRef<HTMLElement>(null);
-  const mealTabsRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const header = headerRef.current;
-    const tabs = mealTabsRef.current;
-    if (!header || !tabs) return;
-    window.scrollTo({ top: tabs.getBoundingClientRect().bottom + window.scrollY - header.offsetHeight });
-  }, []);
-
   const toggleAllergen = useCallback((value: string) => {
     setExcludeAllergens((prev) => {
       const next = new Set(prev);
@@ -528,7 +517,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div>
-      <header ref={headerRef} className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-background/90">
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-background/90">
         <SiteTitle />
       </header>
 
@@ -546,7 +535,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
         </div>
 
         <div
-          ref={mealTabsRef}
           role="tablist"
           aria-label="Meal"
           className="mx-auto mb-5 flex max-w-2xl border-b border-zinc-200 dark:border-zinc-800"
