@@ -94,6 +94,33 @@ const sundayOf = (iso: string) => addDays(iso, -weekday(iso));
 const REPEATS_WEEKLY = new Set(["little-pub"]);
 const LOOKBACK_WEEKS = 8;
 
+/**
+ * Per-day corrections to the station the menu source files an item under. Each entry moves the named items out of
+ * `from` and into `to` for that date, location and meal.
+ */
+const STATION_MOVES = [
+  {
+    date: "2026-10-03",
+    location: "Soper Commons",
+    meal: "Dinner",
+    from: "Fresh Stock",
+    to: "Inspired Eats",
+    items: ["Basmati Rice Pilaf", "Chipotle Brown Sugar Chicken"],
+  },
+];
+
+function applyStationMoves(stations: MealMenu, date: string, location: string, meal: string) {
+  for (const m of STATION_MOVES) {
+    if (m.date !== date || m.location !== location || m.meal !== meal) continue;
+    const moved = (stations[m.from] ?? []).filter((x) => m.items.includes(x.name));
+    if (!moved.length) continue;
+    stations[m.from] = stations[m.from].filter((x) => !m.items.includes(x.name));
+    if (!stations[m.from].length) delete stations[m.from];
+    const dest = (stations[m.to] ??= []);
+    dest.push(...moved.filter((x) => !dest.some((d) => d.name === x.name)));
+  }
+}
+
 /** Walk ordered menu items; station headers start a new group. */
 function parseDay(items: ApiMenuItem[]): MealMenu {
   const stations: MealMenu = {};
@@ -216,6 +243,7 @@ export async function fetchMenus(days = 7, revalidate = 86400, log?: FetchLog[])
   ) => {
     const week = await fetchWeek(slug, display, menuType, sourceDate);
     const stations = parseDay(week?.days?.find((d) => d.date === sourceDate)?.menu_items ?? []);
+    applyStationMoves(stations, targetDate, display, meal);
     if (!Object.keys(stations).length) return false;
     // Two menu types can land on the same tab (e.g. "lunch" and "lunch-buffet"): merge their stations.
     result[targetDate][display][meal] = { ...result[targetDate][display][meal], ...stations };
