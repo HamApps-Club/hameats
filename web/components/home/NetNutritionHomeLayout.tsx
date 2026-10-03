@@ -521,8 +521,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
         <SiteTitle />
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
-        <div className="mx-auto mb-5 max-w-2xl">
+      <main className="mx-auto max-w-6xl px-4 pb-6 pt-3">
+        <div className="mx-auto mb-2 max-w-2xl">
           <DayPicker
             dates={dates}
             selected={date}
