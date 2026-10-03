@@ -32,6 +32,9 @@ MEALS = ["breakfast", "lunch", "dinner"]
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUTS = [ROOT / "dining_menu.json", ROOT / "web" / "public" / "dining_menu.json"]
+# Nutrislice never posts Commons breakfast. It serves McEwen's: that day's posted menu, or on days
+# McEwen posts none (weekends), McEwen's standard weekday breakfast. Same rule as web/lib/mirroredMenus.ts.
+COMMONS_BREAKFAST = json.loads((ROOT / "web" / "lib" / "commonsBreakfast.json").read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------- HTTP (api mode)
@@ -215,6 +218,10 @@ def scrape(dates: List[dt.date], fetch: Callable[[str, str, dt.date], dict],
                 stations = extract_date(week, date)
                 if stations:
                     result[target][display].setdefault(tab, {}).update(stations)
+    for day in result.values():
+        commons = day["Soper Commons"]
+        if not commons.get("Breakfast"):
+            commons["Breakfast"] = day["McEwen Dining Hall"].get("Breakfast") or COMMONS_BREAKFAST
     return result
 
 

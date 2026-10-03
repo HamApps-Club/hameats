@@ -396,6 +396,66 @@
               ]
             }
           ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            }
+          ]
         }
       },
       "McEwen Dining Hall": {},
@@ -822,6 +882,85 @@
                 "Dairy",
                 "Halal",
                 "Gluten Friendly"
+              ]
+            }
+          ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Bacon",
+              "calories": 105.0,
+              "tags": [
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Pancakes",
+              "calories": 181.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
               ]
             }
           ]
@@ -1575,6 +1714,74 @@
               ]
             }
           ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Pork Sausage Link",
+              "calories": 144.0,
+              "tags": [
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            }
+          ]
         }
       },
       "McEwen Dining Hall": {
@@ -2321,6 +2528,85 @@
                 "Vegetarian",
                 "Vegan",
                 "Gluten Friendly"
+              ]
+            }
+          ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Bacon",
+              "calories": 105.0,
+              "tags": [
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "French Toast",
+              "calories": 165.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
               ]
             }
           ]
@@ -3106,6 +3392,74 @@
               ]
             }
           ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Pork Sausage Link",
+              "calories": 144.0,
+              "tags": [
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            }
+          ]
         }
       },
       "McEwen Dining Hall": {
@@ -3887,6 +4241,79 @@
               ]
             }
           ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Bacon",
+              "calories": 105.0,
+              "tags": [
+                "Pork",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "French Toast Sticks",
+              "calories": 386.0,
+              "tags": []
+            },
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            }
+          ]
         }
       },
       "McEwen Dining Hall": {
@@ -4537,6 +4964,66 @@
               "name": "Gingered Beef with Rice",
               "calories": 419.0,
               "tags": [
+                "Gluten Friendly"
+              ]
+            }
+          ]
+        },
+        "Breakfast": {
+          "Spoon & Fork": [
+            {
+              "name": "Scrambled Eggs",
+              "calories": 96.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Scrambled Tofu",
+              "calories": 99.0,
+              "tags": [
+                "Soy",
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Hardboiled Egg",
+              "calories": 90.0,
+              "tags": [
+                "Egg",
+                "Vegetarian",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Home Fried Potatoes",
+              "calories": 121.0,
+              "tags": [
+                "Vegetarian",
+                "Vegan",
+                "Gluten Friendly"
+              ]
+            },
+            {
+              "name": "Vegetarian Breakfast Sausage Patty",
+              "calories": 3.0,
+              "tags": [
+                "Wheat",
+                "Dairy",
+                "Egg",
+                "Soy",
+                "Vegetarian"
+              ]
+            },
+            {
+              "name": "Hot Oatmeal",
+              "calories": 70.0,
+              "tags": [
+                "Vegan",
                 "Gluten Friendly"
               ]
             }
