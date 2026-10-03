@@ -1,6 +1,7 @@
 /**
- * The installed app's launch screen: the bowl mark and the HamEats wordmark, centered on the page background,
- * with the steam rising while the app loads. Only the home-screen app (PWA) shows it, never a browser tab.
+ * The launch screen: the bowl mark and the HamEats wordmark, centered on the page background, with the steam
+ * rising while the site loads. It shows on every full page load, in the home-screen app (PWA) and when a link
+ * is opened in a browser.
  *
  * It's in the server-rendered HTML so it covers the first paint, and plain inline scripts (no React) show and
  * hide it: SPLASH_SCRIPT in <head> adds the `splash` class to <html> before anything paints, and once the
@@ -34,7 +35,6 @@ const MAX_MS = 5000;
 const FADE_MS = 300;
 
 export const SPLASH_SCRIPT = `(() => {
-  if (!(navigator.standalone || matchMedia("(display-mode: standalone)").matches)) return;
   const root = document.documentElement;
   root.classList.add("splash");
   const start = Date.now();

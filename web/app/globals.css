@@ -93,8 +93,8 @@ body {
   background-color: var(--background);
 }
 
-/* The installed app's launch screen (components/Splash.tsx). Hidden unless SPLASH_SCRIPT put the `splash`
-   class on <html>, which it only does in the home-screen app; `splash-out` fades it away. */
+/* The launch screen (components/Splash.tsx). Hidden unless SPLASH_SCRIPT put the `splash` class on <html>
+   (so it never covers the page without JavaScript); `splash-out` fades it away. */
 #splash {
   display: none;
   position: fixed;
