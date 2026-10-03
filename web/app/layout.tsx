@@ -62,8 +62,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: MOVED_SCRIPT }} />
-        {/* Also adds the theme-color tag (status bar color). It isn't set through Next's viewport export:
-            React would put the light color back after the script switched it to dark. */}
+        {/* Also adds the theme-color tags (status bar and Safari toolbar color), one for each phone setting.
+            They aren't rendered by React or Next's viewport export: React would put the old colors back (or
+            add a stale copy) after the script set them to the theme in use. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: WEBSITE_JSON_LD }} />
       </head>
