@@ -9,12 +9,17 @@
 
 :root {
   /* Every page's background (bg-background), so anything drawn straight on <body> (the Continental
-     hall scroller, overscroll) matches. Dark mode uses a very dark gray rather than near-black. */
-  --background: #fafafa;
-  /* Cards and panels (bg-surface): white on the light gray, and a step lighter than the dark gray. */
+     hall scroller, overscroll) matches. Both themes' neutrals carry a trace of the brand blue (hue ~220)
+     so the blue buttons sit in the same color family as the page instead of on a stark white or black. */
+  --background: #f6f8fc;
+  /* Cards and panels (bg-surface): white on the blue-white page, and a step lighter than the blue-black. */
   --surface: #ffffff;
-  --foreground: #171717;
-  --accent: #002f86;
+  --foreground: #16181d;
+  /* Blue for text (the "Ham" wordmark, links). */
+  --accent: #22479a;
+  /* Blue for filled buttons, pills and the hall scroller: Continental Blue softened (less saturated, a
+     touch lighter) so it's closer in value to the page, while white text on it stays above 4.5:1. */
+  --accent-fill: #22479a;
   /* Gold, the one other brand color: "open / now / you are here". Never text on a light background (1.9:1);
      use it as a fill under dark text, or gold-ink for text. */
   --gold: #f0b100;
@@ -26,6 +31,7 @@
   --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
   --color-gold: var(--gold);
   --color-gold-ink: var(--gold-ink);
   --font-sans: var(--font-geist-sans);
@@ -33,10 +39,14 @@
 }
 
 .dark {
-  --background: #131316;
-  --surface: #1f1f23;
+  --background: #10131b;
+  --surface: #1a1f2b;
   --foreground: #ededed;
+  /* Text blue stays bright enough to read on the blue-black (5.7:1). */
   --accent: #5b8def;
+  /* Fill blue is deeper so it glows less against the dark page, and white text on it passes 4.5:1 (the
+     brighter #5b8def only reached 3.2:1). */
+  --accent-fill: #4570cc;
   --gold-ink: #f0b100;
   color-scheme: dark;
 }

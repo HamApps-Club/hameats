@@ -108,7 +108,7 @@ function FilterChip({ label, selected, onToggle }: { label: string; selected: bo
       aria-pressed={selected}
       onClick={onToggle}
       // On and off are the same blue, so a check marks the filters that are on.
-      className="flex min-h-9 items-center gap-1 rounded-full border border-accent bg-accent px-3 text-sm font-medium text-white hover:brightness-110"
+      className="flex min-h-9 items-center gap-1 rounded-full border border-accent-fill bg-accent-fill px-3 text-sm font-medium text-white hover:brightness-110"
     >
       {selected && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
       {label}
@@ -133,7 +133,7 @@ function FilterToggle({
       type="button"
       aria-expanded={expanded}
       onClick={onClick}
-      className="flex min-h-10 items-center gap-1 rounded-full border border-accent bg-accent px-3 text-sm font-semibold text-white"
+      className="flex min-h-10 items-center gap-1 rounded-full border border-accent-fill bg-accent-fill px-3 text-sm font-semibold text-white"
     >
       {label}
       {count > 0 && (
@@ -220,7 +220,7 @@ export function FilterBar({
           type="button"
           aria-pressed={showIcons}
           onClick={onToggleIcons}
-          className="flex min-h-10 items-center gap-1 rounded-full border border-accent bg-accent px-3 text-sm font-semibold text-white"
+          className="flex min-h-10 items-center gap-1 rounded-full border border-accent-fill bg-accent-fill px-3 text-sm font-semibold text-white"
         >
           {showIcons && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
           Icons
@@ -430,7 +430,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       >
         {/* Frosted brand blue (navy in light mode, the lighter blue in dark mode), with a crisp edge and a soft lift, so it reads apart from the menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-xl bg-accent/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-accent dark:shadow-black/40">
+        <div className="relative grid grid-cols-4 rounded-xl bg-accent-fill/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-accent-fill dark:shadow-black/40">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
           <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/40" />
           {halls.map((h) => {
