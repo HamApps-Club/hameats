@@ -420,13 +420,13 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   return createPortal(
     <>
       {/* Browser only: room at the end of the page for the fixed scroller (card height + its bottom padding). */}
-      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_115.5px)] standalone:hidden sm:hidden" />
+      <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_100.5px)] standalone:hidden sm:hidden" />
       <nav
         aria-label="Jump to dining hall"
-        // Raised 45px above the bottom edge in both the browser and the home-screen app,
+        // Raised 30px above the bottom edge in both the browser and the home-screen app,
         // where it also sits a little higher still, clear of the home indicator's swipe area (taps and scrolling
         // near the bottom edge lag there).
-        className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_45px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_45px)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_30px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_30px)] sm:hidden"
       >
         {/* Frosted brand blue (navy in light mode, the lighter blue in dark mode), with a crisp edge and a soft lift, so it reads apart from the menu cards;
             the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
