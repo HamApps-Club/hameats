@@ -105,14 +105,15 @@ function withMenu(preferred: Meal, day: DayMenu | undefined, hall: Hall): Meal {
 const isPosted = (day: DayMenu | undefined) =>
   !!day && Object.values(day).some((meals) => Object.keys(meals).length > 0);
 
-/** Flips straight to the other layout, shown in the corner of the home screen. */
+/** Flips straight to the other layout, shown in the corner of the home screen (an outlined button on the
+ *  header's navy band). */
 function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
   return (
     <div className="fixed left-3 top-3 z-20">
       <button
         onClick={onClick}
         aria-label="Switch layout"
-        className="flex min-h-10 items-center rounded-lg bg-accent-fill px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+        className="flex min-h-10 items-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
       >
         Layouts
       </button>
@@ -130,7 +131,7 @@ function ReportButton() {
         rel="noopener noreferrer"
         onClick={() => track("report_menu_clicked")}
         aria-label="Report an inaccurate menu"
-        className="flex min-h-10 items-center rounded-lg bg-accent-fill px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+        className="flex min-h-10 items-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
       >
         Report
       </a>
@@ -177,12 +178,12 @@ function HallView({
 
   return (
     <>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-background dark:border-zinc-800">
+      <header className="sticky top-0 z-10 border-b border-band-edge bg-band text-band-ink">
         <div className="mx-auto grid max-w-2xl grid-cols-[5.5rem_1fr_5.5rem] items-center px-2 py-2">
           <button
             onClick={() => goHome(homeState)}
             aria-label="Back to all dining halls"
-            className="flex min-h-11 items-center gap-0.5 rounded-md px-2 text-base font-medium hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+            className="flex min-h-11 items-center gap-0.5 rounded-md px-2 text-base font-medium hover:bg-band-ink/10"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-6">
               <path
@@ -193,7 +194,7 @@ function HallView({
             </svg>
             Home
           </button>
-          <h1 className="truncate text-center text-lg font-bold">{hall.name}</h1>
+          <h1 className="truncate text-center font-display text-xl font-bold">{hall.name}</h1>
         </div>
       </header>
 
