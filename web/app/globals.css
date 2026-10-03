@@ -92,3 +92,45 @@ body {
 .android .sticky.backdrop-blur {
   background-color: var(--background);
 }
+
+/* The installed app's launch screen (components/Splash.tsx). Hidden unless SPLASH_SCRIPT put the `splash`
+   class on <html>, which it only does in the home-screen app; `splash-out` fades it away. */
+#splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--background);
+  color: var(--foreground);
+  transition: opacity 0.3s ease-out;
+}
+.splash #splash {
+  display: flex;
+}
+.splash-out #splash {
+  opacity: 0;
+  pointer-events: none;
+}
+/* The steam rises and fades, one wisp after another. */
+.splash-steam {
+  animation: splash-steam 1.6s ease-in-out infinite;
+}
+.splash-steam:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.splash-steam:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes splash-steam {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.35; transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-steam {
+    animation: none;
+  }
+}
