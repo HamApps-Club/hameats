@@ -8,6 +8,7 @@ import commonsBreakfast from "./commonsBreakfast.json";
 // which IS posted correctly, so mirror McEwen's actual daily breakfast over whenever
 // Commons has nothing posted for that date. On days McEwen posts no breakfast (weekends),
 // Commons gets McEwen's standard weekday breakfast, hard-coded in commonsBreakfast.json.
+// Only on dates Commons has another meal posted: no posted menu at all means it's closed (breaks, holidays).
 
 const MIRRORS: { meal: string; from: string; to: string; fallback: MealMenu }[] = [
   { meal: "Breakfast", from: "mcewen", to: "commons", fallback: commonsBreakfast },
@@ -26,8 +27,9 @@ export function withMirroredMenus(data: MenuData): MenuData {
     for (const [date, day] of Object.entries(dates)) {
       const open = toHall.hours[dowOf(date)];
       if (!open.some((p) => p.meal === meal)) continue;
-      const toLoc = (day[toHall.name] ??= {});
-      if (Object.keys(toLoc[meal] ?? {}).length) continue;
+      const toLoc = day[toHall.name];
+      const otherMeals = Object.entries(toLoc ?? {}).filter(([m, menu]) => m !== meal && Object.keys(menu).length);
+      if (!toLoc || !otherMeals.length || Object.keys(toLoc[meal] ?? {}).length) continue;
       const fromMenu = day[fromHall.name]?.[meal];
       toLoc[meal] = structuredClone(fromMenu && Object.keys(fromMenu).length ? fromMenu : fallback);
     }
