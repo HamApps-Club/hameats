@@ -6,9 +6,9 @@
 
 export const THEME_STORAGE_KEY = "theme";
 
-/** The page background in each theme (same as --background in globals.css), used
- *  for the browser's theme-color so the phone's status bar and title bar match the app. */
-export const THEME_COLORS = { light: "#f6f8fc", dark: "#10131b" } as const;
+/** The header band in each theme (--band in globals.css), used for the browser's theme-color so the phone's
+ *  status bar and title bar (Android, and browsers that read it) run straight into the navy header. */
+export const THEME_COLORS = { light: "#002f86", dark: "#14224d" } as const;
 
 /** Applies a theme: the `dark` class, plus the theme-color the status bar is painted with. Both theme-color
  *  tags (light and dark, made by THEME_SCRIPT) get the picked theme's color, so the status bar follows the

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { AppUpdater } from "@/components/AppUpdater";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -15,6 +16,17 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// The display face for a few large words: the wordmark, the dates and hall names. Bundled (SIL Open Font
+// License, assets/fonts/ZillaSlab-OFL.txt) rather than fetched, so builds and offline pages never miss it.
+const zillaSlab = localFont({
+  variable: "--font-zilla-slab",
+  src: [
+    { path: "../assets/fonts/zilla-slab-latin-600-normal.woff2", weight: "600" },
+    { path: "../assets/fonts/zilla-slab-latin-700-normal.woff2", weight: "700" },
+  ],
+  fallback: ["Georgia", "serif"],
 });
 
 export const metadata: Metadata = {
@@ -57,7 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${zillaSlab.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

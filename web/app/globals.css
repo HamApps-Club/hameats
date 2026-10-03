@@ -8,22 +8,31 @@
 @custom-variant standalone (@media (display-mode: standalone));
 
 :root {
+  /* "Hamilton Modern": Hamilton's buff and blue. Roughly 60% warm ground and cards, 30% blue for structure
+     (the header band, meal control, station labels, hall scroller), 10% gold, which only ever means
+     "now / you are here" (the selected day, Serving now, the hall on screen). */
   /* Every page's background (bg-background), so anything drawn straight on <body> (the Continental
-     hall scroller, overscroll) matches. Both themes' neutrals carry a trace of the brand blue (hue ~220)
-     so the blue buttons sit in the same color family as the page instead of on a stark white or black. */
-  --background: #f6f8fc;
-  /* Cards and panels (bg-surface): white on the blue-white page, and a step lighter than the blue-black. */
-  --surface: #ffffff;
-  --foreground: #16181d;
-  /* Blue for text (the "Ham" wordmark, links). */
+     hall scroller, overscroll) matches: a light, slightly desaturated buff. */
+  --background: #f6f1e7;
+  /* Cards and panels (bg-surface): warm near-white. */
+  --surface: #fffdf8;
+  --foreground: #14192b;
+  /* Secondary text (hours, labels): 6.5:1 on cards. */
+  --muted: #625c50;
+  /* Hairlines: card edges, filter chips, the rule after each station name. */
+  --rule: #e3d8c3;
+  /* Blue for text and outlines (station names, the meal control, Clear). */
   --accent: #22479a;
-  /* Blue for filled buttons, pills and the hall scroller: Continental Blue softened (less saturated, a
-     touch lighter) so it's closer in value to the page, while white text on it stays above 4.5:1. */
+  /* Blue for fills (the selected meal, filter counts, Add to Home Screen) and the text on it. */
   --accent-fill: #22479a;
-  /* Gold, the one other brand color: "open / now / you are here". Never text on a light background (1.9:1);
-     use it as a fill under dark text, or gold-ink for text. */
+  --on-accent: #fffdf8;
+  /* The header band and hall scroller: solid Continental Blue, so iOS can copy it behind the clock. */
+  --band: #002f86;
+  --band-ink: #f6f1e7;
+  --band-edge: transparent;
+  /* Gold: never text on a light background (1.9:1); use it as a fill under dark text, or gold-ink for text. */
   --gold: #f0b100;
-  --gold-ink: #a65f00;
+  --gold-ink: #8a5a00;
 }
 
 @theme inline {
@@ -32,21 +41,34 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-fill: var(--accent-fill);
+  --color-on-accent: var(--on-accent);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-band: var(--band);
+  --color-band-ink: var(--band-ink);
+  --color-band-edge: var(--band-edge);
   --color-gold: var(--gold);
   --color-gold-ink: var(--gold-ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-zilla-slab), Georgia, serif;
 }
 
+/* Dark mode is navy-black rather than gray, with cream text (less glare than white) and a light periwinkle
+   blue that reads on dark; fills in that blue carry dark text. */
 .dark {
-  --background: #10131b;
-  --surface: #1a1f2b;
-  --foreground: #ededed;
-  /* Text blue stays bright enough to read on the blue-black (5.7:1). */
-  --accent: #5b8def;
-  /* Fill blue is deeper so it glows less against the dark page, and white text on it passes 4.5:1 (the
-     brighter #5b8def only reached 3.2:1). */
-  --accent-fill: #4570cc;
+  --background: #0e1424;
+  --surface: #161f35;
+  --foreground: #f2ecdf;
+  --muted: #a9a291;
+  --rule: #26304a;
+  --accent: #9db8ff;
+  --accent-fill: #9db8ff;
+  --on-accent: #0e1424;
+  /* A step lighter than the page, with a faint edge, so the band still reads as its own layer. */
+  --band: #14224d;
+  --band-ink: #f2ecdf;
+  --band-edge: rgb(157 184 255 / 0.16);
   --gold-ink: #f0b100;
   color-scheme: dark;
 }

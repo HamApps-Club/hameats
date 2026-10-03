@@ -100,15 +100,16 @@ export function itemPasses(item: MenuItem, excludeAllergens: Set<string>, requir
 
 type FilterGroupId = "allergies" | "preferences";
 
-/** One option as a toggle pill; filled blue when selected. */
+/** One option as a toggle pill: outlined in blue, filled (with a check) when selected. */
 function FilterChip({ label, selected, onToggle }: { label: string; selected: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onToggle}
-      // On and off are the same blue, so a check marks the filters that are on.
-      className="flex min-h-9 items-center gap-1 rounded-full border border-accent-fill bg-accent-fill px-3 text-sm font-medium text-white hover:brightness-110"
+      className={`flex min-h-9 items-center gap-1 rounded-full border-[1.5px] border-accent px-3 text-sm font-semibold ${
+        selected ? "bg-accent-fill text-on-accent" : "text-accent hover:bg-accent/10"
+      }`}
     >
       {selected && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
       {label}
@@ -133,17 +134,18 @@ function FilterToggle({
       type="button"
       aria-expanded={expanded}
       onClick={onClick}
-      className="flex min-h-10 items-center gap-1 rounded-full border border-accent-fill bg-accent-fill px-3 text-sm font-semibold text-white"
+      // Quiet chips rather than filled pills: filters are set once, so they shouldn't outshout the menu.
+      className="flex min-h-10 shrink-0 items-center gap-1 rounded-full border border-rule bg-surface px-3 text-sm font-semibold shadow-sm shadow-black/5"
     >
       {label}
       {count > 0 && (
-        <span className="rounded-full bg-white px-1.5 text-xs leading-5 text-accent">{count}</span>
+        <span className="rounded-full bg-accent-fill px-1.5 text-xs leading-5 text-on-accent">{count}</span>
       )}
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
         aria-hidden
-        className={`size-4 transition ${expanded ? "rotate-180" : ""}`}
+        className={`size-4 text-accent transition ${expanded ? "rotate-180" : ""}`}
       >
         <path
           fillRule="evenodd"
@@ -202,7 +204,7 @@ export function FilterBar({
 
   return (
     <div ref={barRef} className="space-y-3">
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex items-center gap-1.5">
         <FilterToggle
           label="Allergies"
           count={excludeAllergens.size}
@@ -215,31 +217,33 @@ export function FilterBar({
           expanded={openGroup === "preferences"}
           onClick={() => toggleGroup("preferences")}
         />
-        {/* Not a filter: shows or hides the diet and allergen icons beside every item. */}
+        {/* Not a filter: shows or hides the diet and allergen icons beside every item. So it's styled apart:
+            dashed, and pushed to the right. */}
         <button
           type="button"
           aria-pressed={showIcons}
           onClick={onToggleIcons}
-          className="flex min-h-10 items-center gap-1 rounded-full border border-accent-fill bg-accent-fill px-3 text-sm font-semibold text-white"
+          className={`ml-auto flex min-h-10 shrink-0 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
+            showIcons ? "border-accent text-foreground" : "border-dashed border-muted/50 text-muted"
+          }`}
         >
           {showIcons && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
           Icons
         </button>
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="ml-1 min-h-10 px-2 text-sm font-semibold text-accent hover:underline"
-          >
-            Clear
-          </button>
-        )}
       </div>
       {openGroup && (
-        <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-surface">
-          <p className="mb-2 text-xs text-zinc-500">
-            {openGroup === "allergies" ? "Hide items that contain:" : "Only show items that are:"}
-          </p>
+        <div className="rounded-xl border border-rule bg-surface p-3 shadow-sm">
+          {/* Clear lives here rather than in the chip row, so the row always fits on one line. */}
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-xs text-muted">
+              {openGroup === "allergies" ? "Hide items that contain:" : "Only show items that are:"}
+            </p>
+            {hasFilters && (
+              <button type="button" onClick={onClear} className="-my-2 min-h-9 px-1 text-sm font-semibold text-accent hover:underline">
+                Clear all
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             {options.map((opt) => (
               <FilterChip key={opt} label={opt} selected={selected.has(opt)} onToggle={() => onToggle(opt)} />
@@ -284,44 +288,39 @@ function HallColumn({
   return (
     <section
       id={sectionId(hall)}
-      className="scroll-mt-16 space-y-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-surface"
+      className="scroll-mt-20 space-y-2 rounded-[10px] border border-t-4 border-rule border-t-accent bg-surface p-4 pb-2 shadow-[0_8px_20px_-14px] shadow-black/20"
     >
       <h2
         id={`${sectionId(hall)}-title`}
         tabIndex={-1}
-        className="-mx-2 rounded-md px-2 py-0.5 text-[22px] font-semibold text-zinc-900 outline-none dark:text-zinc-100"
+        className="-mx-2 rounded-md px-2 py-0.5 font-display text-[26px] font-bold leading-tight outline-none"
       >
         {hall.name}
       </h2>
 
-      {servingNow && (
-        <p>
-          <span className="inline-block rounded-full bg-gold px-2 py-0.5 text-sm font-semibold text-zinc-950">Serving now</span>
-        </p>
-      )}
-
-      {win ? (
-        <p className="text-base text-zinc-500">
-          {meal} · {compactRange(win.open, win.close)}
-        </p>
-      ) : (
-        <p className="text-base text-zinc-500">
-          No {meal.toLowerCase()} {isToday ? "today" : "this day"}
-        </p>
-      )}
+      <p className="flex flex-wrap items-center gap-2 text-[15px] text-muted">
+        {servingNow && (
+          <span className="rounded bg-gold px-2 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.07em] text-zinc-950">
+            Serving now
+          </span>
+        )}
+        <span>{win ? `${meal} · ${compactRange(win.open, win.close)}` : `No ${meal.toLowerCase()} ${isToday ? "today" : "this day"}`}</span>
+      </p>
 
       {stations.length > 0 ? (
-        // Each station gets room above and below plus a faint rule, so one category reads apart from the next.
-        <div className="divide-y divide-zinc-100 pt-1 dark:divide-zinc-800">
+        // Each station is labeled in spaced capitals with a hairline running out to the card's edge.
+        <div>
           {stations.map(([station, items]) => (
-            <div key={station} className="py-4 first:pt-0 last:pb-0">
-              <h3 className="mb-3 text-lg font-bold text-zinc-800 dark:text-zinc-200">{station}</h3>
-              <div className="space-y-1.5">
+            <div key={station} className="pb-2 pt-3">
+              <h3 className="mb-2 flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.16em] text-accent after:h-px after:flex-1 after:bg-rule">
+                {station}
+              </h3>
+              <div>
                 {items.map((it) => (
                   <button
                     key={it.name}
                     onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                    className="flex w-full items-center justify-between gap-2 text-left text-base text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
+                    className="flex w-full items-center justify-between gap-2 py-1.5 text-left text-[16.5px] hover:text-accent hover:underline hover:underline-offset-[3px]"
                   >
                     <span>{it.name}</span>
                     {showIcons && <Tags tags={it.tags} />}
@@ -334,9 +333,9 @@ function HallColumn({
       ) : (
         win &&
         (hadItems && isFiltering ? (
-          <p className="pt-1 text-sm text-zinc-400">No items match your filters</p>
+          <p className="pb-2 pt-1 text-sm italic text-muted">No items match your filters</p>
         ) : (
-          <p className="pt-1 text-sm text-zinc-400">No menu posted yet</p>
+          <p className="pb-2 pt-1 text-sm italic text-muted">No menu posted yet</p>
         ))
       )}
     </section>
@@ -428,11 +427,11 @@ function HallScroller({ halls }: { halls: Hall[] }) {
         // near the bottom edge lag there).
         className="fixed inset-x-0 bottom-0 z-30 px-3 standalone:sticky pb-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_30px)] standalone:pb-[calc(max(2.75rem,calc(env(safe-area-inset-bottom)_+_2rem))_+_30px)] sm:hidden"
       >
-        {/* Frosted brand blue (navy in light mode, the lighter blue in dark mode), with a crisp edge and a soft lift, so it reads apart from the menu cards;
-            the hall you're on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
-        <div className="relative grid grid-cols-4 rounded-xl bg-accent-fill/95 px-1 pb-2.5 pt-1 shadow-lg shadow-black/20 ring-1 ring-white/10 backdrop-blur-md android:bg-accent-fill dark:shadow-black/40">
+        {/* The header's navy band, frosted, with a soft lift so it reads apart from the menu cards; the hall you're
+            on is picked out in gold. Solid on Android, which drops the blur (see globals.css). */}
+        <div className="relative grid grid-cols-4 rounded-xl bg-band/95 px-1 pb-2.5 pt-1 text-band-ink shadow-lg shadow-black/25 ring-1 ring-band-edge backdrop-blur-md android:bg-band dark:shadow-black/40">
           {/* The line the dots sit on, from the first dot's center to the last's. */}
-          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-white/40" />
+          <div aria-hidden className="absolute left-[12.5%] right-[12.5%] top-[26px] h-px bg-band-ink/35" />
           {halls.map((h) => {
             const isActive = h.slug === active;
             return (
@@ -448,14 +447,14 @@ function HallScroller({ halls }: { halls: Hall[] }) {
                 <span className="flex size-3 items-center justify-center">
                   <span
                     className={`shrink-0 rounded-full ${
-                      isActive ? "size-4 bg-gold ring-[6px] ring-gold/25" : "size-2.5 bg-white/70"
+                      isActive ? "size-4 bg-gold ring-[6px] ring-gold/25" : "size-2.5 bg-band-ink/70"
                     }`}
                   />
                 </span>
                 <span
                   className={`text-[15px] font-bold ${
-                    // Gold on navy in light mode; white on the lighter blue in dark mode, where gold text is too faint.
-                    isActive ? "text-gold dark:text-white" : "text-white/85"
+                    // Gold on navy in both modes (6.3:1 and 8:1).
+                    isActive ? "text-gold" : "text-band-ink/85"
                   }`}
                 >
                   {SHORT_NAMES[h.slug] ?? h.name}
@@ -517,11 +516,12 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-background dark:border-zinc-800">
+      {/* Solid navy, so iOS copies it behind the clock and battery (see repaintStatusBar in lib/theme.ts). */}
+      <header className="sticky top-0 z-10 border-b border-band-edge bg-band text-band-ink">
         <SiteTitle />
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-6 pt-3">
+      <main className="mx-auto max-w-6xl px-3.5 pb-6 pt-3">
         <div className="mx-auto mb-2 max-w-2xl">
           <DayPicker
             dates={dates}
@@ -534,10 +534,12 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           />
         </div>
 
+        {/* A segmented control: three choices of one thing. The selected meal is filled blue (gold is kept for
+            "now / you are here"). */}
         <div
           role="tablist"
           aria-label="Meal"
-          className="mx-auto mb-5 flex max-w-2xl border-b border-zinc-200 dark:border-zinc-800"
+          className="mx-auto mb-4 flex max-w-2xl overflow-hidden rounded-[10px] border-[1.5px] border-accent"
         >
           {MEALS.map((m) => (
             <button
@@ -545,10 +547,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               role="tab"
               aria-selected={m === meal}
               onClick={() => setMeal(m)}
-              className={`-mb-px flex-1 border-b-2 py-2.5 text-lg font-bold ${
-                m === meal
-                  ? "border-gold text-gold-ink"
-                  : "border-transparent text-zinc-500"
+              className={`flex-1 py-2.5 text-[17px] font-bold [&+&]:border-l-[1.5px] [&+&]:border-accent ${
+                m === meal ? "bg-accent-fill text-on-accent" : "text-accent hover:bg-accent/10"
               }`}
             >
               {m}
@@ -556,7 +556,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           ))}
         </div>
 
-        <div className="mb-5">
+        <div className="mx-auto mb-4 max-w-2xl">
           <FilterBar
             excludeAllergens={excludeAllergens}
             requirePreferences={requirePreferences}
