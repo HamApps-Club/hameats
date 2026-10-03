@@ -79,7 +79,7 @@ export function SiteFooter() {
         <button
           onClick={() => setHomeScreenOpen((o) => !o)}
           aria-expanded={homeScreenOpen}
-          className="flex w-full items-center justify-center gap-3 rounded-xl bg-accent-fill px-6 py-6 text-2xl font-bold text-white shadow-md active:brightness-110"
+          className="flex w-full items-center justify-center gap-3 rounded-xl bg-accent-fill px-6 py-6 text-2xl font-bold text-on-accent shadow-md active:brightness-110"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden className="size-9 shrink-0">
             <rect x="6" y="2" width="12" height="20" rx="2.5" />

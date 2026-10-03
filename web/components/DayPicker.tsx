@@ -27,12 +27,12 @@ export function DayPicker({
           // The selected day's gold box is drawn 2px inside the button, so it's smaller without moving the dates.
           className={`relative flex flex-col items-center rounded-lg py-2 ${
             d === selected
-              ? "text-zinc-900 before:absolute before:inset-[2px] before:rounded-md before:bg-gold"
-              : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
+              ? "text-zinc-950 before:absolute before:inset-[2px] before:rounded-md before:bg-gold"
+              : "hover:bg-accent/10"
           } ${isDimmed?.(d) ? "opacity-40" : ""}`}
         >
-          <span className="relative text-xs">{d === today ? "Today" : shortWeekday(d)}</span>
-          <span className="relative text-2xl font-bold tabular-nums">{dayOfMonth(d)}</span>
+          <span className={`relative text-xs ${d === selected ? "" : "text-muted"}`}>{d === today ? "Today" : shortWeekday(d)}</span>
+          <span className="relative font-display text-2xl font-bold tabular-nums">{dayOfMonth(d)}</span>
         </button>
       ))}
     </div>
