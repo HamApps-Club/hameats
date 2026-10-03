@@ -545,7 +545,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               role="tab"
               aria-selected={m === meal}
               onClick={() => setMeal(m)}
-              className={`-mb-px flex-1 border-b-2 py-2.5 text-base font-semibold ${
+              className={`-mb-px flex-1 border-b-2 py-2.5 text-lg font-bold ${
                 m === meal
                   ? "border-gold text-gold-ink"
                   : "border-transparent text-zinc-500"
