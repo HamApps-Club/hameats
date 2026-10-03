@@ -121,7 +121,7 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/** Opens the form for reporting a menu that didn't match what was served, in the corner of the home screen. */
+/** Opens the form for flagging a menu item that's missing or isn't actually being served, in the corner of the home screen. */
 function ReportButton() {
   return (
     <div className="fixed left-3 top-3 z-20">
@@ -130,10 +130,10 @@ function ReportButton() {
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track("report_menu_clicked")}
-        aria-label="Report an inaccurate menu"
+        aria-label="Flag a missing or incorrect menu item"
         className="flex min-h-10 items-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
       >
-        Report
+        Flag
       </a>
     </div>
   );
@@ -281,7 +281,7 @@ export default function Home() {
   // Switch Layout button flips straight between the layouts it would have listed.
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
-  // Only Continental is offered right now (Classic is hidden), so the Report button takes the
+  // Only Continental is offered right now (Classic is hidden), so the Flag button takes the
   // Switch Layout button's corner until there's another layout to switch to.
   const visible = (Object.keys(HOME_LAYOUTS) as HomeLayoutId[]).filter((id) => !HOME_LAYOUTS[id].hidden);
   const switchLayout = () => {

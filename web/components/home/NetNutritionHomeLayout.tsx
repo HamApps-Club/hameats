@@ -159,7 +159,7 @@ function FilterToggle({
 
 /**
  * A compact row of dropdowns (Allergies, Preferences) above the halls. Opening one drops down its
- * options as a wrapped row of pills, next to the Icons toggle; tapping outside or pressing Escape closes it.
+ * options as a wrapped row of pills, next to the Labels toggle; tapping outside or pressing Escape closes it.
  */
 export function FilterBar({
   excludeAllergens,
@@ -222,13 +222,14 @@ export function FilterBar({
         <button
           type="button"
           aria-pressed={showIcons}
+          aria-label="Show dietary and allergen labels"
           onClick={onToggleIcons}
           className={`ml-auto flex min-h-10 shrink-0 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
             showIcons ? "border-accent text-foreground" : "border-dashed border-muted/50 text-muted"
           }`}
         >
           {showIcons && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
-          Icons
+          Labels
         </button>
       </div>
       {openGroup && (
