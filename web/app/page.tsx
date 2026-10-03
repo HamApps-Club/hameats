@@ -112,7 +112,7 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
       <button
         onClick={onClick}
         aria-label="Switch layout"
-        className="flex min-h-10 items-center rounded-lg bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+        className="flex min-h-10 items-center rounded-lg bg-accent-fill px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
         Layouts
       </button>
@@ -130,7 +130,7 @@ function ReportButton() {
         rel="noopener noreferrer"
         onClick={() => track("report_menu_clicked")}
         aria-label="Report an inaccurate menu"
-        className="flex min-h-10 items-center rounded-lg bg-accent px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
+        className="flex min-h-10 items-center rounded-lg bg-accent-fill px-3 text-sm font-semibold text-white shadow-sm hover:brightness-110"
       >
         Report
       </a>
@@ -310,7 +310,7 @@ export default function Home() {
   }, [data, hall, layoutId]);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-background dark:text-zinc-100">
+    <div className="flex min-h-full flex-1 flex-col bg-background text-zinc-900 dark:text-zinc-100">
       <div className="flex-1">
         {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (

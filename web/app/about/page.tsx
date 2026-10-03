@@ -19,7 +19,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 text-zinc-900 dark:bg-background dark:text-zinc-100">
+    <div className="flex min-h-full flex-1 flex-col bg-background text-zinc-900 dark:text-zinc-100">
       <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-6 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
         <Link href="/" className="inline-block font-medium text-blue-600 hover:underline dark:text-blue-400">
           ← Home
