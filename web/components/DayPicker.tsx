@@ -24,14 +24,15 @@ export function DayPicker({
           key={d}
           onClick={() => onSelect(d)}
           aria-pressed={d === selected}
-          className={`flex flex-col items-center rounded-lg py-2 ${
+          // The selected day's gold box is drawn 5px inside the button, so it's smaller without moving the dates.
+          className={`relative flex flex-col items-center rounded-lg py-2 ${
             d === selected
-              ? "bg-gold text-zinc-900"
+              ? "text-zinc-900 before:absolute before:inset-[5px] before:rounded-md before:bg-gold"
               : "hover:bg-zinc-200/70 dark:hover:bg-zinc-800"
           } ${isDimmed?.(d) ? "opacity-40" : ""}`}
         >
-          <span className="text-xs">{d === today ? "Today" : shortWeekday(d)}</span>
-          <span className="text-2xl font-bold tabular-nums">{dayOfMonth(d)}</span>
+          <span className="relative text-xs">{d === today ? "Today" : shortWeekday(d)}</span>
+          <span className="relative text-2xl font-bold tabular-nums">{dayOfMonth(d)}</span>
         </button>
       ))}
     </div>
