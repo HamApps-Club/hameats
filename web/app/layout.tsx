@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { AppUpdater } from "@/components/AppUpdater";
 import { PostHogProvider } from "@/components/PostHogProvider";
+import { Splash, SPLASH_SCRIPT } from "@/components/Splash";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { STUCK_LOADING_SCRIPT } from "@/lib/stuckLoadingScript";
 import { THEME_SCRIPT } from "@/lib/theme";
@@ -78,9 +79,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             They aren't rendered by React or Next's viewport export: React would put the old colors back (or
             add a stale copy) after the script set them to the theme in use. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: WEBSITE_JSON_LD }} />
       </head>
       <body className="min-h-full flex flex-col">
+        <Splash />
         <PostHogProvider>
           {children}
           <AppUpdater />
