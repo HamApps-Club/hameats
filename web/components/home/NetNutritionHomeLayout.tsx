@@ -517,7 +517,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
 
   return (
     <div>
-      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur dark:border-zinc-800 dark:bg-background/90">
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-background dark:border-zinc-800">
         <SiteTitle />
       </header>
 

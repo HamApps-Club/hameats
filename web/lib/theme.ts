@@ -18,7 +18,26 @@ export function applyTheme(dark: boolean) {
   for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
     meta.setAttribute("content", dark ? THEME_COLORS.dark : THEME_COLORS.light);
   }
+  repaintStatusBar();
 }
+
+/**
+ * On iOS 26, Safari and home-screen apps paint the area behind the clock with the color of the bar pinned
+ * to the top of the page (the sticky header, which is why it's solid rather than frosted: a blurred bar
+ * has no single color to copy). WebKit only re-reads that color when the page loads or a pinned
+ * (fixed or sticky) element is added or removed, not when colors change. Adding an invisible 1px fixed
+ * element for a moment makes it re-read the header's new color right away.
+ */
+function repaintStatusBar() {
+  const probe = document.createElement("div");
+  probe.setAttribute("aria-hidden", "true");
+  probe.style.cssText = REPAINT_PROBE_STYLE;
+  document.body.appendChild(probe);
+  setTimeout(() => probe.remove(), 100);
+}
+
+/** Top-left corner, 1px: away from the middle of each edge, where WebKit looks for the pinned bar. */
+const REPAINT_PROBE_STYLE = "position:fixed;top:0;left:0;width:1px;height:1px;pointer-events:none;opacity:0";
 
 /**
  * Runs in <head> before the page paints, so there's no flash of the wrong theme. Also marks Android
@@ -50,5 +69,14 @@ export const THEME_SCRIPT = `(() => {
     }
   };
   apply();
-  system.addEventListener("change", () => { if (!saved()) apply(); });
+  // When the phone's own setting changes, also nudge iOS to repaint behind the clock (see repaintStatusBar).
+  system.addEventListener("change", () => {
+    if (saved()) return;
+    apply();
+    const probe = document.createElement("div");
+    probe.setAttribute("aria-hidden", "true");
+    probe.style.cssText = ${JSON.stringify(REPAINT_PROBE_STYLE)};
+    document.body.appendChild(probe);
+    setTimeout(() => probe.remove(), 100);
+  });
 })();`;
