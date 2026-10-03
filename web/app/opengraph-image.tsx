@@ -4,12 +4,12 @@ import { ImageResponse } from "next/og";
 
 // The preview card shown when a hameats.app link is shared in iMessage, Slack, GroupMe, etc. It's the home
 // screen's navy header band (see SiteTitle), scaled up: the cream bowl beside the HamEats wordmark in Zilla
-// Slab, "Eats" in gold, over the tagline, with a buff strip below saying what the site is.
+// Slab, "Eats" in gold, over the tagline.
 export const alt = "HamEats: Hamilton College dining menus and hours";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// The wordmark is Zilla Slab Bold (bundled, as in app/layout.tsx); the tagline and strip are Geist Bold.
+// The wordmark is Zilla Slab Bold (bundled, as in app/layout.tsx); the tagline is Geist Bold.
 // ImageResponse only bundles Geist Regular. Satori reads .woff and .ttf, not .woff2.
 const zillaSlabBold = await readFile(join(process.cwd(), "assets/fonts/zilla-slab-latin-700-normal.woff"));
 const geistBold = await readFile(join(process.cwd(), "assets/Geist-Bold.ttf"));
@@ -56,22 +56,6 @@ export default function OpengraphImage() {
           >
             Clinton, N.Y. · Dining
           </div>
-        </div>
-        <div
-          style={{
-            height: 112,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#F6F1E7",
-            borderTop: "8px solid #F0B100",
-            color: "#002F86",
-            fontFamily: "Geist",
-            fontSize: 36,
-            fontWeight: 700,
-          }}
-        >
-          Today&apos;s menus and hours for every Hamilton dining hall
         </div>
       </div>
     ),
