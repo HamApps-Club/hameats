@@ -1,10 +1,15 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { SITE_DESCRIPTION } from "@/lib/site";
 
-// The preview card shown when a hameats.app link is shared in iMessage, Slack, GroupMe, etc.
-export const alt = "HamEats: dining menus and hours";
+// The preview card shown when a hameats.app link is shared in iMessage, Slack, GroupMe, etc. It's the home
+// screen's header (see SiteTitle), scaled up: the bowl mark next to the HamEats wordmark.
+export const alt = "HamEats";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+// The header's font is Geist Bold; ImageResponse only bundles Geist Regular.
+const geistBold = await readFile(join(process.cwd(), "assets/Geist-Bold.ttf"));
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -14,20 +19,30 @@ export default function OpengraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
+          alignItems: "center",
           justifyContent: "center",
-          padding: 80,
+          gap: 48,
           background: "#fafafa",
-          color: "#18181b",
+          color: "#171717",
+          fontFamily: "Geist",
         }}
       >
-        <div style={{ display: "flex", fontSize: 128, fontWeight: 700, letterSpacing: -4 }}>
+        <svg width="190" height="190" viewBox="0 0 48 48">
+          <rect width="48" height="48" rx="12" fill="#002F86" />
+          <path d="M10 24H38A14 14 0 0 1 10 24Z" fill="#FFFFFF" />
+          <path
+            d="M18 19c-2-2.5 2-4.5 0-8M24 19c-2-2.5 2-4.5 0-8M30 19c-2-2.5 2-4.5 0-8"
+            fill="none"
+            strokeWidth={3}
+            strokeLinecap="round"
+            stroke="#F0B100"
+          />
+        </svg>
+        <div style={{ display: "flex", fontSize: 180, fontWeight: 700, letterSpacing: -4.5 }}>
           <span style={{ color: "#002f86" }}>Ham</span>Eats
         </div>
-        <div style={{ fontSize: 40, marginTop: 24, color: "#3f3f46", maxWidth: 1000 }}>{SITE_DESCRIPTION}</div>
-        <div style={{ fontSize: 32, marginTop: 48, color: "#002f86", fontWeight: 600 }}>hameats.app</div>
       </div>
     ),
-    size,
+    { ...size, fonts: [{ name: "Geist", data: geistBold, style: "normal", weight: 700 }] },
   );
 }
