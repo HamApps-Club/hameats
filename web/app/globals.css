@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* Dark mode follows the `dark` class on <html>, set from the device's light/dark setting until the in-app toggle picks one (see lib/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+/* On an Android phone (the `android` class on <html> is set in lib/theme.ts). */
+@custom-variant android (&:where(.android, .android *));
+/* Opened from the home screen as an installed app (PWA), not in a browser tab. */
+@custom-variant standalone (@media (display-mode: standalone));
+
+:root {
+  /* Every page's background (bg-background), so anything drawn straight on <body> (the Continental
+     hall scroller, overscroll) matches. Dark mode uses a very dark gray rather than near-black. */
+  --background: #fafafa;
+  /* Cards and panels (bg-surface): white on the light gray, and a step lighter than the dark gray. */
+  --surface: #ffffff;
+  --foreground: #171717;
+  --accent: #002f86;
+  /* Gold, the one other brand color: "open / now / you are here". Never text on a light background (1.9:1);
+     use it as a fill under dark text, or gold-ink for text. */
+  --gold: #f0b100;
+  --gold-ink: #a65f00;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+.dark {
+  --background: #131316;
+  --surface: #1f1f23;
+  --foreground: #ededed;
+  --accent: #5b8def;
+  --gold-ink: #f0b100;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Android only (the `android` class is set in lib/theme.ts): no frosted glass. Chrome on Android
+   re-blurs everything behind a backdrop-filter on every frame of a scroll, which makes scrolling lag
+   under the sticky headers and the hall scroller. Bars that relied on the blur get the solid page
+   background instead (their translucent background is the same color); the hall scroller sets its own
+   solid color with the android: variant. iPhones keep the blur. */
+.android .backdrop-blur,
+.android .backdrop-blur-md {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.android .sticky.backdrop-blur {
+  background-color: var(--background);
+}
