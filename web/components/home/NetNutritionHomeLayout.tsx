@@ -534,12 +534,11 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           />
         </div>
 
-        {/* A segmented control: three choices of one thing. The selected meal is filled blue (gold is kept for
-            "now / you are here"). */}
+        {/* Underlined meal tabs. The selected meal takes the blue accent (gold is kept for "now / you are here"). */}
         <div
           role="tablist"
           aria-label="Meal"
-          className="mx-auto mb-4 flex max-w-2xl overflow-hidden rounded-[10px] border-[1.5px] border-accent"
+          className="mx-auto mb-5 flex max-w-2xl border-b border-zinc-200 dark:border-zinc-800"
         >
           {MEALS.map((m) => (
             <button
@@ -547,8 +546,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               role="tab"
               aria-selected={m === meal}
               onClick={() => setMeal(m)}
-              className={`flex-1 py-2.5 text-[17px] font-bold [&+&]:border-l-[1.5px] [&+&]:border-accent ${
-                m === meal ? "bg-accent-fill text-on-accent" : "text-accent hover:bg-accent/10"
+              className={`-mb-px flex-1 border-b-2 py-2.5 text-lg font-bold ${
+                m === meal ? "border-accent text-accent" : "border-transparent text-zinc-500"
               }`}
             >
               {m}
