@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { MenuItem, Nutrition } from "@/lib/types";
+import { track } from "@/lib/analytics";
 import { TagPills } from "./Tags";
 
 // FDA daily values (2,000-calorie diet) for the % column.
@@ -118,6 +119,19 @@ export function ItemSheet({
               ))}
             </div>
           )}
+
+          {/* Opens in the phone's browser (a new tab on desktop) so people can see what the food looks like. */}
+          <p className="text-center">
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(item.name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => track("item_google_search", { item: item.name })}
+              className="text-base font-medium text-accent underline underline-offset-4"
+            >
+              Google search
+            </a>
+          </p>
 
           {hasNumbers && (
             <section>
