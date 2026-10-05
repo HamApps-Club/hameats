@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
@@ -64,12 +64,26 @@ function useItemSheet() {
   return { open, sheet };
 }
 
-/** Campus clock, ticking every minute so open/closed and the current meal stay right. */
+/**
+ * Campus clock, ticking every minute so open/closed and the current meal stay right. Also re-reads
+ * the clock the moment the app comes back to the foreground: a phone can keep the app open in the
+ * background overnight, and it should know it's a new day as soon as it's reopened.
+ */
 function useCampusNow() {
   const [now, setNow] = useState(() => campusNow());
   useEffect(() => {
-    const id = setInterval(() => setNow(campusNow()), 60_000);
-    return () => clearInterval(id);
+    const tick = () => setNow(campusNow());
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    const id = setInterval(tick, 60_000);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", tick);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", tick);
+    };
   }, []);
   return now;
 }
@@ -269,12 +283,20 @@ function HallView({
 }
 
 export default function Home() {
-  const { data: posted, status } = useMenuData();
+  const { data: posted, status, refresh } = useMenuData();
   // Posted Nutrislice menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
+  // When the campus date rolls over (usually the app being reopened the next day), fetch the menus
+  // again so the new day's menu is there.
+  const loadedOn = useRef(now.iso);
+  useEffect(() => {
+    if (now.iso === loadedOn.current) return;
+    loadedOn.current = now.iso;
+    refresh();
+  }, [now.iso, refresh]);
   const [layoutId, setLayoutId] = useHomeLayoutId();
   // Every load of "/" opens the last layout the visitor was on (the default until they switch).
   // The layout gallery (components/home/LayoutGallery.tsx) is out of use for now: the
@@ -320,8 +342,9 @@ export default function Home() {
             {status === "error" ? "Couldn't load menus." : "Loading menus…"}
           </p>
         ) : hall ? (
+          // Keyed on the date too, so a new day drops whatever day or meal was picked and opens on today.
           <HallView
-            key={hall.slug}
+            key={`${hall.slug}-${now.iso}`}
             hall={hall}
             data={data}
             now={now}
@@ -331,7 +354,7 @@ export default function Home() {
           <>
             <ThemeToggle />
             {visible.length > 1 ? <SwitchLayoutButton onClick={switchLayout} /> : <ReportButton />}
-            <HomeLayout data={data} now={now} />
+            <HomeLayout key={now.iso} data={data} now={now} />
           </>
         )}
       </div>
