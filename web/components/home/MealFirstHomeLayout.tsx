@@ -5,6 +5,7 @@ import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
+import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
 import { track } from "@/lib/analytics";
@@ -128,7 +129,8 @@ function HallColumn({
 /** Comparison layout: two halls side by side on phones, four across on wide screens. */
 export function MealFirstHomeLayout({ data, now }: HomeLayoutProps) {
   const [meal, setMeal] = useState<Meal>(() => mealByClock(now.minutes));
-  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
+  // Today is always the first day, then the six after it (the menu data may be a day or two old).
+  const dates = useMemo(() => daysFrom(now.iso), [now.iso]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
   const { open, sheet } = useItemSheet();
