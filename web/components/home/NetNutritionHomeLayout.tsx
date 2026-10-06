@@ -6,6 +6,7 @@ import { HALLS, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
+import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
 import { Tags } from "@/components/Tags";
@@ -474,7 +475,8 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   // Follows the clock (moving on as each meal ends) until the student picks a meal themselves.
   const [pickedMeal, setMeal] = useState<Meal | null>(null);
   const meal = pickedMeal ?? mealByClock(now);
-  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
+  // Today is always the first day, then the six after it (the menu data may be a day or two old).
+  const dates = useMemo(() => daysFrom(now.iso), [now.iso]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
   const [excludeAllergens, setExcludeAllergens] = useState(() => readSavedFilters(SAVED_ALLERGENS_KEY, ALLERGENS));

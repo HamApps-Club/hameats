@@ -7,7 +7,7 @@ import { ItemSheet } from "@/components/ItemSheet";
 import { MenuList } from "@/components/MenuList";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { formatDate } from "@/lib/dates";
+import { daysFrom, formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId, type HomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
@@ -164,7 +164,8 @@ function HallView({
   now: CampusTime;
   homeState: unknown;
 }) {
-  const dates = useMemo(() => Object.keys(data.dates).sort(), [data]);
+  // Today is always the first day, then the six after it (the menu data may be a day or two old).
+  const dates = useMemo(() => daysFrom(now.iso), [now.iso]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const [pickedMeal, setPickedMeal] = useState<Meal | null>(null);
   const { open, sheet } = useItemSheet();
@@ -172,7 +173,7 @@ function HallView({
   const today = now.iso;
   // Default to today, or the next day this hall has a menu (e.g. a hall that's closed on weekends).
   const servesOn = (d: string) => MEALS.some((m) => hasMenu(data.dates[d], hall, m));
-  const defaultDate = dates.find((d) => d >= today && servesOn(d)) ?? (dates.includes(today) ? today : dates[0]);
+  const defaultDate = dates.find((d) => d >= today && servesOn(d)) ?? today;
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : defaultDate;
   const day = date ? data.dates[date] : undefined;
   const dow = date ? dowOf(date) : now.dow;
