@@ -122,6 +122,31 @@ function applyStationMoves(stations: MealMenu, date: string, location: string, m
   }
 }
 
+/**
+ * Per-day swaps for a dish the hall changed after Nutrislice was posted. The new dish keeps the old one's place in
+ * its station but none of its recipe: no calories, nutrition, ingredients, serving size or diet tags, since those
+ * belong to the dish that was replaced. `match` finds the old dish by name.
+ */
+const ITEM_SWAPS = [
+  {
+    date: "2026-10-07",
+    location: "McEwen Dining Hall",
+    meal: "Dinner",
+    match: (name: string) => /chicken/i.test(name) && /sticky honey/i.test(name),
+    name: "Salmon with Sticky Honey",
+  },
+];
+
+function applyItemSwaps(stations: MealMenu, date: string, location: string, meal: string) {
+  for (const swap of ITEM_SWAPS) {
+    if (swap.date !== date || swap.location !== location || swap.meal !== meal) continue;
+    for (const items of Object.values(stations)) {
+      const i = items.findIndex((x) => swap.match(x.name));
+      if (i >= 0) items[i] = { name: swap.name, calories: null, tags: [] };
+    }
+  }
+}
+
 /** Walk ordered menu items; station headers start a new group. */
 function parseDay(items: ApiMenuItem[]): MealMenu {
   const stations: MealMenu = {};
@@ -245,6 +270,7 @@ export async function fetchMenus(days = 7, revalidate = 86400, log?: FetchLog[])
     const week = await fetchWeek(slug, display, menuType, sourceDate);
     const stations = parseDay(week?.days?.find((d) => d.date === sourceDate)?.menu_items ?? []);
     applyStationMoves(stations, targetDate, display, meal);
+    applyItemSwaps(stations, targetDate, display, meal);
     if (!Object.keys(stations).length) return false;
     // Two menu types can land on the same tab (e.g. "lunch" and "lunch-buffet"): merge their stations.
     result[targetDate][display][meal] = { ...result[targetDate][display][meal], ...stations };
