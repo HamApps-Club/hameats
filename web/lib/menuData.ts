@@ -9,7 +9,7 @@ const MENU_URL = "/api/menu";
 /** Last scraped snapshot, used if the live route fails. */
 const FALLBACK_URL = "/dining_menu.json";
 /** How often an open app re-checks the menu, and the least time between two checks. */
-const REFRESH_MS = 10 * 60 * 1000;
+const REFRESH_MS = 60 * 60 * 1000;
 const MIN_GAP_MS = 2 * 60 * 1000;
 
 async function fetchMenu(url: string) {
@@ -70,7 +70,7 @@ export function useMenuData() {
     // Kick off after mount so localStorage is only touched in the browser.
     Promise.resolve().then(load);
 
-    // An open app (or one left in the background) re-checks for a changed menu every 10 minutes and whenever
+    // An open app (or one left in the background) re-checks for a changed menu every hour and whenever
     // the student comes back to it, at most once every 2 minutes.
     let last = Date.now();
     const refetch = () => {

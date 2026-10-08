@@ -211,7 +211,7 @@ export function countItems(data: MenuData) {
 }
 
 /** Fetch the next `days` days of menus for every hall, straight from Nutrislice. */
-export async function fetchMenus(days = 7, revalidate = 600, log?: FetchLog[]): Promise<MenuData> {
+export async function fetchMenus(days = 7, revalidate = 3600, log?: FetchLog[]): Promise<MenuData> {
   const start = hamiltonToday();
   const dates = Array.from({ length: days }, (_, i) => addDays(start, i));
   const result: MenuData["dates"] = Object.fromEntries(
