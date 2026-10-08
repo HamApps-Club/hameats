@@ -8,6 +8,9 @@ const STORAGE_KEY = "dining_menu_v1";
 const MENU_URL = "/api/menu";
 /** Last scraped snapshot, used if the live route fails. */
 const FALLBACK_URL = "/dining_menu.json";
+/** How often an open app re-checks the menu, and the least time between two checks. */
+const REFRESH_MS = 10 * 60 * 1000;
+const MIN_GAP_MS = 2 * 60 * 1000;
 
 async function fetchMenu(url: string) {
   const res = await fetch(url, { cache: "no-store" });
@@ -66,6 +69,22 @@ export function useMenuData() {
   useEffect(() => {
     // Kick off after mount so localStorage is only touched in the browser.
     Promise.resolve().then(load);
+
+    // An open app (or one left in the background) re-checks for a changed menu every 10 minutes and whenever
+    // the student comes back to it, at most once every 2 minutes.
+    let last = Date.now();
+    const refetch = () => {
+      if (Date.now() - last < MIN_GAP_MS) return;
+      last = Date.now();
+      load();
+    };
+    const onVisible = () => document.visibilityState === "visible" && refetch();
+    const timer = setInterval(() => document.visibilityState === "visible" && refetch(), REFRESH_MS);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [load]);
 
   return { data, status, generatedAt: data?.generated_at ?? null, refresh: load };
