@@ -356,6 +356,65 @@ const SHORT_NAMES: Record<string, string> = {
 };
 
 /**
+ * Keeps a `position: fixed; bottom: 0` element on the bottom of the visible screen. iOS Safari places fixed
+ * elements against its layout viewport, which can fall out of step with what's on screen (seen after the
+ * keyboard closes): the layout viewport's bottom then sits hundreds of pixels above the screen's, and the
+ * element floats mid-screen even as the page scrolls. The visual viewport still reports the real screen, so
+ * whenever the element's bottom is above the visual viewport's bottom, it's moved down by the difference. It's
+ * never moved up, so the keyboard or a pinch-zoom still covers it as usual.
+ */
+function usePinToVisualBottom(ref: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const el = ref.current;
+    if (!vv || !el) return;
+    let shift = 0;
+    let frame = 0;
+    const place = () => {
+      frame = 0;
+      // Only the browser's fixed scroller (the home-screen app's is sticky; wider screens hide it).
+      if (getComputedStyle(el).position !== "fixed" || !el.offsetHeight) return;
+      // Both in layout-viewport coordinates: where the element ends without our shift, and where the screen ends.
+      const ownBottom = el.getBoundingClientRect().bottom - shift;
+      const gap = Math.round(vv.offsetTop + vv.height - ownBottom);
+      const next = gap > 1 ? gap : 0;
+      if (next === shift) return;
+      shift = next;
+      el.style.transform = shift ? `translateY(${shift}px)` : "";
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(place);
+    };
+    // The keyboard and the toolbars animate; check again once they've settled.
+    const settle = () => {
+      schedule();
+      setTimeout(schedule, 350);
+    };
+    place();
+    vv.addEventListener("resize", schedule);
+    vv.addEventListener("scroll", schedule);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", settle);
+    window.addEventListener("orientationchange", settle);
+    window.addEventListener("pageshow", settle);
+    window.addEventListener("focusout", settle);
+    document.addEventListener("visibilitychange", settle);
+    return () => {
+      cancelAnimationFrame(frame);
+      vv.removeEventListener("resize", schedule);
+      vv.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", settle);
+      window.removeEventListener("orientationchange", settle);
+      window.removeEventListener("pageshow", settle);
+      window.removeEventListener("focusout", settle);
+      document.removeEventListener("visibilitychange", settle);
+      el.style.transform = "";
+    };
+  }, [ref]);
+}
+
+/**
  * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
  * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
  * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
@@ -367,6 +426,8 @@ const SHORT_NAMES: Record<string, string> = {
  * little higher.
  */
 function HallScroller({ halls }: { halls: Hall[] }) {
+  const navRef = useRef<HTMLElement>(null);
+  usePinToVisualBottom(navRef);
   const [active, setActive] = useState(halls[0]?.slug);
   // The hall last tapped, which keeps the gold dot until the user scrolls on their own.
   const pinned = useRef<string | null>(null);
@@ -423,6 +484,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       {/* Browser only: room at the end of the page for the fixed scroller (card height + its bottom padding). */}
       <div aria-hidden className="h-[calc(max(0.75rem,env(safe-area-inset-bottom))_+_100.5px)] standalone:hidden sm:hidden" />
       <nav
+        ref={navRef}
         aria-label="Jump to dining hall"
         // Raised 30px above the bottom edge in both the browser and the home-screen app,
         // where it also sits a little higher still, clear of the home indicator's swipe area (taps and scrolling
