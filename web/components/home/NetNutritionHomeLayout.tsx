@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
-import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
+import { compactRange, dayHours, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
@@ -80,7 +80,7 @@ const MAIN_HALLS = HALLS.filter((h) => h.slug === "commons" || h.slug === "mcewe
  */
 export function mealByClock(now: CampusTime): Meal {
   for (const meal of ["Breakfast", "Lunch"] as const) {
-    const ends = MAIN_HALLS.flatMap((h) => h.hours[now.dow])
+    const ends = MAIN_HALLS.flatMap((h) => dayHours(h.hours, now.iso))
       .filter((p) => p.meal === meal && !/^(Light|Late) /.test(p.name))
       .map((p) => p.close);
     if (ends.length > 0 && now.minutes < Math.max(...ends)) return meal;
@@ -88,8 +88,8 @@ export function mealByClock(now: CampusTime): Meal {
   return "Dinner";
 }
 
-export function windowFor(hall: Hall, dow: number, meal: Meal) {
-  return hall.hours[dow].find((p) => p.meal === meal);
+export function windowFor(hall: Hall, date: string, meal: Meal) {
+  return dayHours(hall.hours, date).find((p) => p.meal === meal);
 }
 
 /** Checking an allergen hides matching items; checking a preference keeps only items matching at least one. */
@@ -279,7 +279,7 @@ function HallColumn({
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
-  const win = windowFor(hall, dowOf(date), meal);
+  const win = windowFor(hall, date, meal);
   const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
   const stations = orderedStations(mealMenu, hall.stationOrder)
     .map(([station, items]) => [station, items.filter((it) => itemPasses(it, excludeAllergens, requirePreferences))] as const)

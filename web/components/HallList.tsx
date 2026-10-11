@@ -1,12 +1,12 @@
 import type { Hall } from "@/lib/halls";
-import { statusAt, summaryParts, type CampusTime } from "@/lib/hours";
+import { dayHours, statusAt, summaryParts, type CampusTime } from "@/lib/hours";
 import { StatusLine } from "./HoursPanel";
 
 export function HallList({ halls, now }: { halls: Hall[]; now: CampusTime }) {
   return (
     <nav aria-label="Dining halls" className="space-y-3">
       {halls.map((h) => {
-        const today = h.hours[now.dow];
+        const today = dayHours(h.hours, now.iso);
         return (
           <a
             key={h.slug}

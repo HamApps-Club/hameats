@@ -8,8 +8,11 @@ const TIME_ZONE = "America/New_York";
  * (e.g. 3 a.m. = 27 * 60) means the window runs into the next day.
  */
 export type Period = { name: string; meal: Meal; open: number; close: number };
-/** Index 0 = Sunday … 6 = Saturday. */
-export type WeekHours = Period[][];
+/**
+ * Index 0 = Sunday … 6 = Saturday. `overrides` replaces a whole day's windows on a specific
+ * "YYYY-MM-DD" date (breaks, holidays); an empty list means closed all day. Read days with `dayHours`.
+ */
+export type WeekHours = Period[][] & { overrides?: Record<string, Period[]> };
 
 const t = (h: number, m = 0) => h * 60 + m;
 const p = (name: string, meal: Meal, open: number, close: number): Period => ({ name, meal, open, close });
@@ -51,10 +54,43 @@ const DINER_THU_FRI = [...DINER_MON_WED, p("Late Night", "Dinner", t(24), t(27))
 const PUB_LUNCH = [p("Lunch Buffet", "Lunch", t(11), t(13, 30))];
 const PUB_LUNCH_AND_NIGHT = [...PUB_LUNCH, p("Pub", "Dinner", t(20), t(26))];
 
+// ------------------------------------------------------------------ fall break 2026 (Wed 10/14 – Sun 10/18)
+
+const BREAK_COMMONS_DINNER = p("Dinner", "Dinner", t(17), t(19, 30));
+const BREAK_COMMONS = [
+  p("Breakfast", "Breakfast", t(8), t(10)),
+  p("Lunch", "Lunch", t(12), t(14)),
+  p("Dinner", "Dinner", t(17), t(19)),
+];
+
+const FALL_BREAK = {
+  commons: {
+    "2026-10-14": [...COMMONS_WEEKDAY.filter((x) => x.meal !== "Dinner"), BREAK_COMMONS_DINNER],
+    "2026-10-15": BREAK_COMMONS,
+    "2026-10-16": BREAK_COMMONS,
+    "2026-10-17": [p("Brunch", "Lunch", t(11), t(14)), p("Dinner", "Dinner", t(17), t(19))],
+  },
+  mcewen: { "2026-10-14": [], "2026-10-15": [], "2026-10-16": [], "2026-10-17": [], "2026-10-18": [] },
+  diner: {
+    "2026-10-14": [p("Breakfast", "Breakfast", t(9), t(11)), p("Lunch", "Lunch", t(11), t(14))],
+    "2026-10-15": [],
+    "2026-10-16": [],
+    "2026-10-17": [],
+    "2026-10-18": [],
+  },
+  littlePub: { "2026-10-14": [], "2026-10-15": [], "2026-10-16": [], "2026-10-17": [], "2026-10-18": [] },
+} satisfies Record<string, Record<string, Period[]>>;
+
+const withOverrides = (week: Period[][], overrides: Record<string, Period[]>): WeekHours =>
+  Object.assign(week, { overrides });
+
 export const HOURS: Record<string, WeekHours> = {
-  commons: [COMMONS_WEEKEND, ...Array(5).fill(COMMONS_WEEKDAY), COMMONS_WEEKEND],
-  mcewen: [[], MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_FRI, []],
-  diner: [
+  commons: withOverrides([COMMONS_WEEKEND, ...Array(5).fill(COMMONS_WEEKDAY), COMMONS_WEEKEND], FALL_BREAK.commons),
+  mcewen: withOverrides(
+    [[], MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_FRI, []],
+    FALL_BREAK.mcewen,
+  ),
+  diner: withOverrides([
     [p("Dinner", "Dinner", t(15), t(24))],
     DINER_MON_WED,
     DINER_MON_WED,
@@ -62,8 +98,11 @@ export const HOURS: Record<string, WeekHours> = {
     DINER_THU_FRI,
     DINER_THU_FRI,
     [p("Late Night", "Dinner", t(15), t(27))],
-  ],
-  littlePub: [[], PUB_LUNCH, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH, []],
+  ], FALL_BREAK.diner),
+  littlePub: withOverrides(
+    [[], PUB_LUNCH, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH, []],
+    FALL_BREAK.littlePub,
+  ),
 };
 
 // ------------------------------------------------------------------ clock
@@ -92,6 +131,17 @@ export function campusNow(d = new Date()): CampusTime {
 
 /** Weekday (0 = Sunday) of a "YYYY-MM-DD" date. */
 export const dowOf = (iso: string) => new Date(`${iso}T12:00:00Z`).getUTCDay();
+
+/** "YYYY-MM-DD" shifted by `days`. */
+export function addDays(iso: string, days: number) {
+  return new Date(Date.parse(`${iso}T12:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** The service windows on a specific date: a break/holiday override if there is one, else the usual weekday. */
+export const dayHours = (week: WeekHours, iso: string): Period[] => week.overrides?.[iso] ?? week[dowOf(iso)];
+
+/** Whether the hall ever serves this meal. */
+export const servesMealEver = (week: WeekHours, meal: Meal) => week.some((d) => d.some((x) => x.meal === meal));
 
 // ------------------------------------------------------------------ formatting
 
@@ -141,8 +191,8 @@ const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Open/closed right now, including windows that ran past midnight from yesterday. */
 export function statusAt(week: WeekHours, now: CampusTime): Status {
-  const today = week[now.dow];
-  const yesterday = week[(now.dow + 6) % 7].map((x) => ({ ...x, open: x.open - t(24), close: x.close - t(24) }));
+  const today = dayHours(week, now.iso);
+  const yesterday = dayHours(week, addDays(now.iso, -1)).map((x) => ({ ...x, open: x.open - t(24), close: x.close - t(24) }));
   // Adjacent windows (Lunch → Light Lunch) count as one stretch of being open.
   const windows = [...yesterday, ...today].sort((a, b) => a.open - b.open);
   const current = windows.find((x) => x.open <= now.minutes && now.minutes < x.close);
@@ -154,9 +204,9 @@ export function statusAt(week: WeekHours, now: CampusTime): Status {
   const later = today.find((x) => x.open > now.minutes);
   if (later) return { open: false, opens: clock(later.open) };
   for (let ahead = 1; ahead <= 7; ahead++) {
-    const dow = (now.dow + ahead) % 7;
-    const first = week[dow][0];
-    if (first) return { open: false, opens: `${ahead === 1 ? "tomorrow" : DAY_NAMES[dow]} ${clock(first.open)}` };
+    const date = addDays(now.iso, ahead);
+    const first = dayHours(week, date)[0];
+    if (first) return { open: false, opens: `${ahead === 1 ? "tomorrow" : DAY_NAMES[dowOf(date)]} ${clock(first.open)}` };
   }
   return { open: false, opens: null };
 }
@@ -165,14 +215,14 @@ export function statusAt(week: WeekHours, now: CampusTime): Status {
 export function mealNow(week: WeekHours, now: CampusTime): Meal | null {
   const s = statusAt(week, now);
   if (s.open) return s.period.meal;
-  return week[now.dow].find((x) => x.open > now.minutes)?.meal ?? null;
+  return dayHours(week, now.iso).find((x) => x.open > now.minutes)?.meal ?? null;
 }
 
 /** Service names that replace the meal name on its tab. */
 const TAB_NAMES = new Set(["Brunch", "Pub"]);
 
-/** Tab label for a meal on a given weekday — e.g. Commons calls weekend lunch "Brunch", Little Pub's night service is "Pub". */
-export function mealLabel(week: WeekHours | undefined, dow: number, meal: Meal) {
-  const name = week?.[dow].find((x) => x.meal === meal)?.name;
+/** Tab label for a meal on a given date — e.g. Commons calls weekend lunch "Brunch", Little Pub's night service is "Pub". */
+export function mealLabel(week: WeekHours | undefined, iso: string, meal: Meal) {
+  const name = week && dayHours(week, iso).find((x) => x.meal === meal)?.name;
   return name && TAB_NAMES.has(name) ? name : meal;
 }

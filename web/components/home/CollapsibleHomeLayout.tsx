@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
-import { dowOf, statusAt, summaryParts, type CampusTime } from "@/lib/hours";
+import { dayHours, statusAt, summaryParts, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
@@ -72,8 +72,8 @@ function HallCard({
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
-  const day = hall.hours[dowOf(date)];
-  const win = windowFor(hall, dowOf(date), meal);
+  const day = dayHours(hall.hours, date);
+  const win = windowFor(hall, date, meal);
   const stations = orderedStations(mealMenu, hall.stationOrder)
     .map(([station, items]) => [station, items.filter((it) => itemPasses(it, excludeAllergens, requirePreferences))] as const)
     .filter(([, items]) => items.length > 0);
