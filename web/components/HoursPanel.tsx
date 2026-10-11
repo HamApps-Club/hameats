@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { clock, mealNow, range, statusAt, type CampusTime, type Status, type WeekHours } from "@/lib/hours";
+import { addDays, clock, dayHours, mealNow, range, statusAt, type CampusTime, type Status, type WeekHours } from "@/lib/hours";
 import { MEALS, type Meal } from "@/lib/types";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -38,6 +38,9 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
   };
   const [meal, setMeal] = useState<Meal>(() => mealNow(hours, now) ?? meals[0]);
   const status = statusAt(hours, now);
+  // Sunday through Saturday of this week, by real date, so break-week changes show on the right days.
+  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(now.iso, i - now.dow));
+  const hasChanges = weekDates.some((d) => hours.overrides?.[d]);
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-surface">
@@ -83,10 +86,10 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
           </div>
           <table className="w-full text-sm">
             <tbody>
-              {hours.map((day, dow) => {
-                const periods = day.filter((x) => x.meal === meal);
+              {weekDates.map((date, dow) => {
+                const periods = dayHours(hours, date).filter((x) => x.meal === meal);
                 return (
-                  <tr key={dow} className={`align-top ${dow === now.dow ? "font-semibold" : ""}`}>
+                  <tr key={date} className={`align-top ${dow === now.dow ? "font-semibold" : ""}`}>
                     <th scope="row" className="w-14 py-1 text-left font-inherit">
                       {DAYS[dow]}
                     </th>
@@ -107,7 +110,9 @@ export function HoursPanel({ hours, now }: { hours: WeekHours; now: CampusTime }
               })}
             </tbody>
           </table>
-          <p className="text-xs text-zinc-500">Hours can change during breaks and holidays.</p>
+          <p className="text-xs text-zinc-500">
+            {hasChanges ? "Fall Break hours (Oct 14–18) are shown. " : ""}Hours can change during breaks and holidays.
+          </p>
         </div>
       )}
     </section>

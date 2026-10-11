@@ -1,5 +1,5 @@
 import { HALLS } from "./halls";
-import { dowOf } from "./hours";
+import { dayHours } from "./hours";
 import type { MealMenu, MenuData } from "./types";
 import commonsBreakfast from "./commonsBreakfast.json";
 
@@ -25,7 +25,7 @@ export function withMirroredMenus(data: MenuData): MenuData {
     const toHall = HALLS.find((h) => h.slug === to);
     if (!fromHall || !toHall) continue;
     for (const [date, day] of Object.entries(dates)) {
-      const open = toHall.hours[dowOf(date)];
+      const open = dayHours(toHall.hours, date);
       if (!open.some((p) => p.meal === meal)) continue;
       const toLoc = day[toHall.name];
       const otherMeals = Object.entries(toLoc ?? {}).filter(([m, menu]) => m !== meal && Object.keys(menu).length);

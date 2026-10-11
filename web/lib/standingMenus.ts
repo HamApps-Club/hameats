@@ -1,5 +1,5 @@
 import { HALLS } from "./halls";
-import { dowOf } from "./hours";
+import { dayHours } from "./hours";
 import type { MealMenu, MenuData, MenuItem } from "./types";
 
 // Menus that don't change day to day. Nutrislice doesn't post item data for these, so they're transcribed
@@ -82,7 +82,7 @@ export function withStandingMenus(data: MenuData): MenuData {
     const hall = HALLS.find((h) => h.slug === standing.slug);
     if (!hall) continue;
     for (const [date, day] of Object.entries(dates)) {
-      const open = hall.hours[dowOf(date)];
+      const open = dayHours(hall.hours, date);
       const loc = (day[hall.name] ??= {});
       for (const [meal, menu] of Object.entries(standing.meals)) {
         const served = open.some((p) => p.meal === meal);

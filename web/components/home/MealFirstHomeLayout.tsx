@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HALLS, orderedStations, type Hall } from "@/lib/halls";
-import { compactRange, dowOf, mealNow, statusAt, type CampusTime } from "@/lib/hours";
+import { compactRange, dayHours, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
@@ -56,9 +56,9 @@ function mealByClock(minutes: number): Meal {
   return "Dinner";
 }
 
-/** This hall's first service window for `meal` on weekday `dow`, or undefined if it doesn't serve it. */
-function windowFor(hall: Hall, dow: number, meal: Meal) {
-  return hall.hours[dow].find((p) => p.meal === meal);
+/** This hall's first service window for `meal` on `date`, or undefined if it doesn't serve it. */
+function windowFor(hall: Hall, date: string, meal: Meal) {
+  return dayHours(hall.hours, date).find((p) => p.meal === meal);
 }
 
 function HallColumn({
@@ -77,7 +77,7 @@ function HallColumn({
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
-  const win = windowFor(hall, dowOf(date), meal);
+  const win = windowFor(hall, date, meal);
   const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
   const mealMenu = data.dates[date]?.[hall.name]?.[meal];
   const stations = orderedStations(mealMenu, hall.stationOrder);

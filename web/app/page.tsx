@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { daysFrom, formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId, type HomeLayoutId } from "@/lib/homeLayouts";
-import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
+import { campusNow, mealLabel, mealNow, servesMealEver, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
 import { withSpecials } from "@/lib/specials";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
@@ -99,7 +99,7 @@ const hasMenu = (day: DayMenu | undefined, hall: Hall, meal: Meal) =>
   Object.keys(day?.[hall.name]?.[meal] ?? {}).length > 0;
 
 /** Whether the hall's hours ever include this meal (Little Pub never serves breakfast). */
-const servesMeal = (hall: Hall, meal: Meal) => hall.hours.some((d) => d.some((x) => x.meal === meal));
+const servesMeal = (hall: Hall, meal: Meal) => servesMealEver(hall.hours, meal);
 
 /** Meal tabs shown for a hall on a day. */
 const mealTabs = (day: DayMenu | undefined, hall: Hall) =>
@@ -176,7 +176,7 @@ function HallView({
   const defaultDate = dates.find((d) => d >= today && servesOn(d)) ?? today;
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : defaultDate;
   const day = date ? data.dates[date] : undefined;
-  const dow = date ? dowOf(date) : now.dow;
+  const hoursDate = date || today;
 
   // Today: whatever the hall is serving now (or next). Other days: the first meal with a menu.
   const autoMeal = withMenu(
@@ -240,7 +240,7 @@ function HallView({
                   : `border-transparent text-zinc-500 ${hasMenu(day, hall, m) ? "" : "opacity-50"}`
               }`}
             >
-              {mealLabel(hall.hours, dow, m)}
+              {mealLabel(hall.hours, hoursDate, m)}
             </button>
           ))}
         </div>
@@ -265,7 +265,7 @@ function HallView({
         <MenuList
           stations={day?.[hall.name]?.[meal]}
           stationOrder={hall.stationOrder}
-          emptyText={`No ${mealLabel(hall.hours, dow, meal).toLowerCase()} menu posted for this day.`}
+          emptyText={`No ${mealLabel(hall.hours, hoursDate, meal).toLowerCase()} menu posted for this day.`}
           note={
             standing && (
               <a href={standing.pdf} target="_blank" rel="noreferrer" className="underline">
@@ -274,7 +274,7 @@ function HallView({
             )
           }
           onSelect={(item, station) =>
-            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, dow, meal)}` })
+            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, hoursDate, meal)}` })
           }
         />
       </main>
