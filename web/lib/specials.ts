@@ -38,6 +38,7 @@ const SPECIALS: Special[] = [
   special("2026-09-28", "commons", "Dinner", "Bravo", "Loaded Baked Potato", ["Dairy", "Pork", "Gluten Friendly"],
     "Baked potato with cheese, bacon, sour cream and scallions."),
   special("2026-10-05", "commons", "Lunch", "Bravo", "Make Your Own Drumsticks"),
+  special("2026-10-11", "commons", "Dinner", "Spoon & Fork", "Chicken Stir Fry"),
 ];
 
 /** Add each special to its hall, meal and station on its date. */
