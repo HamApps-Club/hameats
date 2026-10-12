@@ -147,6 +147,58 @@ function applyItemSwaps(stations: MealMenu, date: string, location: string, meal
   }
 }
 
+/**
+ * Menus corrected from the signs at the serving line, for a day when Nutrislice was missing or wrong. Each entry
+ * replaces the whole station, in the order of the sign. A dish that Nutrislice also lists under the same name keeps its
+ * nutrition and ingredients; the diet and allergen tags come from the sign.
+ */
+const STATION_REPLACEMENTS: {
+  date: string;
+  location: string;
+  meal: string;
+  stations: Record<string, { name: string; tags: string[] }[]>;
+}[] = [
+  {
+    date: "2026-10-12",
+    location: "Soper Commons",
+    meal: "Dinner",
+    stations: {
+      V2: [
+        { name: "White Bean And Lentil Burger", tags: ["Wheat", "Dairy", "Egg", "Soy", "Vegetarian"] },
+        { name: "Baked Potato", tags: ["Vegetarian", "Vegan", "Gluten Friendly"] },
+        { name: "Steamed Cauliflower", tags: ["Vegetarian", "Vegan", "Gluten Friendly"] },
+      ],
+      "Spoon & Fork": [
+        { name: "Greek Style Turkey Meatloaf", tags: ["Wheat", "Dairy", "Egg", "Soy"] },
+        { name: "Smashed Potatoes", tags: ["Vegetarian", "Vegan", "Gluten Friendly"] },
+        { name: "Maple and Soy Glazed Tofu", tags: ["Soy", "Vegetarian", "Vegan", "Gluten Friendly"] },
+        { name: "Roasted Italian Melody", tags: ["Vegetarian", "Vegan", "Gluten Friendly"] },
+      ],
+    },
+  },
+];
+
+function applyStationReplacements(stations: MealMenu, date: string, location: string, meal: string) {
+  for (const rep of STATION_REPLACEMENTS) {
+    if (rep.date !== date || rep.location !== location || rep.meal !== meal) continue;
+    const known = new Map(Object.values(stations).flat().map((x) => [x.name.toLowerCase(), x]));
+    for (const [station, items] of Object.entries(rep.stations)) {
+      stations[station] = items.map((it) => ({
+        ...(known.get(it.name.toLowerCase()) ?? { calories: null }),
+        name: it.name,
+        tags: it.tags,
+      }));
+    }
+  }
+}
+
+/** All the per-day corrections above, in order. */
+export function applyMenuCorrections(stations: MealMenu, date: string, location: string, meal: string) {
+  applyStationMoves(stations, date, location, meal);
+  applyItemSwaps(stations, date, location, meal);
+  applyStationReplacements(stations, date, location, meal);
+}
+
 /** Walk ordered menu items; station headers start a new group. */
 function parseDay(items: ApiMenuItem[]): MealMenu {
   const stations: MealMenu = {};
@@ -269,8 +321,7 @@ export async function fetchMenus(days = 7, revalidate = 3600, log?: FetchLog[]):
   ) => {
     const week = await fetchWeek(slug, display, menuType, sourceDate);
     const stations = parseDay(week?.days?.find((d) => d.date === sourceDate)?.menu_items ?? []);
-    applyStationMoves(stations, targetDate, display, meal);
-    applyItemSwaps(stations, targetDate, display, meal);
+    applyMenuCorrections(stations, targetDate, display, meal);
     if (!Object.keys(stations).length) return false;
     // Two menu types can land on the same tab (e.g. "lunch" and "lunch-buffet"): merge their stations.
     result[targetDate][display][meal] = { ...result[targetDate][display][meal], ...stations };
