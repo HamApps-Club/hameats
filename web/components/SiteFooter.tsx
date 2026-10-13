@@ -166,6 +166,10 @@ export function SiteFooter() {
         HamEats: Hamilton College dining menus and hours for Soper Commons, McEwen, the Diner and the Little Pub.
       </p>
       <p className="text-center">A student project, not affiliated with Hamilton College.</p>
+      <p className="text-center">
+        Allergen filters and nutrition facts may not be 100% accurate. Please check with dining staff before relying on
+        them.
+      </p>
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
     </footer>
