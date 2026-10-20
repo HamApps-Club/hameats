@@ -1,6 +1,6 @@
 /**
- * The launch screen: the bowl mark, centered on the page background, with the steam
- * rising while the site loads. It shows on every full page load, in the home-screen app (PWA) and when a link
+ * The launch screen: the bowl mark, filling most of the screen on a navy background the same color as the
+ * mark's square (so the square doesn't show), with the steam rising while the site loads. It shows on every full page load, in the home-screen app (PWA) and when a link
  * is opened in a browser.
  *
  * It's in the server-rendered HTML so it covers the first paint, and plain inline scripts (no React) show and
@@ -11,7 +11,7 @@
 export function Splash() {
   return (
     <div id="splash" aria-hidden>
-      <svg viewBox="0 0 48 48" className="size-24">
+      <svg viewBox="0 0 48 48" className="aspect-square w-[min(90vw,90vh)]">
         {/* The same mark and colors as SiteTitle and the app icon. */}
         <rect width="48" height="48" rx="12" fill="#002F86" />
         <path d="M10 24H38A14 14 0 0 1 10 24Z" fill="#FFFFFF" />
