@@ -6,12 +6,7 @@ import type { MenuData } from "@/lib/types";
 // posts it. Between rebuilds, Vercel serves the cached copy.
 export const revalidate = 3600;
 
-// Paused: while true, nothing calls Nutrislice and the route serves the last scraped file instead.
-const NUTRISLICE_PAUSED = true;
-
 export async function GET() {
-  if (NUTRISLICE_PAUSED) return Response.json(saved as MenuData);
-
   const live = await fetchMenus(7, revalidate).catch((e) => {
     console.error("menu fetch failed:", e);
     return null;
