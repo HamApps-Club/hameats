@@ -1,5 +1,5 @@
 /**
- * The launch screen: the bowl mark and the HamEats wordmark, centered on the page background, with the steam
+ * The launch screen: the bowl mark, centered on the page background, with the steam
  * rising while the site loads. It shows on every full page load, in the home-screen app (PWA) and when a link
  * is opened in a browser.
  *
@@ -22,9 +22,6 @@ export function Splash() {
           <path className="splash-steam" d="M30 19c-2-2.5 2-4.5 0-8" />
         </g>
       </svg>
-      <span className="text-3xl font-bold tracking-tight">
-        <span className="text-accent">Ham</span>Eats
-      </span>
     </div>
   );
 }
