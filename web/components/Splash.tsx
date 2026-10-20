@@ -1,7 +1,7 @@
 /**
- * The launch screen: the bowl mark, filling most of the screen on a navy background the same color as the
- * mark's square (so the square doesn't show), with the steam rising while the site loads. It shows on every full page load, in the home-screen app (PWA) and when a link
- * is opened in a browser.
+ * The launch screen: the bowl mark, about half the screen wide, on dark mode's navy-black background (the same
+ * color as the mark's square, so the square doesn't show), with the steam rising while the site loads. It shows
+ * on every full page load, in the home-screen app (PWA) and when a link is opened in a browser.
  *
  * It's in the server-rendered HTML so it covers the first paint, and plain inline scripts (no React) show and
  * hide it: SPLASH_SCRIPT in <head> adds the `splash` class to <html> before anything paints, and once the
@@ -11,9 +11,9 @@
 export function Splash() {
   return (
     <div id="splash" aria-hidden>
-      <svg viewBox="0 0 48 48" className="aspect-square w-[min(90vw,90vh)]">
-        {/* The same mark and colors as SiteTitle and the app icon. */}
-        <rect width="48" height="48" rx="12" fill="#002F86" />
+      <svg viewBox="0 0 48 48" className="aspect-square w-[min(55vw,55vh)]">
+        {/* The same mark as SiteTitle and the app icon, its square in the splash background color. */}
+        <rect width="48" height="48" rx="12" fill="#0E1424" />
         <path d="M10 24H38A14 14 0 0 1 10 24Z" fill="#FFFFFF" />
         <path d="M20.1 26h1.8a.6.6 0 0 1 .6.6v2.15h3v-2.15a.6.6 0 0 1 .6-.6h1.8a.6.6 0 0 1 .6.6v6.8a.6.6 0 0 1-.6.6h-1.8a.6.6 0 0 1-.6-.6v-2.15h-3v2.15a.6.6 0 0 1-.6.6h-1.8a.6.6 0 0 1-.6-.6v-6.8a.6.6 0 0 1 .6-.6Z" fill="#F0B100" />
         <g fill="none" strokeWidth={3} strokeLinecap="round" stroke="#F0B100">
