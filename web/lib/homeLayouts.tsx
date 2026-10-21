@@ -1,25 +1,13 @@
-import type { StaticImageData } from "next/image";
 import type { ComponentType } from "react";
 import { useCallback, useSyncExternalStore } from "react";
-import { ClassicHomeLayout, type HomeLayoutProps } from "@/components/home/ClassicHomeLayout";
-import { CollapsibleHomeLayout } from "@/components/home/CollapsibleHomeLayout";
-import { MealFirstHomeLayout } from "@/components/home/MealFirstHomeLayout";
+import type { CampusTime } from "@/lib/hours";
+import type { MenuData } from "@/lib/types";
 import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout";
-// Imported rather than referenced by URL, so each thumbnail gets a content-hashed URL and an updated
-// screenshot shows up right away instead of after the image optimizer's cache expires.
-import netNutritionMobilePreview from "@/public/layout-previews/net-nutrition-mobile.png";
-import netNutritionDesktopPreview from "@/public/layout-previews/net-nutrition-desktop.png";
-import classicMobilePreview from "@/public/layout-previews/classic-mobile.png";
-import classicDesktopPreview from "@/public/layout-previews/classic-desktop.png";
-import collapsibleMobilePreview from "@/public/layout-previews/collapsible-mobile.png";
-import collapsibleDesktopPreview from "@/public/layout-previews/collapsible-desktop.png";
-import mealFirstMobilePreview from "@/public/layout-previews/meal-first-mobile.png";
-import mealFirstDesktopPreview from "@/public/layout-previews/meal-first-desktop.png";
 
-export type { HomeLayoutProps };
+export type HomeLayoutProps = { data: MenuData; now: CampusTime };
 
 // Extend this union as new home layouts are registered below.
-export type HomeLayoutId = "classic" | "meal-first" | "net-nutrition" | "collapsible";
+export type HomeLayoutId = "net-nutrition";
 
 type HomeLayoutEntry = {
   /** Shown in the gallery. Kept neutral (Layout A, B) so the name doesn't sway the choice. */
@@ -28,8 +16,6 @@ type HomeLayoutEntry = {
   analyticsName: string;
   description: string;
   Component: ComponentType<HomeLayoutProps>;
-  /** Static screenshots of the layout's home screen, shown as a card thumbnail in the gallery. */
-  previewSrc: { mobile: StaticImageData; desktop: StaticImageData };
   /** Kept registered but left out of the gallery and not restored from storage. */
   hidden?: boolean;
 };
@@ -41,31 +27,6 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
     analyticsName: "Continental",
     description: "Every dining hall's menu on one page, with allergy and diet filters.",
     Component: NetNutritionHomeLayout,
-    previewSrc: { mobile: netNutritionMobilePreview, desktop: netNutritionDesktopPreview },
-  },
-  classic: {
-    label: "Layout B",
-    analyticsName: "Classic",
-    description: "Every dining hall as a card with its hours. Tap a hall for its menu.",
-    Component: ClassicHomeLayout,
-    previewSrc: { mobile: classicMobilePreview, desktop: classicDesktopPreview },
-    hidden: true,
-  },
-  collapsible: {
-    label: "Collapsible",
-    analyticsName: "Collapsible",
-    description: "Every dining hall as a card with its hours and whether it's open now. Tap a hall to open today's menu right in the card, with allergy and diet filters.",
-    Component: CollapsibleHomeLayout,
-    previewSrc: { mobile: collapsibleMobilePreview, desktop: collapsibleDesktopPreview },
-    hidden: true,
-  },
-  "meal-first": {
-    label: "Comparison",
-    analyticsName: "Comparison",
-    description: "Pick a day and Breakfast, Lunch, or Dinner, then browse the halls two side by side. You can tap any food item for more details.",
-    Component: MealFirstHomeLayout,
-    previewSrc: { mobile: mealFirstMobilePreview, desktop: mealFirstDesktopPreview },
-    hidden: true,
   },
 };
 
