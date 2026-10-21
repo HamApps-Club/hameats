@@ -28,9 +28,9 @@ export function Splash() {
 
 /** How long the splash stays up at the least (so it doesn't just flash) and at the most (it never hides a
  *  slow load; the stuck-loading bar takes over from there). */
-const MIN_MS = 350;
+const MIN_MS = 0;
 const MAX_MS = 5000;
-const FADE_MS = 200;
+const FADE_MS = 150;
 
 export const SPLASH_SCRIPT = `(() => {
   const root = document.documentElement;
@@ -44,5 +44,5 @@ export const SPLASH_SCRIPT = `(() => {
     clearInterval(timer);
     root.classList.add("splash-out");
     setTimeout(() => root.classList.remove("splash", "splash-out"), ${FADE_MS});
-  }, 100);
+  }, 50);
 })();`;
