@@ -105,7 +105,7 @@ body {
   justify-content: center;
   /* Dark mode's --background, also the mark's square color (Splash.tsx), so the square blends into the screen. */
   background: #0e1424;
-  transition: opacity 0.3s ease-out;
+  transition: opacity 0.2s ease-out;
 }
 .splash #splash {
   display: flex;
