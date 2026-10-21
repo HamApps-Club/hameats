@@ -5,7 +5,7 @@
  *
  * It's in the server-rendered HTML so it covers the first paint, and plain inline scripts (no React) show and
  * hide it: SPLASH_SCRIPT in <head> adds the `splash` class to <html> before anything paints, and once the
- * menus are up (the loading message, data-menu-loading in app/page.tsx, is gone) it fades out. It's hidden
+ * menus are up (the loading message, data-menu-loading in app/HomeClient.tsx, is gone) it fades out. It's hidden
  * with classes rather than removed, so React's copy of the page never changes under it.
  */
 export function Splash() {
@@ -28,9 +28,9 @@ export function Splash() {
 
 /** How long the splash stays up at the least (so it doesn't just flash) and at the most (it never hides a
  *  slow load; the stuck-loading bar takes over from there). */
-const MIN_MS = 800;
+const MIN_MS = 350;
 const MAX_MS = 5000;
-const FADE_MS = 300;
+const FADE_MS = 200;
 
 export const SPLASH_SCRIPT = `(() => {
   const root = document.documentElement;
