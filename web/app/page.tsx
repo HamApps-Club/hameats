@@ -3,10 +3,9 @@ import { countItems, fetchMenus, menuCacheSeconds } from "@/lib/nutrislice";
 import type { MenuData } from "@/lib/types";
 import { HomeClient } from "./HomeClient";
 
-// The page is built on the server with the menus inside it, and Vercel rebuilds it at most once an hour. The
-// Nutrislice responses are reused for an hour during meals and until the next meal begins in between (see
-// menuCacheSeconds), so a menu the kitchen changes during a meal shows up within the hour.
-export const revalidate = 3600;
+// The page is built on the server with the menus inside it. No revalidate is set on purpose: Next rebuilds the page
+// when the shortest-lived Nutrislice response in it expires (see menuCacheSeconds): hourly during meals, and not
+// until the next meal begins in between. So a new page is built exactly when new menus are fetched.
 
 export default async function Home() {
   const live = await fetchMenus(7, menuCacheSeconds()).catch((e) => {
