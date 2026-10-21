@@ -300,7 +300,7 @@ export default function Home() {
   }, [now.iso, refresh]);
   const [layoutId, setLayoutId] = useHomeLayoutId();
   // Every load of "/" opens the last layout the visitor was on (the default until they switch).
-  // The layout gallery (components/home/LayoutGallery.tsx) is out of use for now: the
+  // The layout gallery is out of use for now: the
   // Switch Layout button flips straight between the layouts it would have listed.
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
