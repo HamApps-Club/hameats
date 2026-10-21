@@ -1,10 +1,10 @@
 /**
  * The launch screen: the bowl mark, about half the screen wide, on dark mode's navy-black background (the same
- * color as the mark's square, so the square doesn't show), with the steam rising while the site loads. It shows
- * on every full page load, in the home-screen app (PWA) and when a link is opened in a browser.
+ * color as the mark's square, so the square doesn't show), with the steam rising while the site loads. It only
+ * shows when a load is slow (the home-screen app (PWA) or a browser tab), never on a quick one.
  *
- * It's in the server-rendered HTML so it covers the first paint, and plain inline scripts (no React) show and
- * hide it: SPLASH_SCRIPT in <head> adds the `splash` class to <html> before anything paints, and once the
+ * It's in the server-rendered HTML, and plain inline scripts (no React) show and
+ * hide it: SPLASH_SCRIPT in <head> adds the `splash` class to <html> if the site isn't ready after half a second, and once the
  * menus are up (the loading message, data-menu-loading in app/HomeClient.tsx, is gone) it fades out. It's hidden
  * with classes rather than removed, so React's copy of the page never changes under it.
  */
@@ -26,20 +26,27 @@ export function Splash() {
   );
 }
 
-/** How long the splash stays up at the least (so it doesn't just flash) and at the most (it never hides a
- *  slow load; the stuck-loading bar takes over from there). */
-const MIN_MS = 0;
+/** The splash only appears if the site still isn't ready after this long, so a fast load never shows it. Once
+ *  up it stays until the menus are in, or at most this long (it never hides a slow load; the stuck-loading bar
+ *  takes over from there). */
+const SHOW_AFTER_MS = 500;
 const MAX_MS = 5000;
 const FADE_MS = 150;
 
 export const SPLASH_SCRIPT = `(() => {
   const root = document.documentElement;
-  root.classList.add("splash");
   const start = Date.now();
+  let shown = false;
   const timer = setInterval(() => {
     const waited = Date.now() - start;
-    if (waited < ${MIN_MS}) return;
     const ready = document.readyState !== "loading" && !document.querySelector("[data-menu-loading]");
+    if (!shown) {
+      if (ready) return clearInterval(timer);
+      if (waited < ${SHOW_AFTER_MS}) return;
+      shown = true;
+      root.classList.add("splash");
+      return;
+    }
     if (!ready && waited < ${MAX_MS}) return;
     clearInterval(timer);
     root.classList.add("splash-out");
