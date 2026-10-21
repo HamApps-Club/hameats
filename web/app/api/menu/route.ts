@@ -1,13 +1,13 @@
 import saved from "@/public/dining_menu.json";
-import { countItems, fetchMenus } from "@/lib/nutrislice";
+import { countItems, fetchMenus, menuCacheSeconds } from "@/lib/nutrislice";
 import type { MenuData } from "@/lib/types";
 
-// Rebuild at most every hour, so a menu the kitchen changes during the day shows up soon after Nutrislice
-// posts it. Between rebuilds, Vercel serves the cached copy.
+// Rebuild at most every hour. The Nutrislice responses inside are reused for an hour during meals and until the next
+// meal begins in between (see menuCacheSeconds), so a menu the kitchen changes during a meal shows up within the hour.
 export const revalidate = 3600;
 
 export async function GET() {
-  const live = await fetchMenus(7, revalidate).catch((e) => {
+  const live = await fetchMenus(7, menuCacheSeconds()).catch((e) => {
     console.error("menu fetch failed:", e);
     return null;
   });
