@@ -52,7 +52,7 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     // One-page app (halls live in the #hash), so every page is "/".
     event.respondWith(networkFirst(request, SHELL, "/"));
-  } else if (url.pathname === "/api/menu" || url.pathname === "/dining_menu.json") {
+  } else if (url.pathname === "/dining_menu.json") {
     event.respondWith(networkFirst(request, DATA));
   } else if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(cacheFirst(request));
