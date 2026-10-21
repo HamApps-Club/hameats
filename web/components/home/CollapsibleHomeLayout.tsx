@@ -8,10 +8,7 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { StatusLine } from "@/components/HoursPanel";
-import { Tags } from "@/components/Tags";
 import {
-  FilterBar,
-  itemPasses,
   mealByClock,
   useItemSheet,
   windowFor,
@@ -21,7 +18,7 @@ import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
 /**
- * Continental's day picker, meal tabs and filters, over Classic's stack of hall cards. Each card
+ * Continental's day picker and meal tabs, over Classic's stack of hall cards. Each card
  * starts collapsed, showing what Classic shows (name, open or closed, the day's hours); tapping it
  * opens the hall's menu for the picked meal right inside the card, in slightly larger type.
  */
@@ -52,9 +49,6 @@ function HallCard({
   date,
   now,
   mealMenu,
-  excludeAllergens,
-  requirePreferences,
-  showIcons,
   collapsed,
   onToggleCollapsed,
   onSelect,
@@ -64,9 +58,6 @@ function HallCard({
   date: string;
   now: CampusTime;
   mealMenu: Record<string, MenuItem[]> | undefined;
-  excludeAllergens: Set<string>;
-  requirePreferences: Set<string>;
-  showIcons: boolean;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onSelect: (s: Selected) => void;
@@ -74,11 +65,7 @@ function HallCard({
   const isToday = date === now.iso;
   const day = dayHours(hall.hours, date);
   const win = windowFor(hall, date, meal);
-  const stations = orderedStations(mealMenu, hall.stationOrder)
-    .map(([station, items]) => [station, items.filter((it) => itemPasses(it, excludeAllergens, requirePreferences))] as const)
-    .filter(([, items]) => items.length > 0);
-  const isFiltering = excludeAllergens.size > 0 || requirePreferences.size > 0;
-  const hadItems = Object.values(mealMenu ?? {}).some((items) => items.length > 0);
+  const stations = orderedStations(mealMenu, hall.stationOrder).filter(([, items]) => items.length > 0);
 
   return (
     <section
@@ -135,15 +122,12 @@ function HallCard({
                         className="flex w-full items-center justify-between gap-2 text-left text-base text-zinc-700 hover:text-blue-600 hover:underline dark:text-zinc-300 dark:hover:text-blue-400"
                       >
                         <span>{it.name}</span>
-                        {showIcons && <Tags tags={it.tags} />}
                       </button>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-          ) : hadItems && isFiltering ? (
-            <p className="text-base text-zinc-400">No items match your filters</p>
           ) : (
             <p className="text-base text-zinc-400">No menu posted yet</p>
           )}
@@ -159,9 +143,6 @@ export function CollapsibleHomeLayout({ data, now }: HomeLayoutProps) {
   const dates = useMemo(() => daysFrom(now.iso), [now.iso]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
-  const [excludeAllergens, setExcludeAllergens] = useState<Set<string>>(new Set());
-  const [requirePreferences, setRequirePreferences] = useState<Set<string>>(new Set());
-  const [showIcons, setShowIcons] = useState(false);
   // Every hall starts collapsed; tap one to open its menu.
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(HALLS.map((h) => h.slug)));
   const { open, sheet } = useItemSheet();
@@ -174,28 +155,6 @@ export function CollapsibleHomeLayout({ data, now }: HomeLayoutProps) {
       track("collapsible_hall_collapsed", { hall: hall.slug, collapsed: next.has(hall.slug) });
       return next;
     });
-  }, []);
-  const toggleAllergen = useCallback((value: string) => {
-    setExcludeAllergens((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      track("collapsible_allergen_toggled", { allergen: value, active: next.has(value) });
-      return next;
-    });
-  }, []);
-  const togglePreference = useCallback((value: string) => {
-    setRequirePreferences((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      track("collapsible_preference_toggled", { preference: value, active: next.has(value) });
-      return next;
-    });
-  }, []);
-  const clearFilters = useCallback(() => {
-    setExcludeAllergens(new Set());
-    setRequirePreferences(new Set());
   }, []);
 
   const mealMenus = useMemo(
@@ -238,20 +197,6 @@ export function CollapsibleHomeLayout({ data, now }: HomeLayoutProps) {
           ))}
         </div>
 
-        <div className="mb-5">
-          <FilterBar
-            excludeAllergens={excludeAllergens}
-            requirePreferences={requirePreferences}
-            onToggleAllergen={toggleAllergen}
-            onTogglePreference={togglePreference}
-            onClear={clearFilters}
-            showIcons={showIcons}
-            onToggleIcons={() => {
-              track("collapsible_icons_toggled", { active: !showIcons });
-              setShowIcons(!showIcons);
-            }}
-          />
-        </div>
 
         <div className="space-y-3">
           {HALLS.map((h) => (
@@ -262,9 +207,6 @@ export function CollapsibleHomeLayout({ data, now }: HomeLayoutProps) {
               date={date}
               now={now}
               mealMenu={mealMenus[h.slug]}
-              excludeAllergens={excludeAllergens}
-              requirePreferences={requirePreferences}
-              showIcons={showIcons}
               collapsed={collapsed.has(h.slug)}
               onToggleCollapsed={() => toggleCollapsed(h)}
               onSelect={open}

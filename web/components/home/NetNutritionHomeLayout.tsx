@@ -9,43 +9,13 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { Tags } from "@/components/Tags";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
 /**
- * A fourth home layout inspired by Bowdoin Dining's "Net Nutrition" tool: the
- * same meal-first, no-search, no-click-navigation browsing as Meal First
- * (web/components/home/MealFirstHomeLayout.tsx), plus a filter panel that
- * narrows every hall's menu at once by allergen and dietary preference
- * (Allergies and Preferences dropdowns in a bar above the halls).
+ * The home layout: every hall's menu for the chosen day and meal on one page, with the day picker and meal tabs
+ * above and the hall scroller below. Tapping a food opens its page (see ItemSheet).
  */
-
-// This app's actual tag vocabulary (see components/Tags.tsx), not the reference
-// screenshot's wording — that reference is from a different school's data.
-const ALLERGENS = ["Dairy", "Egg", "Fish", "Shellfish", "Pork", "Soy", "Wheat", "Sesame", "Tree Nut"] as const;
-const PREFERENCES = ["Vegan", "Vegetarian", "Gluten Friendly", "Halal"] as const;
-
-// Filters stay on across visits (saved in this browser) until the visitor turns them off or taps Clear.
-const SAVED_ALLERGENS_KEY = "continental-allergens";
-const SAVED_PREFERENCES_KEY = "continental-preferences";
-
-/** A saved filter set, keeping only options that still exist. */
-function readSavedFilters(key: string, options: readonly string[]): Set<string> {
-  try {
-    const saved: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
-    return new Set(Array.isArray(saved) ? saved.filter((v) => options.includes(v)) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveFilters(key: string, values: Set<string>) {
-  try {
-    if (values.size) localStorage.setItem(key, JSON.stringify([...values]));
-    else localStorage.removeItem(key);
-  } catch {}
-}
 
 export type Selected = { item: MenuItem; context: string };
 
@@ -92,180 +62,12 @@ export function windowFor(hall: Hall, date: string, meal: Meal) {
   return dayHours(hall.hours, date).find((p) => p.meal === meal);
 }
 
-/** Checking an allergen hides matching items; checking a preference keeps only items matching at least one. */
-export function itemPasses(item: MenuItem, excludeAllergens: Set<string>, requirePreferences: Set<string>) {
-  if (item.tags.some((t) => excludeAllergens.has(t))) return false;
-  if (requirePreferences.size > 0 && !item.tags.some((t) => requirePreferences.has(t))) return false;
-  return true;
-}
-
-type FilterGroupId = "allergies" | "preferences";
-
-/** One option as a toggle pill: outlined in blue, filled (with a check) when selected. */
-function FilterChip({ label, selected, onToggle }: { label: string; selected: boolean; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={onToggle}
-      className={`flex min-h-9 items-center gap-1 rounded-full border-[1.5px] border-accent px-3 text-sm font-semibold ${
-        selected ? "bg-accent-fill text-on-accent" : "text-accent hover:bg-accent/10"
-      }`}
-    >
-      {selected && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
-      {label}
-    </button>
-  );
-}
-
-/** A dropdown trigger showing how many of its options are on. */
-function FilterToggle({
-  label,
-  count,
-  expanded,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  expanded: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-expanded={expanded}
-      onClick={onClick}
-      // Quiet chips rather than filled pills: filters are set once, so they shouldn't outshout the menu.
-      className="flex min-h-10 shrink-0 items-center gap-1 rounded-full border border-rule bg-surface px-3 text-sm font-semibold shadow-sm shadow-black/5"
-    >
-      {label}
-      {count > 0 && (
-        <span className="rounded-full bg-accent-fill px-1.5 text-xs leading-5 text-on-accent">{count}</span>
-      )}
-      <svg
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        aria-hidden
-        className={`size-4 text-accent transition ${expanded ? "rotate-180" : ""}`}
-      >
-        <path
-          fillRule="evenodd"
-          d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"
-          clipRule="evenodd"
-        />
-      </svg>
-    </button>
-  );
-}
-
-/**
- * A compact row of dropdowns (Allergies, Preferences) above the halls. Opening one drops down its
- * options as a wrapped row of pills, next to the Labels toggle; tapping outside or pressing Escape closes it.
- */
-export function FilterBar({
-  excludeAllergens,
-  requirePreferences,
-  onToggleAllergen,
-  onTogglePreference,
-  onClear,
-  showIcons,
-  onToggleIcons,
-}: {
-  excludeAllergens: Set<string>;
-  requirePreferences: Set<string>;
-  onToggleAllergen: (value: string) => void;
-  onTogglePreference: (value: string) => void;
-  onClear: () => void;
-  showIcons: boolean;
-  onToggleIcons: () => void;
-}) {
-  const [openGroup, setOpenGroup] = useState<FilterGroupId | null>(null);
-  const barRef = useRef<HTMLDivElement>(null);
-  const hasFilters = excludeAllergens.size > 0 || requirePreferences.size > 0;
-
-  useEffect(() => {
-    if (!openGroup) return;
-    const onPointer = (e: PointerEvent) => {
-      if (!barRef.current?.contains(e.target as Node)) setOpenGroup(null);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenGroup(null);
-    document.addEventListener("pointerdown", onPointer);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointer);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [openGroup]);
-
-  const toggleGroup = (id: FilterGroupId) => setOpenGroup((cur) => (cur === id ? null : id));
-  const [options, selected, onToggle] =
-    openGroup === "allergies"
-      ? [ALLERGENS, excludeAllergens, onToggleAllergen]
-      : [PREFERENCES, requirePreferences, onTogglePreference];
-
-  return (
-    <div ref={barRef} className="space-y-3">
-      <div className="flex items-center gap-1.5">
-        <FilterToggle
-          label="Allergies"
-          count={excludeAllergens.size}
-          expanded={openGroup === "allergies"}
-          onClick={() => toggleGroup("allergies")}
-        />
-        <FilterToggle
-          label="Preferences"
-          count={requirePreferences.size}
-          expanded={openGroup === "preferences"}
-          onClick={() => toggleGroup("preferences")}
-        />
-        {/* Not a filter: shows or hides the diet and allergen icons beside every item. So it's styled apart:
-            dashed, and pushed to the right. */}
-        <button
-          type="button"
-          aria-pressed={showIcons}
-          aria-label="Show dietary and allergen labels"
-          onClick={onToggleIcons}
-          className={`ml-auto flex min-h-10 shrink-0 items-center gap-1 rounded-full border px-3 text-sm font-semibold ${
-            showIcons ? "border-accent text-foreground" : "border-dashed border-muted/50 text-muted"
-          }`}
-        >
-          {showIcons && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-3.5 shrink-0"><path d="M4 10.5l4 4 8-9" /></svg>}
-          Labels
-        </button>
-      </div>
-      {openGroup && (
-        <div className="rounded-xl border border-rule bg-surface p-3 shadow-sm">
-          {/* Clear lives here rather than in the chip row, so the row always fits on one line. */}
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <p className="text-xs text-muted">
-              {openGroup === "allergies" ? "Hide items that contain:" : "Only show items that are:"}
-            </p>
-            {hasFilters && (
-              <button type="button" onClick={onClear} className="-my-2 min-h-9 px-1 text-sm font-semibold text-accent hover:underline">
-                Clear all
-              </button>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {options.map((opt) => (
-              <FilterChip key={opt} label={opt} selected={selected.has(opt)} onToggle={() => onToggle(opt)} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function HallColumn({
   hall,
   meal,
   date,
   now,
   mealMenu,
-  excludeAllergens,
-  requirePreferences,
-  showIcons,
   onSelect,
 }: {
   hall: Hall;
@@ -273,19 +75,12 @@ function HallColumn({
   date: string;
   now: CampusTime;
   mealMenu: Record<string, MenuItem[]> | undefined;
-  excludeAllergens: Set<string>;
-  requirePreferences: Set<string>;
-  showIcons: boolean;
   onSelect: (s: Selected) => void;
 }) {
   const isToday = date === now.iso;
   const win = windowFor(hall, date, meal);
   const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
-  const stations = orderedStations(mealMenu, hall.stationOrder)
-    .map(([station, items]) => [station, items.filter((it) => itemPasses(it, excludeAllergens, requirePreferences))] as const)
-    .filter(([, items]) => items.length > 0);
-  const isFiltering = excludeAllergens.size > 0 || requirePreferences.size > 0;
-  const hadItems = Object.values(mealMenu ?? {}).some((items) => items.length > 0);
+  const stations = orderedStations(mealMenu, hall.stationOrder).filter(([, items]) => items.length > 0);
 
   return (
     <section
@@ -325,7 +120,6 @@ function HallColumn({
                     className="flex w-full items-center justify-between gap-2 py-1.5 text-left text-[16.5px] hover:text-accent hover:underline hover:underline-offset-[3px]"
                   >
                     <span>{it.name}</span>
-                    {showIcons && <Tags tags={it.tags} />}
                   </button>
                 ))}
               </div>
@@ -333,12 +127,7 @@ function HallColumn({
           ))}
         </div>
       ) : (
-        win &&
-        (hadItems && isFiltering ? (
-          <p className="pb-2 pt-1 text-sm italic text-muted">No items match your filters</p>
-        ) : (
-          <p className="pb-2 pt-1 text-sm italic text-muted">No menu posted yet</p>
-        ))
+        win && <p className="pb-2 pt-1 text-sm italic text-muted">No menu posted yet</p>
       )}
     </section>
   );
@@ -541,38 +330,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
   const dates = useMemo(() => daysFrom(now.iso), [now.iso]);
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const date = pickedDate && dates.includes(pickedDate) ? pickedDate : now.iso;
-  const [excludeAllergens, setExcludeAllergens] = useState(() => readSavedFilters(SAVED_ALLERGENS_KEY, ALLERGENS));
-  const [requirePreferences, setRequirePreferences] = useState(() =>
-    readSavedFilters(SAVED_PREFERENCES_KEY, PREFERENCES),
-  );
-  useEffect(() => saveFilters(SAVED_ALLERGENS_KEY, excludeAllergens), [excludeAllergens]);
-  useEffect(() => saveFilters(SAVED_PREFERENCES_KEY, requirePreferences), [requirePreferences]);
-  const [showIcons, setShowIcons] = useState(false);
   const { open, sheet } = useItemSheet();
-
-  const toggleAllergen = useCallback((value: string) => {
-    setExcludeAllergens((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      track("continental_allergen_toggled", { allergen: value, active: next.has(value) });
-      return next;
-    });
-  }, []);
-  const togglePreference = useCallback((value: string) => {
-    setRequirePreferences((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      track("continental_preference_toggled", { preference: value, active: next.has(value) });
-      return next;
-    });
-  }, []);
-  const clearFilters = useCallback(() => {
-    setExcludeAllergens(new Set());
-    setRequirePreferences(new Set());
-  }, []);
-
 
   const mealMenus = useMemo(
     () => Object.fromEntries(HALLS.map((h) => [h.slug, data.dates[date]?.[h.name]?.[meal]])),
@@ -620,21 +378,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
           ))}
         </div>
 
-        <div className="mx-auto mb-4 max-w-2xl">
-          <FilterBar
-            excludeAllergens={excludeAllergens}
-            requirePreferences={requirePreferences}
-            onToggleAllergen={toggleAllergen}
-            onTogglePreference={togglePreference}
-            onClear={clearFilters}
-            showIcons={showIcons}
-            onToggleIcons={() => {
-              track("continental_icons_toggled", { active: !showIcons });
-              setShowIcons(!showIcons);
-            }}
-          />
-        </div>
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {HALLS.map((h) => (
             <HallColumn
@@ -644,9 +387,6 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
               date={date}
               now={now}
               mealMenu={mealMenus[h.slug]}
-              excludeAllergens={excludeAllergens}
-              requirePreferences={requirePreferences}
-              showIcons={showIcons}
               onSelect={open}
             />
           ))}

@@ -1,4 +1,4 @@
-import type { MealMenu, MenuData, MenuItem, Nutrition } from "./types";
+import type { MealMenu, MenuData, MenuItem } from "./types";
 
 // Server-side port of scraper/scrape_menu.py (api mode). Keep the two in sync.
 
@@ -27,41 +27,6 @@ type ApiMenuItem = {
   } | null;
 };
 
-/** Plain text from a Nutrislice rich-text field (may contain HTML). */
-const plain = (s: string | null | undefined) =>
-  (s ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/\s+/g, " ")
-    .trim() || undefined;
-
-const NUTRIENTS: [keyof Nutrition, string][] = [
-  ["protein", "g_protein"],
-  ["carbs", "g_carbs"],
-  ["fat", "g_fat"],
-  ["saturatedFat", "g_saturated_fat"],
-  ["transFat", "g_trans_fat"],
-  ["cholesterolMg", "mg_cholesterol"],
-  ["sodium", "mg_sodium"],
-  ["fiber", "g_fiber"],
-  ["sugar", "g_sugar"],
-  ["addedSugar", "g_added_sugar"],
-  ["potassiumMg", "mg_potassium"],
-  ["calciumMg", "mg_calcium"],
-  ["ironMg", "mg_iron"],
-  ["vitaminDMcg", "mcg_vitamin_d"],
-];
-
-function nutritionOf(info: Record<string, number | null | undefined> | null | undefined): Nutrition | undefined {
-  if (!info) return undefined;
-  const out: Nutrition = {};
-  for (const [key, field] of NUTRIENTS) {
-    const v = info[field];
-    if (typeof v === "number") out[key] = v;
-  }
-  return Object.keys(out).length ? out : undefined;
-}
 type ApiWeek = { days?: { date?: string; menu_items?: ApiMenuItem[] }[] };
 type ApiSchool = { slug: string; active_menu_types?: { slug: string }[] };
 
@@ -245,18 +210,11 @@ function parseDay(items: ApiMenuItem[]): MealMenu {
     if (!name) continue;
     const bucket = (stations[current] ??= []);
     if (bucket.some((x) => x.name === name)) continue;
-    const food = it.food;
-    const size = food?.serving_size_info;
+    // Only the name and diet/allergen tags are kept. Nutrition, ingredients and descriptions aren't shown anywhere.
     const item: MenuItem = {
       name,
-      calories: food?.rounded_nutrition_info?.calories ?? null,
-      tags: (food?.icons?.food_icons ?? []).map((i) => i.name).filter((n): n is string => !!n),
-      description: plain(food?.description),
-      serving: size?.serving_size_amount
-        ? `${size.serving_size_amount} ${size.serving_size_unit ?? ""}`.trim()
-        : undefined,
-      ingredients: plain(food?.ingredients),
-      nutrition: nutritionOf(food?.rounded_nutrition_info),
+      calories: null,
+      tags: (it.food?.icons?.food_icons ?? []).map((i) => i.name).filter((n): n is string => !!n),
     };
     bucket.push(item);
   }
