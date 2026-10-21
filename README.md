@@ -30,7 +30,7 @@ Howard Diner publishes a PDF menu instead of Nutrislice items. Its items are tra
 
 If a hall's menu is missing on the live site, open `/api/menu/status?key=<STATUS_KEY>` (set `STATUS_KEY` in Vercel's environment variables; without it the route always 404s): it lists every Nutrislice request with its item count or error.
 
-The live site doesn't depend on this file: `web/app/api/menu/route.ts` fetches the next 7 days straight from Nutrislice on the server and Vercel caches the result for a day, so Nutrislice is contacted at most once every 24 hours. If a refresh fails, the last good copy keeps being served. The scraped `dining_menu.json` is only the backup the site uses if that route is unavailable, and the starting data if Nutrislice is down during a deploy.
+The live site doesn't depend on this file: `web/app/page.tsx` fetches the next 7 days straight from Nutrislice on the server and builds them into the page. Vercel rebuilds the page when the Nutrislice data expires (hourly during meals, and not until the next meal begins in between), so Nutrislice is only contacted when a student opens the app after that. If a refresh fails, the last good page keeps being served. The scraped `dining_menu.json` is only the starting data if Nutrislice is down during a deploy.
 
 To refresh the backup, run the scraper and commit the two `dining_menu.json` files. To do that automatically every morning, add a crontab entry (`crontab -e`):
 
