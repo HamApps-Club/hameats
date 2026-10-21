@@ -1,22 +1,8 @@
 import { orderedStations } from "@/lib/halls";
 import type { MealMenu, MenuItem } from "@/lib/types";
-import { IconLegend, Tags } from "./Tags";
 
-/** "183 calories · 6g protein · 33g carbs" — whatever is known. */
-function macroLine(it: MenuItem) {
-  const n = it.nutrition;
-  return [
-    it.calories != null && `${Math.round(it.calories)} calories`,
-    n?.protein != null && `${Math.round(n.protein)}g protein`,
-    n?.carbs != null && `${Math.round(n.carbs)}g carbs`,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-/** One food as a Classic-style card: name, calories/protein/carbs, and diet tags. */
+/** One food as a Classic-style card. Tap it to open its page. */
 export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => void }) {
-  const macros = macroLine(item);
   return (
     <button
       onClick={onSelect}
@@ -24,8 +10,6 @@ export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => v
     >
       <div className="min-w-0 flex-1 space-y-1.5">
         <p className="text-base font-medium">{item.name}</p>
-        {macros && <p className="text-sm tabular-nums text-zinc-500">{macros}</p>}
-        <Tags tags={item.tags} />
       </div>
       <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5 shrink-0 text-zinc-400">
         <path
@@ -89,7 +73,6 @@ export function MenuList({
           </ul>
         </details>
       ))}
-      <IconLegend />
     </div>
   );
 }

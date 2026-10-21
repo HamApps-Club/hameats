@@ -2,7 +2,6 @@ import { formatDate } from "@/lib/dates";
 import type { SearchRow } from "@/lib/search";
 import { MEALS } from "@/lib/types";
 import { Highlight } from "./Highlight";
-import { Tags } from "./Tags";
 
 const mealOrder = (m: string) => MEALS.indexOf(m as (typeof MEALS)[number]);
 
@@ -67,7 +66,6 @@ export function SearchResults({
                         <span className="text-sm text-zinc-500">
                           @ <Highlight text={r.station} query={r.stationMatch ? query : ""} />
                         </span>
-                        <Tags tags={r.item.tags} />
                       </button>
                     </li>
                   ))}
