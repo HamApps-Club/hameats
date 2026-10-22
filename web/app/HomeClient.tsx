@@ -9,7 +9,6 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { daysFrom, formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
-import { HomeLoadingShell } from "@/components/home/NetNutritionHomeLayout";
 import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId, type HomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, mealLabel, mealNow, servesMealEver, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
@@ -340,17 +339,9 @@ export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
         {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (
           // data-menu-loading: watched by the stuck-loading script in app/layout.tsx.
-          status === "error" ? (
-            <p data-menu-loading className="py-20 text-center text-zinc-500">
-              Couldn&apos;t load menus.
-            </p>
-          ) : (
-            <>
-              <ThemeToggle />
-              <ReportButton />
-              <HomeLoadingShell />
-            </>
-          )
+          <p data-menu-loading className="py-20 text-center text-zinc-500">
+            {status === "error" ? "Couldn't load menus." : "Loading menus…"}
+          </p>
         ) : hall ? (
           // Keyed on the date too, so a new day drops whatever day or meal was picked and opens on today.
           <HallView
