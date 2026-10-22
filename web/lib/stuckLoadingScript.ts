@@ -1,6 +1,6 @@
 /**
  * Plain inline script (no React, no app bundle), so it still runs when a phone's open copy of the app
- * can't load its code after a new deploy — the case where menus sit on "Loading menus…" forever.
+ * can't load its code after a new deploy — the case where menus sit on the loading mark forever.
  * If the loading message (marked data-menu-loading in app/HomeClient.tsx) is still up after a few seconds,
  * a bar slides up from the bottom with a Refresh button. Refresh drops the service worker's cached
  * app files (saved menus in "data-v1" are kept), asks for the new service worker, and reloads.
