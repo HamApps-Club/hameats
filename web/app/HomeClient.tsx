@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
+import { LoadingMark } from "@/components/LoadingMark";
 import { ItemSheet } from "@/components/ItemSheet";
 import { MenuList } from "@/components/MenuList";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -339,9 +340,13 @@ export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
         {/* Rendered client-side only: open/closed and the current meal depend on the viewer's clock. */}
         {!data ? (
           // data-menu-loading: watched by the stuck-loading script in app/layout.tsx.
-          <p data-menu-loading className="py-20 text-center text-zinc-500">
-            {status === "error" ? "Couldn't load menus." : "Loading menus…"}
-          </p>
+          status === "error" ? (
+            <p data-menu-loading className="py-20 text-center text-zinc-500">
+              Couldn&apos;t load menus.
+            </p>
+          ) : (
+            <LoadingMark />
+          )
         ) : hall ? (
           // Keyed on the date too, so a new day drops whatever day or meal was picked and opens on today.
           <HallView
