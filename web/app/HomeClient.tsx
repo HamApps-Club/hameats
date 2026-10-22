@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
-import { LoadingMark } from "@/components/LoadingMark";
 import { ItemSheet } from "@/components/ItemSheet";
 import { MenuList } from "@/components/MenuList";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { daysFrom, formatDate } from "@/lib/dates";
 import { hallBySlug, type Hall } from "@/lib/halls";
+import { HomeLoadingShell } from "@/components/home/NetNutritionHomeLayout";
 import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId, type HomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, mealLabel, mealNow, servesMealEver, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
@@ -345,7 +345,11 @@ export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
               Couldn&apos;t load menus.
             </p>
           ) : (
-            <LoadingMark />
+            <>
+              <ThemeToggle />
+              <ReportButton />
+              <HomeLoadingShell />
+            </>
           )
         ) : hall ? (
           // Keyed on the date too, so a new day drops whatever day or meal was picked and opens on today.

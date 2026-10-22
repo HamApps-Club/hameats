@@ -9,6 +9,7 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
+import { LoadingMark } from "@/components/LoadingMark";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
@@ -319,6 +320,41 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       </nav>
     </>,
     document.body,
+  );
+}
+
+/**
+ * The home screen before the menus are in: the header, the meal tabs and every dining hall's card, with the
+ * bowl mark where each hall's menu will go. Nothing here depends on the clock or the menus, so it's the same on
+ * the server and in the browser, and the real layout replaces it in place.
+ */
+export function HomeLoadingShell() {
+  return (
+    <div>
+      <header className="sticky top-0 z-10 border-b border-band-edge bg-band text-band-ink">
+        <SiteTitle />
+      </header>
+      <main className="mx-auto max-w-6xl px-3.5 pb-6 pt-3">
+        <div aria-hidden className="mx-auto mb-5 flex max-w-2xl border-b border-zinc-200 dark:border-zinc-800">
+          {MEALS.map((m) => (
+            <span key={m} className="-mb-px flex-1 border-b-2 border-transparent py-2.5 text-center text-lg font-bold text-zinc-500">
+              {m}
+            </span>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {HALLS.map((h) => (
+            <section
+              key={h.slug}
+              className="space-y-2 rounded-[10px] border border-t-4 border-rule border-t-accent bg-surface p-4 pb-2 shadow-[0_8px_20px_-14px] shadow-black/20"
+            >
+              <h2 className="font-display text-[26px] font-bold leading-tight">{h.name}</h2>
+              <LoadingMark />
+            </section>
+          ))}
+        </div>
+      </main>
+    </div>
   );
 }
 
