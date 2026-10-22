@@ -145,6 +145,29 @@ function applyItemSwaps(stations: MealMenu, date: string, location: string, meal
 }
 
 /**
+ * Per-day additions for a dish the hall is serving that Nutrislice left off. The dish goes first in its station
+ * (the main dish leads) with no calories or diet tags, since nothing is known about it beyond its name.
+ */
+const ITEM_ADDS = [
+  {
+    date: "2026-10-22",
+    location: "Soper Commons",
+    meal: "Dinner",
+    station: "Spoon & Fork",
+    name: "Barbecued Shredded Chicken",
+  },
+];
+
+function applyItemAdds(stations: MealMenu, date: string, location: string, meal: string) {
+  for (const add of ITEM_ADDS) {
+    if (add.date !== date || add.location !== location || add.meal !== meal) continue;
+    const items = (stations[add.station] ??= []);
+    if (!items.some((x) => x.name.toLowerCase() === add.name.toLowerCase()))
+      items.unshift({ name: add.name, calories: null, tags: [] });
+  }
+}
+
+/**
  * Menus corrected from the signs at the serving line, for a day when Nutrislice was missing or wrong. Each entry
  * replaces the whole station, in the order of the sign. A dish that Nutrislice also lists under the same name keeps its
  * nutrition and ingredients; the diet and allergen tags come from the sign.
@@ -193,6 +216,7 @@ function applyStationReplacements(stations: MealMenu, date: string, location: st
 export function applyMenuCorrections(stations: MealMenu, date: string, location: string, meal: string) {
   applyStationMoves(stations, date, location, meal);
   applyItemSwaps(stations, date, location, meal);
+  applyItemAdds(stations, date, location, meal);
   applyStationReplacements(stations, date, location, meal);
 }
 
