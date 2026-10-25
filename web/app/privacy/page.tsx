@@ -43,8 +43,8 @@ export default function PrivacyPage() {
 
         <Section title="Menu information">
           <p>
-            HamEats only shows the names of the dishes being served. It does not show allergen or ingredient
-            information. If you have an allergy or dietary restriction, please ask the dining hall staff.
+            HamEats only shows the names of the dishes being served. It does not show allergen, ingredient, or
+            nutritional information. If you have an allergy or dietary restriction, please ask the dining hall staff.
           </p>
         </Section>
 

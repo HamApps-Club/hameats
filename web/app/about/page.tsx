@@ -36,6 +36,13 @@ export default function AboutPage() {
           </p>
         </Section>
 
+        <Section title="Menu Information">
+          <p>
+            HamEats only shows the names of the dishes being served. It does not show allergen, ingredient, or
+            nutritional information. If you have an allergy or dietary restriction, please ask the dining hall staff.
+          </p>
+        </Section>
+
         <Section title="Motivation">
           <p>
             Hi! I&apos;m Brandon Taylor &apos;28, the creator of HamEats! I got tired of the dining menu app glitching
