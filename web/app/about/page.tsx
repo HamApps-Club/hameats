@@ -63,6 +63,17 @@ export default function AboutPage() {
             its dining services. Check with the dining hall if you have an allergy.
           </p>
         </Section>
+
+        <Section title="Feedback + Reviews">
+          <p className="font-bold text-zinc-900 dark:text-zinc-100">
+            Thanks for using HamEats! Here&apos;s what students have said:
+          </p>
+          <p>
+            &quot;Dude HamEats was transformational… that&apos;s all I can say&quot;
+            <br />
+            Suki &apos;27
+          </p>
+        </Section>
       </main>
 
       <SiteFooter />
