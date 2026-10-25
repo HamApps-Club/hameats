@@ -36,17 +36,14 @@ export default function PrivacyPage() {
           Hamilton College. This page explains what information HamEats collects and what it does with it.
         </p>
         <p>
+          HamEats only shows the names of the dishes being served. It does not show allergen, ingredient, or
+          nutritional information. If you have an allergy or dietary restriction, please ask the dining hall staff.
+        </p>
+        <p>
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> HamEats has no accounts and
           doesn&apos;t ask for your name, email, or any personal details. It does collect anonymous usage statistics so
           I can improve the app.
         </p>
-
-        <Section title="Menu information">
-          <p>
-            HamEats only shows the names of the dishes being served. It does not show allergen, ingredient, or
-            nutritional information. If you have an allergy or dietary restriction, please ask the dining hall staff.
-          </p>
-        </Section>
 
         <Section title="What I collect">
           <p>

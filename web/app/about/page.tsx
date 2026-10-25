@@ -34,9 +34,6 @@ export default function AboutPage() {
             HamEats is a web app that puts every Hamilton dining hall menu in one place, so you can see what Commons,
             McEwen, the Diner and the Little Pub are serving without clicking around.
           </p>
-        </Section>
-
-        <Section title="Menu Information">
           <p>
             HamEats only shows the names of the dishes being served. It does not show allergen, ingredient, or
             nutritional information. If you have an allergy or dietary restriction, please ask the dining hall staff.
