@@ -58,10 +58,6 @@ export default function AboutPage() {
             <br />
             Created September 23, 2026
           </p>
-          <p>
-            HamEats is an independent student project and isn&apos;t affiliated with or endorsed by Hamilton College or
-            its dining services. Check with the dining hall if you have an allergy.
-          </p>
         </Section>
 
         <Section title="Feedback + Reviews">
