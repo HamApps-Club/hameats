@@ -144,7 +144,7 @@ export function SiteFooter() {
 
       <hr className="border-zinc-200 dark:border-zinc-800" />
 
-      <div className="flex items-center justify-center gap-6 pt-1 text-base text-zinc-900 dark:text-zinc-100">
+      <div className="grid grid-cols-3 items-center pt-1 text-center text-base text-zinc-900 dark:text-zinc-100">
         <Link href="/about" className="font-medium hover:underline">
           About
         </Link>
@@ -157,7 +157,7 @@ export function SiteFooter() {
           rel="noopener noreferrer"
           className="font-medium hover:underline"
         >
-          More Information
+          Information
         </a>
       </div>
 
