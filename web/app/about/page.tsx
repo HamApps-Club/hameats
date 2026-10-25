@@ -37,52 +37,20 @@ export default function AboutPage() {
         <Section title="Summary">
           <p>
             HamEats is a web app that puts every Hamilton dining hall menu in one place, so you can see what Commons,
-            McEwen, the Diner and the Little Pub are serving without clicking around. It&apos;s still a{" "}
-            <strong className="text-zinc-900 dark:text-zinc-100">demo</strong>! Right now I&apos;m doing product
-            research to find the layout that makes it easiest for Hamilton students to check the menus.
+            McEwen, the Diner and the Little Pub are serving without clicking around.
           </p>
         </Section>
 
         <Section title="Motivation">
           <p>
-            Hi! I&apos;m Brandon Taylor &apos;28, the creator of HamEats! I got tired of the dining menu app
-            glitching out, loading forever, or not loading at all, and of tapping 10 times just to see what McEwen and
-            Commons were serving. So I decided to build a site that pulls everything I wanted into a single convenient
-            page. The menus come straight from Nutrislice, and so far my friends and I have found they match
-            what&apos;s actually being served in the dining halls!
-          </p>
-        </Section>
-
-        <Section title="Product Research">
-          <p>
-            HamEats is currently testing several home page layouts. I want to find the easiest way for the campus to
-            read all of the dining data (every hall, menu, allergen category and calorie count) while keeping it as
-            convenient as possible. Whichever layout students use the most will end up king of the hill and become the
-            HamEats layout!
+            Hi! I&apos;m Brandon Taylor &apos;28, the creator of HamEats! I got tired of the dining menu app glitching
+            out, loading forever, and having to tap 10 different times to see all the available dishes. So I decided to
+            build a site that pulls everything I wanted into a single convenient page.
           </p>
         </Section>
 
         <Section title="Design Decisions">
-          <p>
-            I chose to make HamEats a web app to make development and maintenance a lot easier, since I didn&apos;t
-            need the features of a native app. (Moreover, I don&apos;t have to wait on App Store reviews: every update
-            reaches everyone the moment I publish it.)
-          </p>
-          <p>
-            Now through their phone&apos;s default web browser, anyone on iPhone or Android can add HamEats to their
-            home screen, where it opens just like a regular app! It even works offline and shows the last menus it
-            loaded.
-          </p>
-          <p>
-            Every hall&apos;s menu is on one page to minimize the number of taps it takes to decide where to eat. Tap
-            any food to see its nutrition, allergens and ingredients. Since there&apos;s no single right answer for how
-            to lay all of this out, the demo lets you choose between several layouts.
-          </p>
-          <p>
-            I built HamEats with Next.js, React, TypeScript and Tailwind CSS, hosted on Vercel. The server fetches the
-            menus from Nutrislice ahead of time and saves a copy, so the site loads fast, and if a refresh fails it
-            keeps showing the last good menus instead of spinning forever.
-          </p>
+          <p>I built HamEats with Next.js, React, TypeScript and Tailwind CSS, hosted on Vercel.</p>
         </Section>
 
         <Section title="Credits">
@@ -91,8 +59,7 @@ export default function AboutPage() {
           </p>
           <p>
             HamEats is an independent student project and isn&apos;t affiliated with or endorsed by Hamilton College or
-            its dining services. Menus come from Nutrislice and can change; check with the dining hall if you have an
-            allergy.
+            its dining services. Check with the dining hall if you have an allergy.
           </p>
         </Section>
       </main>
