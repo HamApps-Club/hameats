@@ -144,7 +144,7 @@ export function SiteFooter() {
 
       <hr className="border-zinc-200 dark:border-zinc-800" />
 
-      <div className="grid grid-cols-3 items-center pt-1 text-center text-base text-zinc-900 dark:text-zinc-100">
+      <div className="grid grid-cols-4 items-center pt-1 text-center text-sm text-zinc-900 sm:text-base dark:text-zinc-100">
         <Link href="/about" className="font-medium hover:underline">
           About
         </Link>
@@ -159,6 +159,9 @@ export function SiteFooter() {
         >
           Information
         </a>
+        <Link href="/privacy" className="font-medium hover:underline">
+          Privacy
+        </Link>
       </div>
 
       {/* Plain text in the page from the first byte, so search engines see what the site is without running the app. */}
@@ -167,11 +170,6 @@ export function SiteFooter() {
       </p>
       <p className="text-center">A student project, not affiliated with Hamilton College.</p>
       <p className="text-center">For allergen and ingredient information, please ask dining staff.</p>
-      <p className="text-center text-[11px]">
-        <Link href="/privacy" className="hover:underline">
-          Privacy Policy
-        </Link>
-      </p>
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
     </footer>
