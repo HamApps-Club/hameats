@@ -50,7 +50,9 @@ export default function AboutPage() {
 
         <Section title="Credits">
           <p>
-            Created by Brandon Taylor &apos;28. Launched September 23, 2026.
+            Brandon Taylor &apos;28
+            <br />
+            Created September 23, 2026
           </p>
           <p>
             HamEats is an independent student project and isn&apos;t affiliated with or endorsed by Hamilton College or
