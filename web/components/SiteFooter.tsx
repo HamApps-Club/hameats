@@ -167,6 +167,11 @@ export function SiteFooter() {
       </p>
       <p className="text-center">A student project, not affiliated with Hamilton College.</p>
       <p className="text-center">For allergen and ingredient information, please ask dining staff.</p>
+      <p className="text-center text-[11px]">
+        <Link href="/privacy" className="hover:underline">
+          Privacy Policy
+        </Link>
+      </p>
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
     </footer>
