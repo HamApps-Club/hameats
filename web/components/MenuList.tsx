@@ -8,7 +8,7 @@ export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => v
     <div className="flex w-full items-center gap-1 rounded-xl border border-zinc-200 bg-white pr-2 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-surface dark:hover:border-zinc-700">
       <button onClick={onSelect} className="flex min-w-0 flex-1 items-center gap-3 p-4 text-left active:scale-[0.99]">
         <div className="min-w-0 flex-1 space-y-1.5">
-          <p className="text-base font-medium">{item.name}</p>
+          <p className="text-base font-bold">{item.name}</p>
         </div>
         <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className="size-5 shrink-0 text-zinc-400">
           <path
