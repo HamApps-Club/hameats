@@ -36,6 +36,7 @@ const DINER_ALL_DAY: MealMenu = {
     item("Parm Sandwich", "Crispy chicken, homemade marinara sauce, and melted provolone cheese.", ["Sesame", "Soy", "Dairy", "Wheat"]),
     item("Philly Sub", "Grilled steak, grilled onions, peppers & onions, and provolone cheese.", ["Sesame", "Soy", "Dairy", "Wheat"]),
     item("Black Russian", "Ham, turkey, Swiss cheese, lettuce, and tomato with pesto mayo, pressed on a panini press.", ["Soy", "Dairy", "Wheat", "Egg", "Pork"]),
+    item("Tuscan Chicken Sandwich", undefined, []),
   ],
   Wraps: [
     item("Buffalo Chicken Wrap", "Crispy chicken, lettuce, tomato, and Frank's Red Hot Sauce on a tortilla wrap.", ["Dairy", "Soy", "Wheat"]),
