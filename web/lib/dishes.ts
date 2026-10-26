@@ -97,7 +97,8 @@ export async function getReviews(dish: string, userId: string | undefined): Prom
     [dish],
   );
   return rows.map((r) => ({
-    name: r.user_name as string,
+    // First word only, so reviews saved before the last initial was dropped show the same way.
+    name: (r.user_name as string).split(" ")[0],
     body: r.body as string,
     createdAt: new Date(r.created_at as string).toISOString(),
     mine: !!userId && r.user_id === userId,
