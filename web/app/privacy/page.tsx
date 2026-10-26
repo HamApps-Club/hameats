@@ -41,8 +41,8 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
-          an account. If you choose to log in with Google to give a dish a thumbs up or write a review, HamEats saves
-          your Google account ID, your thumbs ups, and your reviews. It also collects anonymous usage statistics so I
+          an account. If you choose to log in with Google to vote on a dish or write a review, HamEats saves
+          your Google account ID, your thumbs ups and downs, and your reviews. It also collects anonymous usage statistics so I
           can improve the app.
         </p>
 
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
             <li>Which pages you view and when you leave them</li>
             <li>
               Actions you take in the app, such as opening a dish, choosing a dining hall, day, or layout, switching
-              dark mode, or tapping Log in or a thumbs up
+              dark mode, or tapping Log in, a thumbs up, or a thumbs down
             </li>
             <li>
               Your device and browser type, screen size, and approximate location (such as city or region) based on
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc space-y-1 pl-6">
             <li>Your Google account ID (an anonymous code, not your email)</li>
-            <li>Each dish you gave a thumbs up, and when</li>
+            <li>Each thumbs up or thumbs down you gave a dish, and when</li>
             <li>Each review you wrote: the dish, what you wrote, your first name, and when you wrote it</li>
           </ul>
           <p>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
             cookie on your device holds your name, email, and photo so you stay logged in. Logging out removes it.
           </p>
           <p>
-            Anyone can see a dish&apos;s thumbs-up count and its reviews. A review is shown with your first name, the
+            Anyone can see a dish&apos;s score (its thumbs ups minus its thumbs downs) and its reviews. Nobody can see who gave a thumbs up or down. A review is shown with your first name, the
             date, and what you wrote. Please don&apos;t put anything private in a review.
           </p>
           <p>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
         <Section title="How I use it">
           <p>
             I use this information only to run and improve HamEats: fixing bugs, seeing which features students
-            actually use, counting thumbs ups, showing reviews, and keeping the site working. I don&apos;t sell your
+            actually use, counting thumbs ups and downs, showing reviews, and keeping the site working. I don&apos;t sell your
             information, and I don&apos;t use it for advertising.
           </p>
         </Section>
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
         <Section title="Who I share it with">
           <p>
             Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
-            thumbs ups and reviews), and Google (log in and feedback forms). They process data on my behalf under their
+            thumbs ups, thumbs downs, and reviews), and Google (log in and feedback forms). They process data on my behalf under their
             own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
@@ -133,7 +133,7 @@ export default function PrivacyPage() {
         <Section title="How long I keep it">
           <p>
             Analytics data is kept for as long as it&apos;s useful for improving the app and is used in aggregate.
-            Thumbs ups and reviews are kept until you take them back or delete them. Feedback submissions are kept as
+            Thumbs ups, thumbs downs, and reviews are kept until you take them back or delete them. Feedback submissions are kept as
             long as they&apos;re useful for improving the app. You can ask me to delete anything you&apos;ve sent me.
           </p>
         </Section>
@@ -141,8 +141,8 @@ export default function PrivacyPage() {
         <Section title="Your choices">
           <ul className="list-disc space-y-1 pl-6">
             <li>Block analytics by using a tracking blocker, or by clearing your browser data.</li>
-            <li>Log out at any time, take back a thumbs up, or edit or delete your own review in the app.</li>
-            <li>Ask me to delete your reviews, thumbs ups, or feedback you&apos;ve submitted.</li>
+            <li>Log out at any time, take back a thumbs up or down, or edit or delete your own review in the app.</li>
+            <li>Ask me to delete your reviews, votes, or feedback you&apos;ve submitted.</li>
             <li>Ask me any question about this policy.</li>
           </ul>
         </Section>

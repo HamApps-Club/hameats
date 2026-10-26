@@ -1,4 +1,4 @@
-import { LikeButton } from "@/components/LikeButton";
+import { VoteButtons } from "@/components/VoteButtons";
 import { orderedStations } from "@/lib/halls";
 import type { MealMenu, MenuItem } from "@/lib/types";
 
@@ -18,7 +18,7 @@ export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => v
           />
         </svg>
       </button>
-      <LikeButton dish={item.name} />
+      <VoteButtons dish={item.name} />
     </div>
   );
 }

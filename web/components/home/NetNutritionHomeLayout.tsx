@@ -9,7 +9,7 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { LikeButton } from "@/components/LikeButton";
+import { VoteButtons } from "@/components/VoteButtons";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
@@ -122,7 +122,7 @@ function HallColumn({
                     >
                       <span>{it.name}</span>
                     </button>
-                    <LikeButton dish={it.name} />
+                    <VoteButtons dish={it.name} />
                   </div>
                 ))}
               </div>

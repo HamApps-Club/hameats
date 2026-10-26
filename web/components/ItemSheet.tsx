@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 import type { MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
-import { LikeButton } from "@/components/LikeButton";
+import { VoteButtons } from "@/components/VoteButtons";
+import { useVotes } from "@/lib/likes";
 import { Reviews } from "@/components/Reviews";
 
-/** Full-screen page for one food: its name and thumbs up, a Google search link, and what students have written about it. */
+/** Full-screen page for one food: its name and votes, a Google search link, and what students have written about it. */
 export function ItemSheet({
   item,
   context,
@@ -17,6 +18,7 @@ export function ItemSheet({
   context: string;
   onClose: () => void;
 }) {
+  const { enabled, up, down } = useVotes();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -60,8 +62,13 @@ export function ItemSheet({
             <p className="text-sm text-zinc-500">{context}</p>
             <div className="flex items-start justify-between gap-2">
               <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
-              <LikeButton dish={item.name} size="lg" />
+              <VoteButtons dish={item.name} size="lg" />
             </div>
+            {enabled && (
+              <p className="text-sm text-zinc-500">
+                {up(item.name)} thumbs up · {down(item.name)} thumbs down
+              </p>
+            )}
           </header>
 
           {/* Opens in the phone's browser (a new tab on desktop) so people can see what the food looks like. */}

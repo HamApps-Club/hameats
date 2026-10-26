@@ -18,7 +18,7 @@ import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
-import { LikesProvider } from "@/lib/likes";
+import { VotesProvider } from "@/lib/likes";
 import { SessionProvider } from "next-auth/react";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
@@ -349,13 +349,13 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   );
 }
 
-/** Sign-in and thumbs-up state wrap the whole home screen, so the halls and the food pages share them. */
+/** Sign-in and vote state wrap the whole home screen, so the halls and the food pages share them. */
 export function HomeClient(props: { initialMenu: MenuData | null }) {
   return (
     <SessionProvider>
-      <LikesProvider>
+      <VotesProvider>
         <Home {...props} />
-      </LikesProvider>
+      </VotesProvider>
     </SessionProvider>
   );
 }

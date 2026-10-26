@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { signInWithGoogle, useLikes } from "@/lib/likes";
+import { signInWithGoogle, useVotes } from "@/lib/likes";
 import { track } from "@/lib/analytics";
 
 type Review = { name: string; body: string; createdAt: string; mine: boolean };
@@ -14,7 +14,7 @@ const when = (iso: string) =>
 
 /** What students have written about a dish, and a box to add your own (Google sign-in needed). */
 export function Reviews({ dish }: { dish: string }) {
-  const { enabled } = useLikes();
+  const { enabled } = useVotes();
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
   const [reviews, setReviews] = useState<Review[] | null>(null);
