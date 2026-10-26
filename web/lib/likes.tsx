@@ -12,13 +12,14 @@ type VoteState = { enabled: boolean; counts: Record<string, Counts>; mine: Mine 
 type Votes = {
   /** False until the first answer arrives, and for good when no database is connected: no thumbs are shown then. */
   enabled: boolean;
+  signedIn: boolean;
   /** Thumbs ups minus thumbs downs from everybody: the number shown beside each dish. */
   score: (dish: string) => number;
   up: (dish: string) => number;
   down: (dish: string) => number;
   /** This person's own vote on the dish: 1, -1, or 0. */
   vote: (dish: string) => 1 | -1 | 0;
-  /** Gives a thumbs up or down (tapping the same one again takes it back); sends signed-out visitors to Google sign-in. */
+  /** Gives a thumbs up or down (tapping the same one again takes it back). Does nothing when signed out. */
   cast: (dish: string, direction: 1 | -1) => void;
 };
 
@@ -26,6 +27,7 @@ const NONE: Counts = { up: 0, down: 0 };
 
 const VotesContext = createContext<Votes>({
   enabled: false,
+  signedIn: false,
   score: () => 0,
   up: () => 0,
   down: () => 0,
@@ -61,11 +63,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
 
   const cast = useCallback(
     (dish: string, direction: 1 | -1) => {
-      if (!userId) {
-        track("vote_login_prompt", { dish });
-        void signInWithGoogle();
-        return;
-      }
+      if (!userId) return;
       const before = state;
       const was = (before.mine[dish] as 1 | -1 | undefined) ?? 0;
       const vote = was === direction ? 0 : direction;
@@ -113,12 +111,13 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
     const counts = (dish: string) => state.counts[dish] ?? NONE;
     return {
       enabled: state.enabled,
+      signedIn: !!userId,
       score: (dish) => counts(dish).up - counts(dish).down,
       up: (dish) => counts(dish).up,
       down: (dish) => counts(dish).down,
       vote: (dish) => state.mine[dish] ?? 0,
       cast,
     };
-  }, [state, cast]);
+  }, [state, cast, userId]);
   return <VotesContext.Provider value={value}>{children}</VotesContext.Provider>;
 }
