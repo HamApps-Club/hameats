@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import type { MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
-import { VoteButtons } from "@/components/VoteButtons";
+import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { Reviews } from "@/components/Reviews";
 
 /** Full-screen page for one food: its name with thumbs up and down underneath, a Google search link, and what students have written about it. */
@@ -59,7 +59,14 @@ export function ItemSheet({
           <header className="space-y-2">
             <p className="text-sm text-zinc-500">{context}</p>
             <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
-            <VoteButtons dish={item.name} size="lg" />
+            <div className="flex items-center gap-2">
+              <VoteButtons dish={item.name} size="lg" />
+              <CommentPill
+                dish={item.name}
+                size="lg"
+                onClick={() => document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth" })}
+              />
+            </div>
           </header>
 
           {/* Opens in the phone's browser (a new tab on desktop) so people can see what the food looks like. */}

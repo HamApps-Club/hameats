@@ -27,9 +27,10 @@ function ThumbIcon({ filled, down, className }: { filled: boolean; down?: boolea
 const BUBBLE_ROOM = 190;
 
 /**
- * A thumbs up and a thumbs down, each with its own count: one of each shows as 1 and 1, never netted to 0. Tap one to
- * vote, and tap it again to take the vote back. Signed-out visitors get a small bubble asking them to log in, rather
- * than being sent straight to Google. Not shown when no database is connected.
+ * The vote pill, in the style of Reddit's: a thumbs up and a thumbs down side by side, each with its own count (one of
+ * each shows as 1 and 1, never netted to 0). Tap one to vote, and tap it again to take the vote back. Signed-out
+ * visitors get a small bubble asking them to log in, rather than being sent straight to Google. Not shown when no
+ * database is connected.
  */
 export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" | "lg" }) {
   const { enabled, signedIn, up, down, vote, cast } = useVotes();
@@ -66,18 +67,19 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
     const on = mine === direction;
     const name = direction === 1 ? "Thumbs up" : "Thumbs down";
     const count = direction === 1 ? up(dish) : down(dish);
+    const lit = direction === 1 ? "bg-accent/10 text-accent" : "bg-red-500/10 text-red-600 dark:text-red-400";
     return (
       <button
         type="button"
         onClick={() => press(direction)}
         aria-pressed={on}
         aria-label={`${on ? `Remove your ${name.toLowerCase()} from` : name} ${dish}, ${count} so far`}
-        className={`flex shrink-0 items-center justify-center gap-1 rounded-lg px-1.5 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
-          on ? "text-accent" : "text-muted"
-        } ${lg ? "min-h-11 min-w-12" : "min-h-9 min-w-8"}`}
+        className={`flex items-center justify-center gap-1 px-2.5 ${lg ? "min-h-10" : "min-h-8"} ${
+          on ? lit : "text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
+        }`}
       >
-        <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-6" : "size-5"} />
-        {/* Hidden at zero, but still takes up room, so the rows line up. */}
+        <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-4"} />
+        {/* Hidden at zero, but still takes up room, so the pills line up. */}
         <span aria-hidden className={`min-w-[1.25ch] text-center font-semibold tabular-nums ${count === 0 ? "invisible" : ""}`}>
           {count}
         </span>
@@ -86,9 +88,12 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
   };
 
   return (
-    <div ref={wrapper} className={`relative flex shrink-0 items-center gap-0.5 ${lg ? "text-lg" : "text-sm"}`}>
-      {button(1)}
-      {button(-1)}
+    <div ref={wrapper} className="relative shrink-0">
+      <div className={`flex items-stretch overflow-hidden rounded-full border border-rule ${lg ? "text-base" : "text-sm"}`}>
+        {button(1)}
+        <span aria-hidden className="my-1.5 w-px bg-rule" />
+        {button(-1)}
+      </div>
 
       {bubble && (
         <div
@@ -122,5 +127,39 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
         </div>
       )}
     </div>
+  );
+}
+
+/** The review pill: a speech bubble with how many reviews the dish has, so people can see there's something to read. Tapping it opens the dish. */
+export function CommentPill({ dish, onClick, size = "sm" }: { dish: string; onClick: () => void; size?: "sm" | "lg" }) {
+  const { enabled, reviews } = useVotes();
+  if (!enabled) return null;
+  const n = reviews(dish);
+  const lg = size === "lg";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${n} ${n === 1 ? "review" : "reviews"} of ${dish}`}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full border border-rule px-2.5 text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
+        lg ? "min-h-10 text-base" : "min-h-8 text-sm"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+        className={lg ? "size-5" : "size-4"}
+      >
+        <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z" />
+      </svg>
+      <span aria-hidden className="font-semibold tabular-nums">
+        {n}
+      </span>
+    </button>
   );
 }

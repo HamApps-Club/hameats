@@ -14,7 +14,7 @@ const when = (iso: string) =>
 
 /** What students have written about a dish, and a box to add your own (Google sign-in needed). */
 export function Reviews({ dish }: { dish: string }) {
-  const { enabled } = useVotes();
+  const { enabled, setReviews: syncCount } = useVotes();
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
   const [reviews, setReviews] = useState<Review[] | null>(null);
@@ -26,8 +26,10 @@ export function Reviews({ dish }: { dish: string }) {
   const fetchReviews = useCallback(async (): Promise<Review[]> => {
     const res = await fetch(`/api/reviews?dish=${encodeURIComponent(dish)}`, { cache: "no-store" }).catch(() => null);
     if (!res?.ok) return [];
-    return ((await res.json()) as { reviews: Review[] }).reviews;
-  }, [dish]);
+    const list = ((await res.json()) as { reviews: Review[] }).reviews;
+    syncCount(dish, list.length);
+    return list;
+  }, [dish, syncCount]);
 
   const show = (list: Review[]) => {
     setReviews(list);
@@ -77,7 +79,7 @@ export function Reviews({ dish }: { dish: string }) {
   };
 
   return (
-    <section className="space-y-4">
+    <section id="reviews" className="scroll-mt-16 space-y-4">
       <h3 className="text-xl font-bold">Reviews</h3>
 
       {reviews === null ? (

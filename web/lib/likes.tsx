@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { signIn, useSession } from "next-auth/react";
 import { track } from "@/lib/analytics";
 
-type Counts = { up: number; down: number };
+type Counts = { up: number; down: number; reviews: number };
 /** 1 thumbs up, -1 thumbs down. A dish with no entry hasn't been voted on by this person. */
 type Mine = Record<string, 1 | -1>;
 type VoteState = { enabled: boolean; counts: Record<string, Counts>; mine: Mine };
@@ -16,19 +16,25 @@ type Votes = {
   /** How many people gave the dish a thumbs up, and a thumbs down. Shown separately, never netted against each other. */
   up: (dish: string) => number;
   down: (dish: string) => number;
+  /** How many reviews have been written about the dish. */
+  reviews: (dish: string) => number;
+  /** Keeps the review count in step after the reviews are loaded, or one is added or deleted. */
+  setReviews: (dish: string, count: number) => void;
   /** This person's own vote on the dish: 1, -1, or 0. */
   vote: (dish: string) => 1 | -1 | 0;
   /** Gives a thumbs up or down (tapping the same one again takes it back). Does nothing when signed out. */
   cast: (dish: string, direction: 1 | -1) => void;
 };
 
-const NONE: Counts = { up: 0, down: 0 };
+const NONE: Counts = { up: 0, down: 0, reviews: 0 };
 
 const VotesContext = createContext<Votes>({
   enabled: false,
   signedIn: false,
   up: () => 0,
   down: () => 0,
+  reviews: () => 0,
+  setReviews: () => {},
   vote: () => 0,
   cast: () => {},
 });
@@ -71,6 +77,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
       const counts = {
         ...before.counts,
         [dish]: {
+          ...c,
           up: c.up - (was === 1 ? 1 : 0) + (vote === 1 ? 1 : 0),
           down: c.down - (was === -1 ? 1 : 0) + (vote === -1 ? 1 : 0),
         },
@@ -90,7 +97,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
             const next = { ...s.mine };
             if (result.vote === 0) delete next[dish];
             else next[dish] = result.vote as 1 | -1;
-            return { ...s, counts: { ...s.counts, [dish]: { up: result.up, down: result.down } }, mine: next };
+            return { ...s, counts: { ...s.counts, [dish]: { ...(s.counts[dish] ?? NONE), up: result.up, down: result.down } }, mine: next };
           }),
         )
         .catch(() =>
@@ -98,11 +105,20 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
             const next = { ...s.mine };
             if (was === 0) delete next[dish];
             else next[dish] = was;
-            return { ...s, counts: { ...s.counts, [dish]: c }, mine: next };
+            return { ...s, counts: { ...s.counts, [dish]: { ...(s.counts[dish] ?? NONE), up: c.up, down: c.down } }, mine: next };
           }),
         );
     },
     [userId, state],
+  );
+
+  const setReviews = useCallback(
+    (dish: string, count: number) =>
+      setState((s) => {
+        const c = s.counts[dish] ?? NONE;
+        return c.reviews === count ? s : { ...s, counts: { ...s.counts, [dish]: { ...c, reviews: count } } };
+      }),
+    [],
   );
 
   const value = useMemo<Votes>(() => {
@@ -112,9 +128,11 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
       signedIn: !!userId,
       up: (dish) => counts(dish).up,
       down: (dish) => counts(dish).down,
+      reviews: (dish) => counts(dish).reviews,
+      setReviews,
       vote: (dish) => state.mine[dish] ?? 0,
       cast,
     };
-  }, [state, cast, userId]);
+  }, [state, cast, userId, setReviews]);
   return <VotesContext.Provider value={value}>{children}</VotesContext.Provider>;
 }
