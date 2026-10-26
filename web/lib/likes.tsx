@@ -1,0 +1,194 @@
+"use client";
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { track } from "@/lib/analytics";
+
+/** score is up minus down: what the menu is ranked by. The two counts themselves are always shown apart. */
+type Counts = { up: number; down: number; score: number; reviews: number };
+/** 1 thumbs up, -1 thumbs down. A dish with no entry hasn't been voted on by this person. */
+type Mine = Record<string, 1 | -1>;
+/** ranks: each dish's score (thumbs ups minus thumbs downs) as of the last "ranking" load; the order dishes are listed in comes from this. */
+type VoteState = { enabled: boolean; counts: Record<string, Counts>; mine: Mine; ranks: Record<string, number> };
+
+type Votes = {
+  /** False until the first answer arrives, and for good when no database is connected: no thumbs are shown then. */
+  enabled: boolean;
+  signedIn: boolean;
+  /** How many people gave the dish a thumbs up, and a thumbs down. Shown separately, never netted against each other. */
+  up: (dish: string) => number;
+  down: (dish: string) => number;
+  /**
+   * The dish's score (thumbs ups minus thumbs downs) for ordering the menu. Only refreshed when the app opens or comes back into view,
+   * never by the 30-second refresh or your own taps, so dishes don't jump around while you're looking at them.
+   */
+  rank: (dish: string) => number;
+  /** How many reviews have been written about the dish. */
+  reviews: (dish: string) => number;
+  /** Keeps the review count in step after the reviews are loaded, or one is added or deleted. */
+  setReviews: (dish: string, count: number) => void;
+  /** This person's own vote on the dish: 1, -1, or 0. */
+  vote: (dish: string) => 1 | -1 | 0;
+  /** Gives a thumbs up or down (tapping the same one again takes it back). Does nothing when signed out. */
+  cast: (dish: string, direction: 1 | -1) => void;
+};
+
+const withScore = (c: Counts): Counts => ({ ...c, score: c.up - c.down });
+
+const NONE: Counts = { up: 0, down: 0, score: 0, reviews: 0 };
+
+const VotesContext = createContext<Votes>({
+  enabled: false,
+  signedIn: false,
+  up: () => 0,
+  down: () => 0,
+  rank: () => 0,
+  reviews: () => 0,
+  setReviews: () => {},
+  vote: () => 0,
+  cast: () => {},
+});
+
+export const useVotes = () => useContext(VotesContext);
+
+/** While the app is on screen, the counts are fetched again this often (and at once whenever it comes back into view). */
+export const REFRESH_MS = 30_000;
+
+export const signInWithGoogle = () => signIn("google", { callbackUrl: window.location.href });
+
+/** Thumbs-up and thumbs-down counts for every dish, and the signed-in person's own votes, kept in step with the server. */
+export function VotesProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+  const [state, setState] = useState<VoteState>({ enabled: false, counts: {}, mine: {}, ranks: {} });
+
+  // Votes sent to the server that haven't been answered yet; a refresh waits for them so it can't undo one.
+  const pending = useRef(0);
+
+  // Loads when the app opens and when someone signs in or out (their own votes change). Then it keeps the numbers
+  // fresh: a home-screen app is only paused in the background, not reloaded, so it fetches again the moment it
+  // comes back into view, and every REFRESH_MS while it's showing.
+  useEffect(() => {
+    if (status === "loading") return;
+    let cancelled = false;
+    let lastLoad = 0;
+    const load = (first: boolean, rerank: boolean) => {
+      if (!first && pending.current > 0) return;
+      lastLoad = Date.now();
+      fetch("/api/likes", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((body) => {
+          if (cancelled || pending.current > 0) return;
+          if (body) {
+            const counts: Record<string, Counts> = body.counts ?? {};
+            setState((s) => ({
+              enabled: true,
+              counts,
+              mine: body.mine ?? {},
+              // The menu's order only changes on a "ranking" load (opening, or coming back into view).
+              ranks: first || rerank ? Object.fromEntries(Object.entries(counts).map(([d, c]) => [d, c.score])) : s.ranks,
+            }));
+          }
+          // A failed refresh (offline, a hiccup) keeps what's on screen; only the first load can turn the thumbs off.
+          else if (first) setState({ enabled: false, counts: {}, mine: {}, ranks: {} });
+        })
+        .catch(() => {});
+    };
+    load(true, true);
+    const onBackInView = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastLoad > 3000) load(false, true);
+    };
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load(false, false);
+    }, REFRESH_MS);
+    document.addEventListener("visibilitychange", onBackInView);
+    window.addEventListener("pageshow", onBackInView);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onBackInView);
+      window.removeEventListener("pageshow", onBackInView);
+    };
+  }, [status, userId]);
+
+  const cast = useCallback(
+    (dish: string, direction: 1 | -1) => {
+      if (!userId) return;
+      const before = state;
+      const was = (before.mine[dish] as 1 | -1 | undefined) ?? 0;
+      const vote = was === direction ? 0 : direction;
+      track(vote === 1 ? "thumbs_up_given" : vote === -1 ? "thumbs_down_given" : "vote_removed", { dish });
+      // Shown at once, then replaced by the server's answer (or undone if it fails).
+      const c = before.counts[dish] ?? NONE;
+      const counts = {
+        ...before.counts,
+        [dish]: withScore({
+          ...c,
+          up: c.up - (was === 1 ? 1 : 0) + (vote === 1 ? 1 : 0),
+          down: c.down - (was === -1 ? 1 : 0) + (vote === -1 ? 1 : 0),
+        }),
+      };
+      const mine = { ...before.mine };
+      if (vote === 0) delete mine[dish];
+      else mine[dish] = vote;
+      setState({ ...before, counts, mine });
+      pending.current++;
+      fetch("/api/likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dish, vote }),
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+        .then((result: { up: number; down: number; vote: number }) =>
+          setState((s) => {
+            const next = { ...s.mine };
+            if (result.vote === 0) delete next[dish];
+            else next[dish] = result.vote as 1 | -1;
+            return { ...s, counts: { ...s.counts, [dish]: withScore({ ...(s.counts[dish] ?? NONE), up: result.up, down: result.down }) }, mine: next };
+          }),
+        )
+        .catch(() =>
+          setState((s) => {
+            const next = { ...s.mine };
+            if (was === 0) delete next[dish];
+            else next[dish] = was;
+            return { ...s, counts: { ...s.counts, [dish]: withScore({ ...(s.counts[dish] ?? NONE), up: c.up, down: c.down }) }, mine: next };
+          }),
+        )
+        .finally(() => {
+          pending.current--;
+        });
+    },
+    [userId, state],
+  );
+
+  const setReviews = useCallback(
+    (dish: string, count: number) =>
+      setState((s) => {
+        const c = s.counts[dish] ?? NONE;
+        return c.reviews === count ? s : { ...s, counts: { ...s.counts, [dish]: { ...c, reviews: count } } };
+      }),
+    [],
+  );
+
+  const value = useMemo<Votes>(() => {
+    const counts = (dish: string) => state.counts[dish] ?? NONE;
+    return {
+      enabled: state.enabled,
+      signedIn: !!userId,
+      up: (dish) => counts(dish).up,
+      down: (dish) => counts(dish).down,
+      rank: (dish) => state.ranks[dish] ?? 0,
+      reviews: (dish) => counts(dish).reviews,
+      setReviews,
+      vote: (dish) => state.mine[dish] ?? 0,
+      cast,
+    };
+  }, [state, cast, userId, setReviews]);
+  return <VotesContext.Provider value={value}>{children}</VotesContext.Provider>;
+}
+
+/** Dishes with the highest score (thumbs ups minus thumbs downs) first. Dishes with the same score keep the order the kitchen posted them in. */
+export function sortByRank<T extends { name: string }>(items: T[], rank: (dish: string) => number): T[] {
+  return [...items].sort((a, b) => rank(b.name) - rank(a.name));
+}

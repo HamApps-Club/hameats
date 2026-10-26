@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* Dark mode follows the `dark` class on <html>, set from the device's light/dark setting until the in-app toggle picks one (see lib/theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+/* On an Android phone (the `android` class on <html> is set in lib/theme.ts). */
+@custom-variant android (&:where(.android, .android *));
+/* Opened from the home screen as an installed app (PWA), not in a browser tab. */
+@custom-variant standalone (@media (display-mode: standalone));
+
+:root {
+  /* "Hamilton Modern": Hamilton's buff and blue. Roughly 60% warm ground and cards, 30% blue for structure
+     (the header band, meal control, station labels, hall scroller), 10% gold, which only ever means
+     "now / you are here" (the selected day, Serving now, the hall on screen). */
+  /* Every page's background (bg-background), so anything drawn straight on <body> (the Continental
+     hall scroller, overscroll) matches: a light, slightly desaturated buff. */
+  --background: #f6f1e7;
+  /* Cards and panels (bg-surface): warm near-white. */
+  --surface: #fffdf8;
+  --foreground: #14192b;
+  /* Secondary text (hours, labels): 6.5:1 on cards. */
+  --muted: #625c50;
+  /* Hairlines: card edges, filter chips, the rule after each station name. */
+  --rule: #e3d8c3;
+  /* Blue for text and outlines (station names, the meal control, Clear). */
+  --accent: #22479a;
+  /* Blue for fills (the selected meal, filter counts, Add to Home Screen) and the text on it. */
+  --accent-fill: #22479a;
+  --on-accent: #fffdf8;
+  /* The header band and hall scroller: solid Continental Blue, so iOS can copy it behind the clock. */
+  --band: #002f86;
+  --band-ink: #f6f1e7;
+  --band-edge: transparent;
+  /* Gold: never text on a light background (1.9:1); use it as a fill under dark text, or gold-ink for text. */
+  --gold: #f0b100;
+  --gold-ink: #8a5a00;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
+  --color-on-accent: var(--on-accent);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-band: var(--band);
+  --color-band-ink: var(--band-ink);
+  --color-band-edge: var(--band-edge);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-zilla-slab), Georgia, serif;
+}
+
+/* Dark mode is navy-black rather than gray, with cream text (less glare than white) and a light periwinkle
+   blue that reads on dark; fills in that blue carry dark text. */
+.dark {
+  --background: #0e1424;
+  --surface: #161f35;
+  --foreground: #f2ecdf;
+  --muted: #a9a291;
+  --rule: #26304a;
+  --accent: #9db8ff;
+  --accent-fill: #9db8ff;
+  --on-accent: #0e1424;
+  /* A step lighter than the page, with a faint edge, so the band still reads as its own layer. */
+  --band: #14224d;
+  --band-ink: #f2ecdf;
+  --band-edge: rgb(157 184 255 / 0.16);
+  --gold-ink: #f0b100;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Android only (the `android` class is set in lib/theme.ts): no frosted glass. Chrome on Android
+   re-blurs everything behind a backdrop-filter on every frame of a scroll, which makes scrolling lag
+   under the sticky headers and the hall scroller. Bars that relied on the blur get the solid page
+   background instead (their translucent background is the same color); the hall scroller sets its own
+   solid color with the android: variant. iPhones keep the blur. */
+.android .backdrop-blur,
+.android .backdrop-blur-md {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.android .sticky.backdrop-blur {
+  background-color: var(--background);
+}
+
+/* The launch screen (components/Splash.tsx). Hidden unless SPLASH_SCRIPT put the `splash` class on <html>
+   (so it never covers the page without JavaScript); `splash-out` fades it away. */
+#splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Dark mode's --background, also the mark's square color (Splash.tsx), so the square blends into the screen. */
+  background: #0e1424;
+  transition: opacity 0.15s ease-out;
+}
+.splash #splash {
+  display: flex;
+}
+.splash-out #splash {
+  opacity: 0;
+  pointer-events: none;
+}
+/* The steam rises and fades, one wisp after another. */
+.splash-steam {
+  animation: splash-steam 1.6s ease-in-out infinite;
+}
+.splash-steam:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.splash-steam:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes splash-steam {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.35; transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-steam {
+    animation: none;
+  }
+}

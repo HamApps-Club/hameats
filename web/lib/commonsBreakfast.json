@@ -1,0 +1,10 @@
+{
+  "Spoon & Fork": [
+    { "name": "Scrambled Eggs", "calories": 96.0, "tags": ["Egg", "Vegetarian", "Gluten Friendly"] },
+    { "name": "Scrambled Tofu", "calories": 99.0, "tags": ["Soy", "Vegetarian", "Vegan", "Gluten Friendly"] },
+    { "name": "Hardboiled Egg", "calories": 90.0, "tags": ["Egg", "Vegetarian", "Gluten Friendly"] },
+    { "name": "Home Fried Potatoes", "calories": 121.0, "tags": ["Vegetarian", "Vegan", "Gluten Friendly"] },
+    { "name": "Vegetarian Breakfast Sausage Patty", "calories": 3.0, "tags": ["Wheat", "Dairy", "Egg", "Soy", "Vegetarian"] },
+    { "name": "Hot Oatmeal", "calories": 70.0, "tags": ["Vegan", "Gluten Friendly"] }
+  ]
+}
