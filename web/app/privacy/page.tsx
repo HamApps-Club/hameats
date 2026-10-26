@@ -71,7 +71,7 @@ export default function PrivacyPage() {
             &quot;Log in,&quot; Google tells HamEats your name and email address. HamEats keeps only your Google account
             ID in its database, along with the dishes you gave a thumbs up and any reviews you wrote. Your email
             address is not saved in the database. Anyone can see a dish&apos;s thumbs-up count and its reviews. A
-            review is shown with your first name and last initial, the date, and what you wrote. Please don&apos;t
+            review is shown with your first name, the date, and what you wrote. Please don&apos;t
             put anything private in a review.
           </p>
           <p>

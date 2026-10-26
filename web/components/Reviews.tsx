@@ -129,7 +129,7 @@ export function Reviews({ dish }: { dish: string }) {
             )}
             <span className="ml-auto text-xs text-zinc-500">{text.length}/{MAX}</span>
           </div>
-          <p className="text-xs text-zinc-500">Shown with your first name and last initial.</p>
+          <p className="text-xs text-zinc-500">Shown with your first name.</p>
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         </div>
       ) : (
