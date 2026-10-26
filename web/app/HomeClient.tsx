@@ -6,6 +6,7 @@ import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
 import { LoginButton } from "@/components/LoginButton";
 import { MenuList } from "@/components/MenuList";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { daysFrom, formatDate } from "@/lib/dates";
@@ -354,6 +355,7 @@ export function HomeClient(props: { initialMenu: MenuData | null }) {
   return (
     <SessionProvider>
       <VotesProvider>
+        <PullToRefresh />
         <Home {...props} />
       </VotesProvider>
     </SessionProvider>
