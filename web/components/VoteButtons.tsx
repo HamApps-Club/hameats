@@ -78,7 +78,7 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
           on ? lit : "text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
         }`}
       >
-        <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-3"} />
+        <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-3.5"} />
         {/* Hidden at zero, but still takes up room, so the pills line up. */}
         <span aria-hidden className={`min-w-[1.25ch] text-center font-semibold tabular-nums ${count === 0 ? "invisible" : ""}`}>
           {count}
@@ -153,7 +153,7 @@ export function CommentPill({ dish, onClick, size = "sm" }: { dish: string; onCl
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden
-        className={lg ? "size-5" : "size-3"}
+        className={lg ? "size-5" : "size-3.5"}
       >
         <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z" />
       </svg>
