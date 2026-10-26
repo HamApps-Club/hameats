@@ -4,10 +4,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { signIn, useSession } from "next-auth/react";
 import { track } from "@/lib/analytics";
 
-type Counts = { up: number; down: number; reviews: number };
+/** score is up minus down: what the menu is ranked by. The two counts themselves are always shown apart. */
+type Counts = { up: number; down: number; score: number; reviews: number };
 /** 1 thumbs up, -1 thumbs down. A dish with no entry hasn't been voted on by this person. */
 type Mine = Record<string, 1 | -1>;
-/** ranks: each dish's thumbs-up count as of the last "ranking" load; the order dishes are listed in comes from this. */
+/** ranks: each dish's score (thumbs ups minus thumbs downs) as of the last "ranking" load; the order dishes are listed in comes from this. */
 type VoteState = { enabled: boolean; counts: Record<string, Counts>; mine: Mine; ranks: Record<string, number> };
 
 type Votes = {
@@ -18,7 +19,7 @@ type Votes = {
   up: (dish: string) => number;
   down: (dish: string) => number;
   /**
-   * The dish's thumbs-up count for ordering the menu. Only refreshed when the app opens or comes back into view,
+   * The dish's score (thumbs ups minus thumbs downs) for ordering the menu. Only refreshed when the app opens or comes back into view,
    * never by the 30-second refresh or your own taps, so dishes don't jump around while you're looking at them.
    */
   rank: (dish: string) => number;
@@ -32,7 +33,9 @@ type Votes = {
   cast: (dish: string, direction: 1 | -1) => void;
 };
 
-const NONE: Counts = { up: 0, down: 0, reviews: 0 };
+const withScore = (c: Counts): Counts => ({ ...c, score: c.up - c.down });
+
+const NONE: Counts = { up: 0, down: 0, score: 0, reviews: 0 };
 
 const VotesContext = createContext<Votes>({
   enabled: false,
@@ -83,7 +86,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
               counts,
               mine: body.mine ?? {},
               // The menu's order only changes on a "ranking" load (opening, or coming back into view).
-              ranks: first || rerank ? Object.fromEntries(Object.entries(counts).map(([d, c]) => [d, c.up])) : s.ranks,
+              ranks: first || rerank ? Object.fromEntries(Object.entries(counts).map(([d, c]) => [d, c.score])) : s.ranks,
             }));
           }
           // A failed refresh (offline, a hiccup) keeps what's on screen; only the first load can turn the thumbs off.
@@ -119,11 +122,11 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
       const c = before.counts[dish] ?? NONE;
       const counts = {
         ...before.counts,
-        [dish]: {
+        [dish]: withScore({
           ...c,
           up: c.up - (was === 1 ? 1 : 0) + (vote === 1 ? 1 : 0),
           down: c.down - (was === -1 ? 1 : 0) + (vote === -1 ? 1 : 0),
-        },
+        }),
       };
       const mine = { ...before.mine };
       if (vote === 0) delete mine[dish];
@@ -141,7 +144,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
             const next = { ...s.mine };
             if (result.vote === 0) delete next[dish];
             else next[dish] = result.vote as 1 | -1;
-            return { ...s, counts: { ...s.counts, [dish]: { ...(s.counts[dish] ?? NONE), up: result.up, down: result.down } }, mine: next };
+            return { ...s, counts: { ...s.counts, [dish]: withScore({ ...(s.counts[dish] ?? NONE), up: result.up, down: result.down }) }, mine: next };
           }),
         )
         .catch(() =>
@@ -149,7 +152,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
             const next = { ...s.mine };
             if (was === 0) delete next[dish];
             else next[dish] = was;
-            return { ...s, counts: { ...s.counts, [dish]: { ...(s.counts[dish] ?? NONE), up: c.up, down: c.down } }, mine: next };
+            return { ...s, counts: { ...s.counts, [dish]: withScore({ ...(s.counts[dish] ?? NONE), up: c.up, down: c.down }) }, mine: next };
           }),
         )
         .finally(() => {
@@ -185,7 +188,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
   return <VotesContext.Provider value={value}>{children}</VotesContext.Provider>;
 }
 
-/** Dishes with the most thumbs ups first. Dishes with the same count keep the order the kitchen posted them in. */
+/** Dishes with the highest score (thumbs ups minus thumbs downs) first. Dishes with the same score keep the order the kitchen posted them in. */
 export function sortByRank<T extends { name: string }>(items: T[], rank: (dish: string) => number): T[] {
   return [...items].sort((a, b) => rank(b.name) - rank(a.name));
 }

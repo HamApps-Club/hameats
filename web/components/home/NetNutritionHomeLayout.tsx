@@ -83,7 +83,7 @@ function HallColumn({
   const win = windowFor(hall, date, meal);
   const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
   const { rank } = useVotes();
-  // Within each station, the dishes with the most thumbs ups come first.
+  // Within each station, the dishes with the best score (thumbs ups minus thumbs downs) come first.
   const stations = orderedStations(mealMenu, hall.stationOrder)
     .filter(([, items]) => items.length > 0)
     .map(([station, items]): [string, MenuItem[]] => [station, sortByRank(items, rank)]);
