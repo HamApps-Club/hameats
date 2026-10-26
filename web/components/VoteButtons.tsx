@@ -74,11 +74,11 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
         onClick={() => press(direction)}
         aria-pressed={on}
         aria-label={`${on ? `Remove your ${name.toLowerCase()} from` : name} ${dish}, ${count} so far`}
-        className={`flex items-center justify-center gap-1 px-2.5 ${lg ? "min-h-10" : "min-h-8"} ${
+        className={`flex items-center justify-center gap-1 ${lg ? "px-2.5 min-h-10" : "px-1.5 min-h-6"} ${
           on ? lit : "text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
         }`}
       >
-        <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-4"} />
+        <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-3"} />
         {/* Hidden at zero, but still takes up room, so the pills line up. */}
         <span aria-hidden className={`min-w-[1.25ch] text-center font-semibold tabular-nums ${count === 0 ? "invisible" : ""}`}>
           {count}
@@ -89,7 +89,7 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
 
   return (
     <div ref={wrapper} className="relative shrink-0">
-      <div className={`flex items-stretch overflow-hidden rounded-full border border-rule ${lg ? "text-base" : "text-sm"}`}>
+      <div className={`flex items-stretch overflow-hidden rounded-full border border-rule ${lg ? "text-base" : "text-[11px]"}`}>
         {button(1)}
         <span aria-hidden className="my-1.5 w-px bg-rule" />
         {button(-1)}
@@ -141,8 +141,8 @@ export function CommentPill({ dish, onClick, size = "sm" }: { dish: string; onCl
       type="button"
       onClick={onClick}
       aria-label={`${n} ${n === 1 ? "review" : "reviews"} of ${dish}`}
-      className={`flex shrink-0 items-center gap-1.5 rounded-full border border-rule px-2.5 text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
-        lg ? "min-h-10 text-base" : "min-h-8 text-sm"
+      className={`flex shrink-0 items-center gap-1.5 rounded-full border border-rule ${lg ? "px-2.5" : "px-1.5"} text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
+        lg ? "min-h-10 text-base" : "min-h-6 text-[11px]"
       }`}
     >
       <svg
@@ -153,7 +153,7 @@ export function CommentPill({ dish, onClick, size = "sm" }: { dish: string; onCl
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden
-        className={lg ? "size-5" : "size-4"}
+        className={lg ? "size-5" : "size-3"}
       >
         <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.6-.8L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z" />
       </svg>
