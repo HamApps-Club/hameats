@@ -40,7 +40,7 @@ export function MenuList({
   onSelect: (item: MenuItem, station: string) => void;
 }) {
   const { rank } = useVotes();
-  // Within each station, the dishes with the most thumbs ups come first.
+  // Within each station, the dishes with the best score (thumbs ups minus thumbs downs) come first.
   const entries = orderedStations(stations, stationOrder).map(([station, items]): [string, MenuItem[]] => [
     station,
     sortByRank(items, rank),

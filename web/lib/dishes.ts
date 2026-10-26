@@ -2,7 +2,7 @@ import "server-only";
 import { run, transaction } from "@/lib/db";
 import type { MenuData } from "@/lib/types";
 
-// Every dish name HamEats has ever shown, with its thumbs-up and thumbs-down counts, who gave them (dish_likes holds one
+// Every dish name HamEats has ever shown, with its thumbs-up and thumbs-down counts and their difference (score), who gave them (dish_likes holds one
 // vote per person per dish: value 1 is a thumbs up, -1 a thumbs down), and the reviews written about it.
 // Dishes are keyed by name alone, so "Chicken Tenders" is one dish whichever hall serves it.
 
@@ -30,6 +30,8 @@ const SCHEMA = [
   // Added after the first release; harmless to run again.
   "ALTER TABLE dishes ADD COLUMN IF NOT EXISTS thumbs_down integer NOT NULL DEFAULT 0",
   "ALTER TABLE dish_likes ADD COLUMN IF NOT EXISTS value smallint NOT NULL DEFAULT 1 CHECK (value IN (1, -1))",
+  // The difference (thumbs ups minus thumbs downs) that the menu is ranked by. The database keeps it in step by itself.
+  "ALTER TABLE dishes ADD COLUMN IF NOT EXISTS score integer GENERATED ALWAYS AS (thumbs_up - thumbs_down) STORED",
 ];
 
 let schemaReady: Promise<void> | undefined;
@@ -69,13 +71,14 @@ export type Vote = 1 | -1 | 0;
 export async function getLikeState(userId: string | undefined) {
   await ensureSchema();
   const [votes, reviews, mine] = await Promise.all([
-    run("SELECT name, thumbs_up, thumbs_down FROM dishes WHERE thumbs_up > 0 OR thumbs_down > 0"),
+    run("SELECT name, thumbs_up, thumbs_down, score FROM dishes WHERE thumbs_up > 0 OR thumbs_down > 0"),
     run("SELECT dish, count(*) AS n FROM dish_reviews GROUP BY dish"),
     userId ? run("SELECT dish, value FROM dish_likes WHERE user_id = $1", [userId]) : Promise.resolve([]),
   ]);
-  const counts: Record<string, { up: number; down: number; reviews: number }> = {};
-  for (const r of votes) counts[r.name as string] = { up: Number(r.thumbs_up), down: Number(r.thumbs_down), reviews: 0 };
-  for (const r of reviews) (counts[r.dish as string] ??= { up: 0, down: 0, reviews: 0 }).reviews = Number(r.n);
+  const counts: Record<string, { up: number; down: number; score: number; reviews: number }> = {};
+  for (const r of votes)
+    counts[r.name as string] = { up: Number(r.thumbs_up), down: Number(r.thumbs_down), score: Number(r.score), reviews: 0 };
+  for (const r of reviews) (counts[r.dish as string] ??= { up: 0, down: 0, score: 0, reviews: 0 }).reviews = Number(r.n);
   return {
     counts,
     mine: Object.fromEntries(mine.map((r) => [r.dish as string, Number(r.value)])),
