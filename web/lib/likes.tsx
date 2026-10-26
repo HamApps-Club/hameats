@@ -13,8 +13,7 @@ type Votes = {
   /** False until the first answer arrives, and for good when no database is connected: no thumbs are shown then. */
   enabled: boolean;
   signedIn: boolean;
-  /** Thumbs ups minus thumbs downs from everybody: the number shown beside each dish. */
-  score: (dish: string) => number;
+  /** How many people gave the dish a thumbs up, and a thumbs down. Shown separately, never netted against each other. */
   up: (dish: string) => number;
   down: (dish: string) => number;
   /** This person's own vote on the dish: 1, -1, or 0. */
@@ -28,7 +27,6 @@ const NONE: Counts = { up: 0, down: 0 };
 const VotesContext = createContext<Votes>({
   enabled: false,
   signedIn: false,
-  score: () => 0,
   up: () => 0,
   down: () => 0,
   vote: () => 0,
@@ -112,7 +110,6 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
     return {
       enabled: state.enabled,
       signedIn: !!userId,
-      score: (dish) => counts(dish).up - counts(dish).down,
       up: (dish) => counts(dish).up,
       down: (dish) => counts(dish).down,
       vote: (dish) => state.mine[dish] ?? 0,

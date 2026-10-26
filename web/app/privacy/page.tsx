@@ -83,7 +83,7 @@ export default function PrivacyPage() {
             cookie on your device holds your name, email, and photo so you stay logged in. Logging out removes it.
           </p>
           <p>
-            Anyone can see a dish&apos;s score (its thumbs ups minus its thumbs downs) and its reviews. Nobody can see who gave a thumbs up or down. A review is shown with your first name, the
+            Anyone can see how many thumbs ups and thumbs downs a dish has, and its reviews. Nobody can see who gave a thumbs up or down. A review is shown with your first name, the
             date, and what you wrote. Please don&apos;t put anything private in a review.
           </p>
           <p>

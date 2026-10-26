@@ -27,12 +27,12 @@ function ThumbIcon({ filled, down, className }: { filled: boolean; down?: boolea
 const BUBBLE_ROOM = 190;
 
 /**
- * A thumbs up, the dish's score (everybody's thumbs ups minus thumbs downs), and a thumbs down. Tap one to vote, and
- * tap it again to take the vote back. Signed-out visitors get a small bubble asking them to log in, rather than being
- * sent straight to Google. Not shown when no database is connected.
+ * A thumbs up and a thumbs down, each with its own count: one of each shows as 1 and 1, never netted to 0. Tap one to
+ * vote, and tap it again to take the vote back. Signed-out visitors get a small bubble asking them to log in, rather
+ * than being sent straight to Google. Not shown when no database is connected.
  */
 export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" | "lg" }) {
-  const { enabled, signedIn, score, vote, cast } = useVotes();
+  const { enabled, signedIn, up, down, vote, cast } = useVotes();
   const [bubble, setBubble] = useState<"above" | "below" | null>(null);
   const wrapper = useRef<HTMLDivElement>(null);
 
@@ -53,7 +53,6 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
 
   if (!enabled) return null;
   const mine = vote(dish);
-  const total = score(dish);
   const lg = size === "lg";
 
   const press = (direction: 1 | -1) => {
@@ -66,38 +65,36 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
   const button = (direction: 1 | -1) => {
     const on = mine === direction;
     const name = direction === 1 ? "Thumbs up" : "Thumbs down";
+    const count = direction === 1 ? up(dish) : down(dish);
     return (
       <button
         type="button"
         onClick={() => press(direction)}
         aria-pressed={on}
-        aria-label={on ? `Remove your ${name.toLowerCase()} from ${dish}` : `${name} ${dish}`}
-        className={`flex shrink-0 items-center justify-center rounded-lg hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
+        aria-label={`${on ? `Remove your ${name.toLowerCase()} from` : name} ${dish}, ${count} so far`}
+        className={`flex shrink-0 items-center justify-center gap-1 rounded-lg px-1.5 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
           on ? "text-accent" : "text-muted"
-        } ${lg ? "min-h-11 min-w-10" : "min-h-9 min-w-8"}`}
+        } ${lg ? "min-h-11 min-w-12" : "min-h-9 min-w-8"}`}
       >
         <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-6" : "size-5"} />
+        {/* Hidden at zero, but still takes up room, so the rows line up. */}
+        <span aria-hidden className={`min-w-[1.25ch] text-center font-semibold tabular-nums ${count === 0 ? "invisible" : ""}`}>
+          {count}
+        </span>
       </button>
     );
   };
 
   return (
-    <div ref={wrapper} className={`relative flex shrink-0 items-center ${lg ? "text-lg" : "text-sm"}`}>
+    <div ref={wrapper} className={`relative flex shrink-0 items-center gap-0.5 ${lg ? "text-lg" : "text-sm"}`}>
       {button(1)}
-      {/* Hidden at zero, but still takes up room, so the rows line up. */}
-      <span
-        aria-label={`Score ${total}`}
-        className={`min-w-[2ch] text-center font-semibold tabular-nums text-muted ${total === 0 ? "invisible" : ""}`}
-      >
-        {total}
-      </span>
       {button(-1)}
 
       {bubble && (
         <div
           role="dialog"
           aria-label="Log in to vote"
-          className={`absolute right-0 z-40 w-64 rounded-xl border border-zinc-200 bg-white p-4 text-left text-base font-normal text-zinc-700 shadow-xl dark:border-zinc-700 dark:bg-surface dark:text-zinc-300 ${
+          className={`absolute ${lg ? "left-0" : "right-0"} z-40 w-64 rounded-xl border border-zinc-200 bg-white p-4 text-left text-base font-normal text-zinc-700 shadow-xl dark:border-zinc-700 dark:bg-surface dark:text-zinc-300 ${
             bubble === "below" ? "top-full mt-1.5" : "bottom-full mb-1.5"
           }`}
         >
