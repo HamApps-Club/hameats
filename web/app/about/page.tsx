@@ -70,7 +70,7 @@ export default function AboutPage() {
             Suki &apos;27
           </p>
           <p>
-            &quot;This app has a very user friendly user interface which is much better than the one Cravable has&quot;
+            &quot;This app has a very user-friendly interface, which is much better than the one Craveable has&quot;
             <br />
             Maung &apos;28
           </p>
