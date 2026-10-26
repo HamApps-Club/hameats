@@ -7,7 +7,8 @@ import { track } from "@/lib/analytics";
 type Counts = { up: number; down: number; reviews: number };
 /** 1 thumbs up, -1 thumbs down. A dish with no entry hasn't been voted on by this person. */
 type Mine = Record<string, 1 | -1>;
-type VoteState = { enabled: boolean; counts: Record<string, Counts>; mine: Mine };
+/** ranks: each dish's thumbs-up count as of the last "ranking" load; the order dishes are listed in comes from this. */
+type VoteState = { enabled: boolean; counts: Record<string, Counts>; mine: Mine; ranks: Record<string, number> };
 
 type Votes = {
   /** False until the first answer arrives, and for good when no database is connected: no thumbs are shown then. */
@@ -16,6 +17,11 @@ type Votes = {
   /** How many people gave the dish a thumbs up, and a thumbs down. Shown separately, never netted against each other. */
   up: (dish: string) => number;
   down: (dish: string) => number;
+  /**
+   * The dish's thumbs-up count for ordering the menu. Only refreshed when the app opens or comes back into view,
+   * never by the 30-second refresh or your own taps, so dishes don't jump around while you're looking at them.
+   */
+  rank: (dish: string) => number;
   /** How many reviews have been written about the dish. */
   reviews: (dish: string) => number;
   /** Keeps the review count in step after the reviews are loaded, or one is added or deleted. */
@@ -33,6 +39,7 @@ const VotesContext = createContext<Votes>({
   signedIn: false,
   up: () => 0,
   down: () => 0,
+  rank: () => 0,
   reviews: () => 0,
   setReviews: () => {},
   vote: () => 0,
@@ -50,7 +57,7 @@ export const signInWithGoogle = () => signIn("google", { callbackUrl: window.loc
 export function VotesProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
-  const [state, setState] = useState<VoteState>({ enabled: false, counts: {}, mine: {} });
+  const [state, setState] = useState<VoteState>({ enabled: false, counts: {}, mine: {}, ranks: {} });
 
   // Votes sent to the server that haven't been answered yet; a refresh waits for them so it can't undo one.
   const pending = useRef(0);
@@ -62,25 +69,34 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
     if (status === "loading") return;
     let cancelled = false;
     let lastLoad = 0;
-    const load = (first: boolean) => {
+    const load = (first: boolean, rerank: boolean) => {
       if (!first && pending.current > 0) return;
       lastLoad = Date.now();
       fetch("/api/likes", { cache: "no-store" })
         .then((res) => (res.ok ? res.json() : null))
         .then((body) => {
           if (cancelled || pending.current > 0) return;
-          if (body) setState({ enabled: true, counts: body.counts ?? {}, mine: body.mine ?? {} });
+          if (body) {
+            const counts: Record<string, Counts> = body.counts ?? {};
+            setState((s) => ({
+              enabled: true,
+              counts,
+              mine: body.mine ?? {},
+              // The menu's order only changes on a "ranking" load (opening, or coming back into view).
+              ranks: first || rerank ? Object.fromEntries(Object.entries(counts).map(([d, c]) => [d, c.up])) : s.ranks,
+            }));
+          }
           // A failed refresh (offline, a hiccup) keeps what's on screen; only the first load can turn the thumbs off.
-          else if (first) setState({ enabled: false, counts: {}, mine: {} });
+          else if (first) setState({ enabled: false, counts: {}, mine: {}, ranks: {} });
         })
         .catch(() => {});
     };
-    load(true);
+    load(true, true);
     const onBackInView = () => {
-      if (document.visibilityState === "visible" && Date.now() - lastLoad > 3000) load(false);
+      if (document.visibilityState === "visible" && Date.now() - lastLoad > 3000) load(false, true);
     };
     const timer = setInterval(() => {
-      if (document.visibilityState === "visible") load(false);
+      if (document.visibilityState === "visible") load(false, false);
     }, REFRESH_MS);
     document.addEventListener("visibilitychange", onBackInView);
     window.addEventListener("pageshow", onBackInView);
@@ -159,6 +175,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
       signedIn: !!userId,
       up: (dish) => counts(dish).up,
       down: (dish) => counts(dish).down,
+      rank: (dish) => state.ranks[dish] ?? 0,
       reviews: (dish) => counts(dish).reviews,
       setReviews,
       vote: (dish) => state.mine[dish] ?? 0,
@@ -166,4 +183,9 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
     };
   }, [state, cast, userId, setReviews]);
   return <VotesContext.Provider value={value}>{children}</VotesContext.Provider>;
+}
+
+/** Dishes with the most thumbs ups first. Dishes with the same count keep the order the kitchen posted them in. */
+export function sortByRank<T extends { name: string }>(items: T[], rank: (dish: string) => number): T[] {
+  return [...items].sort((a, b) => rank(b.name) - rank(a.name));
 }
