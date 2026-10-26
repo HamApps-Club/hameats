@@ -74,12 +74,12 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
         onClick={() => press(direction)}
         aria-pressed={on}
         aria-label={`${on ? `Remove your ${name.toLowerCase()} from` : name} ${dish}, ${count} so far`}
-        className={`flex items-center justify-center gap-1 ${lg ? "px-2.5 min-h-10" : "px-1.5 min-h-6"} ${
+        className={`flex items-center justify-center ${lg ? "gap-1 px-2.5 min-h-10" : "gap-0.5 px-1.5 min-h-[22px]"} ${
           on ? lit : "text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
         }`}
       >
         <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-4"} />
-        <span aria-hidden className="min-w-[1.25ch] text-center font-semibold tabular-nums">
+        <span aria-hidden className="min-w-[1ch] text-center font-semibold tabular-nums">
           {count}
         </span>
       </button>
@@ -90,7 +90,7 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
     <div ref={wrapper} className="relative shrink-0">
       <div className={`flex items-stretch overflow-hidden rounded-full border border-rule ${lg ? "text-base" : "text-[11px]"}`}>
         {button(1)}
-        <span aria-hidden className="my-1.5 w-px bg-rule" />
+        <span aria-hidden className="my-1 w-px bg-rule" />
         {button(-1)}
       </div>
 
@@ -140,8 +140,8 @@ export function CommentPill({ dish, onClick, size = "sm" }: { dish: string; onCl
       type="button"
       onClick={onClick}
       aria-label={`${n} ${n === 1 ? "review" : "reviews"} of ${dish}`}
-      className={`flex shrink-0 items-center gap-1.5 rounded-full border border-rule ${lg ? "px-2.5" : "px-1.5"} text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
-        lg ? "min-h-10 text-base" : "min-h-6 text-[11px]"
+      className={`flex shrink-0 items-center rounded-full border border-rule ${lg ? "gap-1.5 px-2.5" : "gap-1 px-1.5"} text-muted hover:bg-zinc-200/60 dark:hover:bg-zinc-800 ${
+        lg ? "min-h-10 text-base" : "min-h-[22px] text-[11px]"
       }`}
     >
       <svg
