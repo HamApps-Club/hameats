@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { signInWithGoogle, useVotes } from "@/lib/likes";
 
-/** The thumbs-up hand: an outline, filled in once you've chosen it. Flipped upside down, it's the thumbs down. */
+/** The thumbs-up hand (its box is cropped to the drawing, so it has no empty margin): an outline, filled in once you've chosen it. Flipped upside down, it's the thumbs down. */
 function ThumbIcon({ filled, down, className }: { filled: boolean; down?: boolean; className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="2 1.5 20 20"
       fill={filled ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth={1.8}
@@ -145,7 +145,7 @@ export function CommentPill({ dish, onClick, size = "sm" }: { dish: string; onCl
       }`}
     >
       <svg
-        viewBox="0 0 24 24"
+        viewBox="2 2 20 20"
         fill="none"
         stroke="currentColor"
         strokeWidth={1.8}
