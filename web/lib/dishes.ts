@@ -65,17 +65,19 @@ export async function recordDishes(names: string[]) {
 
 export type Vote = 1 | -1 | 0;
 
-/** Every dish with a vote: its thumbs ups and downs. For a signed-in person, also their own vote on each dish. */
+/** Every dish with a vote or a review: its thumbs ups, thumbs downs and review count. For a signed-in person, also their own vote on each dish. */
 export async function getLikeState(userId: string | undefined) {
   await ensureSchema();
-  const [counts, mine] = await Promise.all([
+  const [votes, reviews, mine] = await Promise.all([
     run("SELECT name, thumbs_up, thumbs_down FROM dishes WHERE thumbs_up > 0 OR thumbs_down > 0"),
+    run("SELECT dish, count(*) AS n FROM dish_reviews GROUP BY dish"),
     userId ? run("SELECT dish, value FROM dish_likes WHERE user_id = $1", [userId]) : Promise.resolve([]),
   ]);
+  const counts: Record<string, { up: number; down: number; reviews: number }> = {};
+  for (const r of votes) counts[r.name as string] = { up: Number(r.thumbs_up), down: Number(r.thumbs_down), reviews: 0 };
+  for (const r of reviews) (counts[r.dish as string] ??= { up: 0, down: 0, reviews: 0 }).reviews = Number(r.n);
   return {
-    counts: Object.fromEntries(
-      counts.map((r) => [r.name as string, { up: Number(r.thumbs_up), down: Number(r.thumbs_down) }]),
-    ),
+    counts,
     mine: Object.fromEntries(mine.map((r) => [r.dish as string, Number(r.value)])),
   };
 }

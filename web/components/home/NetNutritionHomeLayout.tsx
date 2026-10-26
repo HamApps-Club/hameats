@@ -9,7 +9,7 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
-import { VoteButtons } from "@/components/VoteButtons";
+import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
@@ -113,18 +113,25 @@ function HallColumn({
               <h3 className="mb-2 flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.16em] text-accent after:h-px after:flex-1 after:bg-rule">
                 {station}
               </h3>
-              <div>
-                {items.map((it) => (
-                  <div key={it.name} className="flex w-full items-center justify-between gap-1">
-                    <button
-                      onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                      className="min-w-0 flex-1 py-1.5 text-left text-[16.5px] hover:text-accent hover:underline hover:underline-offset-[3px]"
-                    >
-                      <span>{it.name}</span>
-                    </button>
-                    <VoteButtons dish={it.name} />
-                  </div>
-                ))}
+              <div className="divide-y divide-rule/70">
+                {items.map((it) => {
+                  const select = () => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` });
+                  return (
+                    <div key={it.name} className="py-2.5">
+                      <button
+                        onClick={select}
+                        className="block w-full text-left text-[16.5px] leading-snug hover:text-accent active:opacity-70"
+                      >
+                        {it.name}
+                      </button>
+                      {/* Like Reddit's posts: the votes and the review count sit under the title. */}
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <VoteButtons dish={it.name} />
+                        <CommentPill dish={it.name} onClick={select} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
