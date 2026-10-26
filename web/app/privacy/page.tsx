@@ -41,21 +41,21 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
-          an account. If you choose to log in with Google to give a dish a thumbs up or write a review, HamEats
-          remembers your Google account ID (not your email) so it can count your thumbs up once and show your reviews.
-          It also collects anonymous usage statistics so I can improve the app.
+          an account. If you choose to log in with Google to give a dish a thumbs up or write a review, HamEats saves
+          your Google account ID, your thumbs ups, and your reviews. It also collects anonymous usage statistics so I
+          can improve the app.
         </p>
 
         <Section title="What I collect">
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Usage analytics.</strong> I use PostHog, an analytics
+            <strong className="text-zinc-900 dark:text-zinc-100">Usage analytics (everyone).</strong> I use PostHog, an analytics
             service, to understand how the app is used. When you visit, it records things like:
           </p>
           <ul className="list-disc space-y-1 pl-6">
             <li>Which pages you view and when you leave them</li>
             <li>
-              Actions you take in the app, such as opening a food item, choosing a dining hall or day, switching
-              layouts, or toggling dark mode
+              Actions you take in the app, such as opening a dish, choosing a dining hall, day, or layout, switching
+              dark mode, or tapping Log in or a thumbs up
             </li>
             <li>
               Your device and browser type, screen size, and approximate location (such as city or region) based on
@@ -63,16 +63,26 @@ export default function PrivacyPage() {
             </li>
           </ul>
           <p>
-            PostHog also stores a random identifier in your browser to tell visitors apart. It isn&apos;t linked to your
-            name or any account. Analytics requests are routed through hameats.app itself.
+            PostHog also stores a random identifier in your browser to tell visitors apart. It is not connected to your
+            name, your email, or your Google login. Analytics requests are routed through hameats.app itself.
           </p>
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google.</strong> When you tap
-            &quot;Log in,&quot; Google tells HamEats your name and email address. HamEats keeps only your Google account
-            ID in its database, along with the dishes you gave a thumbs up and any reviews you wrote. Your email
-            address is not saved in the database. Anyone can see a dish&apos;s thumbs-up count and its reviews. A
-            review is shown with your first name, the date, and what you wrote. Please don&apos;t
-            put anything private in a review.
+            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> When you
+            tap &quot;Log in,&quot; Google tells HamEats your name, email address, and profile photo. HamEats saves
+            these in its database:
+          </p>
+          <ul className="list-disc space-y-1 pl-6">
+            <li>Your Google account ID (an anonymous code, not your email)</li>
+            <li>Each dish you gave a thumbs up, and when</li>
+            <li>Each review you wrote: the dish, what you wrote, your first name, and when you wrote it</li>
+          </ul>
+          <p>
+            Your email address and profile photo are not saved in the database. While you&apos;re logged in, a sign-in
+            cookie on your device holds your name, email, and photo so you stay logged in. Logging out removes it.
+          </p>
+          <p>
+            Anyone can see a dish&apos;s thumbs-up count and its reviews. A review is shown with your first name, the
+            date, and what you wrote. Please don&apos;t put anything private in a review.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Information you send me.</strong> If you use the
@@ -86,28 +96,37 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="Information stored on your device">
+        <Section title="What I don&apos;t collect">
           <p>
-            HamEats saves your light or dark mode choice in your browser&apos;s local storage so the app remembers it.
-            When you log in, it also keeps a sign-in cookie so you stay logged in. These stay on your device. You can
-            clear them anytime through your browser settings, and logging out removes the sign-in cookie.
+            HamEats does not collect passwords, phone numbers, home addresses, or payment information, and it does not
+            save your email address in its database.
           </p>
+        </Section>
+
+        <Section title="Information stored on your device">
+          <p>HamEats saves a few things in your browser so the app works the way you expect:</p>
+          <ul className="list-disc space-y-1 pl-6">
+            <li>Your light or dark mode choice</li>
+            <li>Your home page layout choice</li>
+            <li>A copy of the most recent menus, so the app loads fast and works offline</li>
+            <li>A sign-in cookie, only if you log in</li>
+          </ul>
+          <p>These stay on your device. You can clear them anytime through your browser settings.</p>
         </Section>
 
         <Section title="How I use it">
           <p>
             I use this information only to run and improve HamEats: fixing bugs, seeing which features students
-            actually use, and keeping the site working. I don&apos;t sell your information, and I don&apos;t use it for
-            advertising.
+            actually use, counting thumbs ups, showing reviews, and keeping the site working. I don&apos;t sell your
+            information, and I don&apos;t use it for advertising.
           </p>
         </Section>
 
         <Section title="Who I share it with">
           <p>
             Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
-            thumbs ups and reviews), and Google (log in and feedback forms).
-            They process data on my behalf under their own privacy policies. I don&apos;t share it with anyone else,
-            except if the law requires it.
+            thumbs ups and reviews), and Google (log in and feedback forms). They process data on my behalf under their
+            own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
 
