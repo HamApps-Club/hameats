@@ -1,7 +1,7 @@
 /**
  * The home screen's title on the navy header band: the bowl mark (cream, with gold steam and a gold H) beside the HamEats
  * wordmark in Zilla Slab, "Eats" in gold. Centered, with equal room on both sides for
- * the Flag button (top left) and the theme toggle (top right).
+ * the Log in button (top left) and the theme toggle (top right).
  */
 export function SiteTitle() {
   return (

@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import type { MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
+import { LikeButton } from "@/components/LikeButton";
+import { Reviews } from "@/components/Reviews";
 
-/** Full-screen page for one food. For now: its name, a Google search link, and a note that reviews are coming. */
+/** Full-screen page for one food: its name and thumbs up, a Google search link, and what students have written about it. */
 export function ItemSheet({
   item,
   context,
@@ -56,7 +58,10 @@ export function ItemSheet({
         <div className="space-y-6 px-5 pb-10">
           <header className="space-y-2">
             <p className="text-sm text-zinc-500">{context}</p>
-            <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
+              <LikeButton dish={item.name} size="lg" />
+            </div>
           </header>
 
           {/* Opens in the phone's browser (a new tab on desktop) so people can see what the food looks like. */}
@@ -72,10 +77,7 @@ export function ItemSheet({
             </a>
           </p>
 
-          <section className="rounded-xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-700">
-            <h3 className="text-xl font-bold">Food reviews coming soon!</h3>
-            <p className="mt-1 text-sm text-zinc-500">Soon you&apos;ll be able to rate this food and read what other students think.</p>
-          </section>
+          <Reviews dish={item.name} />
 
           <p className="text-xs text-zinc-500">For allergen and ingredient information, please ask dining staff.</p>
         </div>

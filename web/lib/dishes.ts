@@ -1,0 +1,123 @@
+import "server-only";
+import { run, transaction } from "@/lib/db";
+import type { MenuData } from "@/lib/types";
+
+// Every dish name HamEats has ever shown, with its thumbs-up count, who gave them, and the reviews written about it.
+// Dishes are keyed by name alone, so "Chicken Tenders" is one dish whichever hall serves it.
+
+const SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS dishes (
+     name text PRIMARY KEY,
+     thumbs_up integer NOT NULL DEFAULT 0,
+     first_seen timestamptz NOT NULL DEFAULT now()
+   )`,
+  `CREATE TABLE IF NOT EXISTS dish_likes (
+     dish text NOT NULL REFERENCES dishes (name) ON DELETE CASCADE,
+     user_id text NOT NULL,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     PRIMARY KEY (dish, user_id)
+   )`,
+  `CREATE TABLE IF NOT EXISTS dish_reviews (
+     dish text NOT NULL REFERENCES dishes (name) ON DELETE CASCADE,
+     user_id text NOT NULL,
+     user_name text NOT NULL,
+     body text NOT NULL,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     updated_at timestamptz NOT NULL DEFAULT now(),
+     PRIMARY KEY (dish, user_id)
+   )`,
+];
+
+let schemaReady: Promise<void> | undefined;
+
+/** Creates the tables the first time anything needs them. Safe to run again. */
+function ensureSchema() {
+  schemaReady ??= (async () => {
+    for (const statement of SCHEMA) await run(statement);
+  })().catch((e) => {
+    schemaReady = undefined;
+    throw e;
+  });
+  return schemaReady;
+}
+
+/** Every dish name in the menus: what Nutrislice posted plus the hand-added specials and standing menus. */
+export function dishNames(data: MenuData): string[] {
+  const names = new Set<string>();
+  for (const day of Object.values(data.dates))
+    for (const meals of Object.values(day))
+      for (const stations of Object.values(meals))
+        for (const items of Object.values(stations))
+          for (const item of items) if (item.name.trim()) names.add(item.name.trim());
+  return [...names];
+}
+
+/** Saves the names of any dishes not seen before. */
+export async function recordDishes(names: string[]) {
+  if (!names.length) return;
+  await ensureSchema();
+  await run("INSERT INTO dishes (name) SELECT DISTINCT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", [names]);
+}
+
+/** Every dish with a thumbs up, and (for a signed-in person) the dishes they've given one to. */
+export async function getLikeState(userId: string | undefined) {
+  await ensureSchema();
+  const [counts, mine] = await Promise.all([
+    run("SELECT name, thumbs_up FROM dishes WHERE thumbs_up > 0"),
+    userId ? run("SELECT dish FROM dish_likes WHERE user_id = $1", [userId]) : Promise.resolve([]),
+  ]);
+  return {
+    counts: Object.fromEntries(counts.map((r) => [r.name as string, Number(r.thumbs_up)])),
+    mine: mine.map((r) => r.dish as string),
+  };
+}
+
+/** Gives or takes back a person's thumbs up. Null when the dish isn't one HamEats has shown. */
+export async function setLike(dish: string, userId: string, liked: boolean) {
+  await ensureSchema();
+  const results = await transaction([
+    // Locks the dish so two people tapping at once can't miscount.
+    ["SELECT name FROM dishes WHERE name = $1 FOR UPDATE", [dish]],
+    liked
+      ? ["INSERT INTO dish_likes (dish, user_id) SELECT name, $2 FROM dishes WHERE name = $1 ON CONFLICT DO NOTHING", [dish, userId]]
+      : ["DELETE FROM dish_likes WHERE dish = $1 AND user_id = $2", [dish, userId]],
+    ["UPDATE dishes SET thumbs_up = (SELECT count(*) FROM dish_likes WHERE dish = $1) WHERE name = $1 RETURNING thumbs_up", [dish]],
+    ["SELECT EXISTS (SELECT 1 FROM dish_likes WHERE dish = $1 AND user_id = $2) AS liked", [dish, userId]],
+  ]);
+  if (!results[0].length) return null;
+  return { count: Number(results[2][0].thumbs_up), liked: results[3][0].liked === true };
+}
+
+export type Review = { name: string; body: string; createdAt: string; mine: boolean };
+
+export async function getReviews(dish: string, userId: string | undefined): Promise<Review[]> {
+  await ensureSchema();
+  const rows = await run(
+    "SELECT user_id, user_name, body, created_at FROM dish_reviews WHERE dish = $1 ORDER BY created_at DESC LIMIT 100",
+    [dish],
+  );
+  return rows.map((r) => ({
+    name: r.user_name as string,
+    body: r.body as string,
+    createdAt: new Date(r.created_at as string).toISOString(),
+    mine: !!userId && r.user_id === userId,
+  }));
+}
+
+/** One review per person per dish: writing again replaces it. False when the dish isn't one HamEats has shown. */
+export async function saveReview(dish: string, userId: string, userName: string, body: string) {
+  await ensureSchema();
+  const rows = await run(
+    `INSERT INTO dish_reviews (dish, user_id, user_name, body)
+     SELECT name, $2, $3, $4 FROM dishes WHERE name = $1
+     ON CONFLICT (dish, user_id) DO UPDATE SET body = EXCLUDED.body, user_name = EXCLUDED.user_name, updated_at = now()
+     RETURNING 1 AS saved`,
+    [dish, userId, userName, body],
+  );
+  return rows.length > 0;
+}
+
+export async function deleteReview(dish: string, userId: string) {
+  await ensureSchema();
+  await run("DELETE FROM dish_reviews WHERE dish = $1 AND user_id = $2", [dish, userId]);
+}
