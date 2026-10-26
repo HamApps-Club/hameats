@@ -79,8 +79,7 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
         }`}
       >
         <ThumbIcon filled={on} down={direction === -1} className={lg ? "size-5" : "size-4"} />
-        {/* Hidden at zero, but still takes up room, so the pills line up. */}
-        <span aria-hidden className={`min-w-[1.25ch] text-center font-semibold tabular-nums ${count === 0 ? "invisible" : ""}`}>
+        <span aria-hidden className="min-w-[1.25ch] text-center font-semibold tabular-nums">
           {count}
         </span>
       </button>
