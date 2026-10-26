@@ -21,6 +21,7 @@ export function Reviews({ dish }: { dish: string }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const fetchReviews = useCallback(async (): Promise<Review[]> => {
     const res = await fetch(`/api/reviews?dish=${encodeURIComponent(dish)}`, { cache: "no-store" }).catch(() => null);
@@ -68,7 +69,10 @@ export function Reviews({ dish }: { dish: string }) {
     setBusy(false);
     if (!res?.ok) return setError("Couldn't save that. Please try again.");
     track(method === "POST" ? "review_saved" : "review_deleted", { dish });
-    if (method === "DELETE") setText("");
+    if (method === "DELETE") {
+      setText("");
+      setConfirmingDelete(false);
+    }
     show(await fetchReviews());
   };
 
@@ -120,8 +124,8 @@ export function Reviews({ dish }: { dish: string }) {
             </button>
             {mine && (
               <button
-                onClick={() => send("DELETE")}
-                disabled={busy}
+                onClick={() => setConfirmingDelete(true)}
+                disabled={busy || confirmingDelete}
                 className="rounded-lg px-3 py-2 font-medium text-zinc-600 hover:bg-zinc-200/60 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 Delete
@@ -129,6 +133,31 @@ export function Reviews({ dish }: { dish: string }) {
             )}
             <span className="ml-auto text-xs text-zinc-500">{text.length}/{MAX}</span>
           </div>
+          {mine && confirmingDelete && (
+            <div
+              role="alertdialog"
+              aria-label="Delete your review?"
+              className="flex flex-wrap items-center gap-2 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-zinc-800 dark:border-red-900 dark:bg-red-950/40 dark:text-zinc-200"
+            >
+              <span className="font-medium">Delete your review? This can&apos;t be undone.</span>
+              <span className="ml-auto flex gap-2">
+                <button
+                  onClick={() => send("DELETE")}
+                  disabled={busy}
+                  className="rounded-lg bg-red-600 px-3 py-1.5 font-semibold text-white disabled:opacity-60"
+                >
+                  {busy ? "Deleting…" : "Delete"}
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={busy}
+                  className="rounded-lg px-3 py-1.5 font-medium hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
+                >
+                  Keep it
+                </button>
+              </span>
+            </div>
+          )}
           <p className="text-xs text-zinc-500">Shown with your first name.</p>
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         </div>
