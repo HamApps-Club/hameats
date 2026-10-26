@@ -60,7 +60,7 @@ export default function AboutPage() {
           </p>
         </Section>
 
-        <Section title="Feedback + Reviews">
+        <section className="space-y-3">
           <p className="font-bold text-zinc-900 dark:text-zinc-100">
             Thanks for using HamEats! Here&apos;s what students have said:
           </p>
@@ -74,7 +74,7 @@ export default function AboutPage() {
             <br />
             Maung &apos;28
           </p>
-        </Section>
+        </section>
       </main>
 
       <SiteFooter />
