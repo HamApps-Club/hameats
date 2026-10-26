@@ -23,8 +23,19 @@ export function isHamiltonAccount(profile: { hd?: unknown; email?: unknown; emai
 }
 
 /**
- * Sign-in with Google, nothing else, and only for Hamilton accounts. The session lives in a signed cookie (no accounts table): the only thing the
- * database keeps about a person is their Google account ID, plus the first name shown on a review.
+ * The id every vote and review is stored under: the person's (lowercased) email address. It has to be the email
+ * because Auth.js gives each login a brand-new random user id when there is no database adapter (that id is
+ * token.sub), so anything keyed on it belongs to one login rather than to a person, and logging out and back in
+ * would start over with a new id.
+ */
+export function userIdFor(token: { email?: string | null }): string | undefined {
+  return token.email?.trim().toLowerCase() || undefined;
+}
+
+/**
+ * Sign-in with Google, nothing else, and only for Hamilton accounts. The session lives in a signed cookie (no
+ * accounts table): the only things the database keeps about a person are their email address (as their id) and the
+ * first name shown on a review.
  * Reads AUTH_SECRET, AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET from the environment.
  */
 export const { handlers, auth } = NextAuth({
@@ -37,7 +48,8 @@ export const { handlers, auth } = NextAuth({
   callbacks: {
     signIn: ({ profile }) => isHamiltonAccount(profile),
     session({ session, token }) {
-      if (token.sub) session.user.id = token.sub;
+      const id = userIdFor(token);
+      if (id) session.user.id = id;
       return session;
     },
   },
