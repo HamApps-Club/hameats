@@ -4,10 +4,9 @@ import { useEffect } from "react";
 import type { MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
 import { VoteButtons } from "@/components/VoteButtons";
-import { useVotes } from "@/lib/likes";
 import { Reviews } from "@/components/Reviews";
 
-/** Full-screen page for one food: its name and votes, a Google search link, and what students have written about it. */
+/** Full-screen page for one food: its name with thumbs up and down underneath, a Google search link, and what students have written about it. */
 export function ItemSheet({
   item,
   context,
@@ -18,7 +17,6 @@ export function ItemSheet({
   context: string;
   onClose: () => void;
 }) {
-  const { enabled, up, down } = useVotes();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -60,15 +58,8 @@ export function ItemSheet({
         <div className="space-y-6 px-5 pb-10">
           <header className="space-y-2">
             <p className="text-sm text-zinc-500">{context}</p>
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
-              <VoteButtons dish={item.name} size="lg" />
-            </div>
-            {enabled && (
-              <p className="text-sm text-zinc-500">
-                {up(item.name)} thumbs up · {down(item.name)} thumbs down
-              </p>
-            )}
+            <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
+            <VoteButtons dish={item.name} size="lg" />
           </header>
 
           {/* Opens in the phone's browser (a new tab on desktop) so people can see what the food looks like. */}
