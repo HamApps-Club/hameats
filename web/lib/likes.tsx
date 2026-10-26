@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { track } from "@/lib/analytics";
 
@@ -41,6 +41,9 @@ const VotesContext = createContext<Votes>({
 
 export const useVotes = () => useContext(VotesContext);
 
+/** While the app is on screen, the counts are fetched again this often (and at once whenever it comes back into view). */
+export const REFRESH_MS = 30_000;
+
 export const signInWithGoogle = () => signIn("google", { callbackUrl: window.location.href });
 
 /** Thumbs-up and thumbs-down counts for every dish, and the signed-in person's own votes, kept in step with the server. */
@@ -49,19 +52,43 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
   const userId = session?.user?.id;
   const [state, setState] = useState<VoteState>({ enabled: false, counts: {}, mine: {} });
 
-  // Loads when the app opens, and again when someone signs in or out (their own votes change).
+  // Votes sent to the server that haven't been answered yet; a refresh waits for them so it can't undo one.
+  const pending = useRef(0);
+
+  // Loads when the app opens and when someone signs in or out (their own votes change). Then it keeps the numbers
+  // fresh: a home-screen app is only paused in the background, not reloaded, so it fetches again the moment it
+  // comes back into view, and every REFRESH_MS while it's showing.
   useEffect(() => {
     if (status === "loading") return;
     let cancelled = false;
-    fetch("/api/likes", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((body) => {
-        if (cancelled) return;
-        setState(body ? { enabled: true, counts: body.counts ?? {}, mine: body.mine ?? {} } : { enabled: false, counts: {}, mine: {} });
-      })
-      .catch(() => {});
+    let lastLoad = 0;
+    const load = (first: boolean) => {
+      if (!first && pending.current > 0) return;
+      lastLoad = Date.now();
+      fetch("/api/likes", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((body) => {
+          if (cancelled || pending.current > 0) return;
+          if (body) setState({ enabled: true, counts: body.counts ?? {}, mine: body.mine ?? {} });
+          // A failed refresh (offline, a hiccup) keeps what's on screen; only the first load can turn the thumbs off.
+          else if (first) setState({ enabled: false, counts: {}, mine: {} });
+        })
+        .catch(() => {});
+    };
+    load(true);
+    const onBackInView = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastLoad > 3000) load(false);
+    };
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load(false);
+    }, REFRESH_MS);
+    document.addEventListener("visibilitychange", onBackInView);
+    window.addEventListener("pageshow", onBackInView);
     return () => {
       cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onBackInView);
+      window.removeEventListener("pageshow", onBackInView);
     };
   }, [status, userId]);
 
@@ -86,6 +113,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
       if (vote === 0) delete mine[dish];
       else mine[dish] = vote;
       setState({ ...before, counts, mine });
+      pending.current++;
       fetch("/api/likes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,7 +135,10 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
             else next[dish] = was;
             return { ...s, counts: { ...s.counts, [dish]: { ...(s.counts[dish] ?? NONE), up: c.up, down: c.down } }, mine: next };
           }),
-        );
+        )
+        .finally(() => {
+          pending.current--;
+        });
     },
     [userId, state],
   );

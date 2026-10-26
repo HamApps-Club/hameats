@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { signInWithGoogle, useVotes } from "@/lib/likes";
+import { REFRESH_MS, signInWithGoogle, useVotes } from "@/lib/likes";
 import { track } from "@/lib/analytics";
 
 type Review = { name: string; body: string; createdAt: string; mine: boolean };
@@ -23,9 +23,10 @@ export function Reviews({ dish }: { dish: string }) {
   const [error, setError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  const fetchReviews = useCallback(async (): Promise<Review[]> => {
+  /** The dish's reviews, or null when they couldn't be fetched (so a failed refresh doesn't blank the list). */
+  const fetchReviews = useCallback(async (): Promise<Review[] | null> => {
     const res = await fetch(`/api/reviews?dish=${encodeURIComponent(dish)}`, { cache: "no-store" }).catch(() => null);
-    if (!res?.ok) return [];
+    if (!res?.ok) return null;
     const list = ((await res.json()) as { reviews: Review[] }).reviews;
     syncCount(dish, list.length);
     return list;
@@ -39,13 +40,26 @@ export function Reviews({ dish }: { dish: string }) {
   useEffect(() => {
     if (!enabled || status === "loading") return;
     let cancelled = false;
-    void fetchReviews().then((list) => {
+    void fetchReviews().then((fetched) => {
       if (cancelled) return;
+      const list = fetched ?? [];
       setReviews(list);
       setText(list.find((r) => r.mine)?.body ?? "");
     });
+    // The list stays fresh while the page is open: again when the app comes back into view, and every REFRESH_MS.
+    // Only the list is replaced, never the box you may be typing in.
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      void fetchReviews().then((list) => !cancelled && list && setReviews(list));
+    };
+    const timer = setInterval(refresh, REFRESH_MS);
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("pageshow", refresh);
     return () => {
       cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("pageshow", refresh);
     };
   }, [enabled, status, userId, fetchReviews]);
 
@@ -75,7 +89,7 @@ export function Reviews({ dish }: { dish: string }) {
       setText("");
       setConfirmingDelete(false);
     }
-    show(await fetchReviews());
+    show((await fetchReviews()) ?? []);
   };
 
   return (
