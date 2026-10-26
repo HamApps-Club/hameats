@@ -41,7 +41,8 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
-          an account. If you choose to log in with Google to vote on a dish or write a review, HamEats saves
+          an account. Logging in is only for Hamilton students and staff, using your @hamilton.edu Google account. If
+          you log in to vote on a dish or write a review, HamEats saves
           your Google account ID, your thumbs ups and downs, and your reviews. It also collects anonymous usage statistics so I
           can improve the app.
         </p>
@@ -67,9 +68,10 @@ export default function PrivacyPage() {
             name, your email, or your Google login. Analytics requests are routed through hameats.app itself.
           </p>
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> When you
-            tap &quot;Log in,&quot; Google tells HamEats your name, email address, and profile photo. HamEats saves
-            these in its database:
+            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> Logging in
+            is limited to Hamilton College Google accounts. When you tap &quot;Log in,&quot; Google tells HamEats your
+            name, email address, and profile photo, and whether your account belongs to hamilton.edu. HamEats turns away
+            any other account and doesn&apos;t keep a record of the attempt. HamEats saves these in its database:
           </p>
           <ul className="list-disc space-y-1 pl-6">
             <li>Your Google account ID (an anonymous code, not your email)</li>
