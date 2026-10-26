@@ -1,5 +1,6 @@
 import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { orderedStations } from "@/lib/halls";
+import { sortByRank, useVotes } from "@/lib/likes";
 import type { MealMenu, MenuItem } from "@/lib/types";
 
 /** One food as a Classic-style card. Tap it to open its page. */
@@ -38,7 +39,12 @@ export function MenuList({
   note?: React.ReactNode;
   onSelect: (item: MenuItem, station: string) => void;
 }) {
-  const entries = orderedStations(stations, stationOrder);
+  const { rank } = useVotes();
+  // Within each station, the dishes with the most thumbs ups come first.
+  const entries = orderedStations(stations, stationOrder).map(([station, items]): [string, MenuItem[]] => [
+    station,
+    sortByRank(items, rank),
+  ]);
   if (!entries.length) {
     return (
       <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">

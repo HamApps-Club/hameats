@@ -11,6 +11,7 @@ import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
 import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { track } from "@/lib/analytics";
+import { sortByRank, useVotes } from "@/lib/likes";
 import { SiteTitle } from "@/components/SiteTitle";
 
 /**
@@ -81,7 +82,11 @@ function HallColumn({
   const isToday = date === now.iso;
   const win = windowFor(hall, date, meal);
   const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
-  const stations = orderedStations(mealMenu, hall.stationOrder).filter(([, items]) => items.length > 0);
+  const { rank } = useVotes();
+  // Within each station, the dishes with the most thumbs ups come first.
+  const stations = orderedStations(mealMenu, hall.stationOrder)
+    .filter(([, items]) => items.length > 0)
+    .map(([station, items]): [string, MenuItem[]] => [station, sortByRank(items, rank)]);
 
   return (
     <section
