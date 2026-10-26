@@ -2,7 +2,8 @@ import "server-only";
 import { run, transaction } from "@/lib/db";
 import type { MenuData } from "@/lib/types";
 
-// Every dish name HamEats has ever shown, with its thumbs-up count, who gave them, and the reviews written about it.
+// Every dish name HamEats has ever shown, with its thumbs-up and thumbs-down counts, who gave them (dish_likes holds one
+// vote per person per dish: value 1 is a thumbs up, -1 a thumbs down), and the reviews written about it.
 // Dishes are keyed by name alone, so "Chicken Tenders" is one dish whichever hall serves it.
 
 const SCHEMA = [
@@ -26,6 +27,9 @@ const SCHEMA = [
      updated_at timestamptz NOT NULL DEFAULT now(),
      PRIMARY KEY (dish, user_id)
    )`,
+  // Added after the first release; harmless to run again.
+  "ALTER TABLE dishes ADD COLUMN IF NOT EXISTS thumbs_down integer NOT NULL DEFAULT 0",
+  "ALTER TABLE dish_likes ADD COLUMN IF NOT EXISTS value smallint NOT NULL DEFAULT 1 CHECK (value IN (1, -1))",
 ];
 
 let schemaReady: Promise<void> | undefined;
@@ -59,33 +63,47 @@ export async function recordDishes(names: string[]) {
   await run("INSERT INTO dishes (name) SELECT DISTINCT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", [names]);
 }
 
-/** Every dish with a thumbs up, and (for a signed-in person) the dishes they've given one to. */
+export type Vote = 1 | -1 | 0;
+
+/** Every dish with a vote: its thumbs ups and downs. For a signed-in person, also their own vote on each dish. */
 export async function getLikeState(userId: string | undefined) {
   await ensureSchema();
   const [counts, mine] = await Promise.all([
-    run("SELECT name, thumbs_up FROM dishes WHERE thumbs_up > 0"),
-    userId ? run("SELECT dish FROM dish_likes WHERE user_id = $1", [userId]) : Promise.resolve([]),
+    run("SELECT name, thumbs_up, thumbs_down FROM dishes WHERE thumbs_up > 0 OR thumbs_down > 0"),
+    userId ? run("SELECT dish, value FROM dish_likes WHERE user_id = $1", [userId]) : Promise.resolve([]),
   ]);
   return {
-    counts: Object.fromEntries(counts.map((r) => [r.name as string, Number(r.thumbs_up)])),
-    mine: mine.map((r) => r.dish as string),
+    counts: Object.fromEntries(
+      counts.map((r) => [r.name as string, { up: Number(r.thumbs_up), down: Number(r.thumbs_down) }]),
+    ),
+    mine: Object.fromEntries(mine.map((r) => [r.dish as string, Number(r.value)])),
   };
 }
 
-/** Gives or takes back a person's thumbs up. Null when the dish isn't one HamEats has shown. */
-export async function setLike(dish: string, userId: string, liked: boolean) {
+/** Sets a person's vote on a dish: 1 thumbs up, -1 thumbs down, 0 takes it back. Null when HamEats hasn't shown the dish. */
+export async function setVote(dish: string, userId: string, vote: Vote) {
   await ensureSchema();
   const results = await transaction([
     // Locks the dish so two people tapping at once can't miscount.
     ["SELECT name FROM dishes WHERE name = $1 FOR UPDATE", [dish]],
-    liked
-      ? ["INSERT INTO dish_likes (dish, user_id) SELECT name, $2 FROM dishes WHERE name = $1 ON CONFLICT DO NOTHING", [dish, userId]]
-      : ["DELETE FROM dish_likes WHERE dish = $1 AND user_id = $2", [dish, userId]],
-    ["UPDATE dishes SET thumbs_up = (SELECT count(*) FROM dish_likes WHERE dish = $1) WHERE name = $1 RETURNING thumbs_up", [dish]],
-    ["SELECT EXISTS (SELECT 1 FROM dish_likes WHERE dish = $1 AND user_id = $2) AS liked", [dish, userId]],
+    vote === 0
+      ? ["DELETE FROM dish_likes WHERE dish = $1 AND user_id = $2", [dish, userId]]
+      : [
+          `INSERT INTO dish_likes (dish, user_id, value) SELECT name, $2::text, $3::smallint FROM dishes WHERE name = $1
+           ON CONFLICT (dish, user_id) DO UPDATE SET value = EXCLUDED.value, created_at = now()`,
+          [dish, userId, vote],
+        ],
+    [
+      `UPDATE dishes SET
+         thumbs_up = (SELECT count(*) FROM dish_likes WHERE dish = $1 AND value = 1),
+         thumbs_down = (SELECT count(*) FROM dish_likes WHERE dish = $1 AND value = -1)
+       WHERE name = $1 RETURNING thumbs_up, thumbs_down`,
+      [dish],
+    ],
+    ["SELECT COALESCE((SELECT value FROM dish_likes WHERE dish = $1 AND user_id = $2), 0) AS vote", [dish, userId]],
   ]);
   if (!results[0].length) return null;
-  return { count: Number(results[2][0].thumbs_up), liked: results[3][0].liked === true };
+  return { up: Number(results[2][0].thumbs_up), down: Number(results[2][0].thumbs_down), vote: Number(results[3][0].vote) };
 }
 
 export type Review = { name: string; body: string; createdAt: string; mine: boolean };
