@@ -120,7 +120,7 @@ function HallColumn({
                     <div key={it.name} className="py-2.5">
                       <button
                         onClick={select}
-                        className="block w-full text-left text-[16.5px] font-bold leading-snug hover:text-accent active:opacity-70"
+                        className="block w-full text-left text-[16.5px] leading-snug hover:text-accent active:opacity-70"
                       >
                         {it.name}
                       </button>
