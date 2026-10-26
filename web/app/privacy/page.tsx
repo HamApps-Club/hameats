@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Privacy Policy</h1>
-          <p className="text-sm italic">Last updated: October 25, 2026</p>
+          <p className="text-sm italic">Last updated: October 26, 2026</p>
         </div>
 
         <p>
@@ -40,9 +40,10 @@ export default function PrivacyPage() {
           nutritional information. If you have an allergy or dietary restriction, please ask the dining hall staff.
         </p>
         <p>
-          <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> HamEats has no accounts and
-          doesn&apos;t ask for your name, email, or any personal details. It does collect anonymous usage statistics so
-          I can improve the app.
+          <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
+          an account. If you choose to log in with Google to give a dish a thumbs up or write a review, HamEats
+          remembers your Google account ID (not your email) so it can count your thumbs up once and show your reviews.
+          It also collects anonymous usage statistics so I can improve the app.
         </p>
 
         <Section title="What I collect">
@@ -66,9 +67,17 @@ export default function PrivacyPage() {
             name or any account. Analytics requests are routed through hameats.app itself.
           </p>
           <p>
+            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google.</strong> When you tap
+            &quot;Log in,&quot; Google tells HamEats your name and email address. HamEats keeps only your Google account
+            ID in its database, along with the dishes you gave a thumbs up and any reviews you wrote. Your email
+            address is not saved in the database. Anyone can see a dish&apos;s thumbs-up count and its reviews. A
+            review is shown with your first name and last initial, the date, and what you wrote. Please don&apos;t
+            put anything private in a review.
+          </p>
+          <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Information you send me.</strong> If you use the
-            Feedback or &quot;Report menu&quot; forms (which open in Google Forms), or email me, I receive whatever you
-            choose to submit, plus anything Google collects under its own privacy policy.
+            Feedback form (which opens in Google Forms) or email me, I receive whatever you choose to submit, plus
+            anything Google collects under its own privacy policy.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Vercel,
@@ -80,7 +89,8 @@ export default function PrivacyPage() {
         <Section title="Information stored on your device">
           <p>
             HamEats saves your light or dark mode choice in your browser&apos;s local storage so the app remembers it.
-            This stays on your device. You can clear it anytime through your browser settings.
+            When you log in, it also keeps a sign-in cookie so you stay logged in. These stay on your device. You can
+            clear them anytime through your browser settings, and logging out removes the sign-in cookie.
           </p>
         </Section>
 
@@ -94,7 +104,8 @@ export default function PrivacyPage() {
 
         <Section title="Who I share it with">
           <p>
-            Only the services that run HamEats: PostHog (analytics), Vercel (hosting), and Google (feedback forms).
+            Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
+            thumbs ups and reviews), and Google (log in and feedback forms).
             They process data on my behalf under their own privacy policies. I don&apos;t share it with anyone else,
             except if the law requires it.
           </p>
@@ -103,15 +114,16 @@ export default function PrivacyPage() {
         <Section title="How long I keep it">
           <p>
             Analytics data is kept for as long as it&apos;s useful for improving the app and is used in aggregate.
-            Feedback submissions are kept as long as they&apos;re useful for improving the app. You can ask me to
-            delete anything you&apos;ve sent me.
+            Thumbs ups and reviews are kept until you take them back or delete them. Feedback submissions are kept as
+            long as they&apos;re useful for improving the app. You can ask me to delete anything you&apos;ve sent me.
           </p>
         </Section>
 
         <Section title="Your choices">
           <ul className="list-disc space-y-1 pl-6">
             <li>Block analytics by using a tracking blocker, or by clearing your browser data.</li>
-            <li>Ask me to delete feedback you&apos;ve submitted.</li>
+            <li>Log out at any time, take back a thumbs up, or edit or delete your own review in the app.</li>
+            <li>Ask me to delete your reviews, thumbs ups, or feedback you&apos;ve submitted.</li>
             <li>Ask me any question about this policy.</li>
           </ul>
         </Section>

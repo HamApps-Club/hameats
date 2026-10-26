@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet } from "@/components/ItemSheet";
+import { LoginButton } from "@/components/LoginButton";
 import { MenuList } from "@/components/MenuList";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -17,7 +18,8 @@ import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
-import { REPORT_FORM_URL } from "@/lib/site";
+import { LikesProvider } from "@/lib/likes";
+import { SessionProvider } from "next-auth/react";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -131,24 +133,6 @@ function SwitchLayoutButton({ onClick }: { onClick: () => void }) {
       >
         Layouts
       </button>
-    </div>
-  );
-}
-
-/** Opens the form for flagging a menu item that's missing or isn't actually being served, in the corner of the home screen. */
-function ReportButton() {
-  return (
-    <div className="fixed left-3 top-3 z-20">
-      <a
-        href={REPORT_FORM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => track("report_menu_clicked")}
-        aria-label="Flag a missing or incorrect menu item"
-        className="flex min-h-10 items-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
-      >
-        Flag
-      </a>
     </div>
   );
 }
@@ -283,7 +267,7 @@ function HallView({
   );
 }
 
-export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
+function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   const { data: posted, status, refresh } = useMenuData(initialMenu);
   // Posted Nutrislice menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
@@ -304,7 +288,7 @@ export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
   // Switch Layout button flips straight between the layouts it would have listed.
   const HomeLayout = HOME_LAYOUTS[layoutId].Component;
 
-  // Only Continental is offered right now (Classic is hidden), so the Flag button takes the
+  // Only Continental is offered right now (Classic is hidden), so the Log in button takes the
   // Switch Layout button's corner until there's another layout to switch to.
   const visible = (Object.keys(HOME_LAYOUTS) as HomeLayoutId[]).filter((id) => !HOME_LAYOUTS[id].hidden);
   const switchLayout = () => {
@@ -354,7 +338,7 @@ export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
         ) : (
           <>
             <ThemeToggle />
-            {visible.length > 1 ? <SwitchLayoutButton onClick={switchLayout} /> : <ReportButton />}
+            {visible.length > 1 ? <SwitchLayoutButton onClick={switchLayout} /> : <LoginButton />}
             <HomeLayout key={now.iso} data={data} now={now} />
           </>
         )}
@@ -362,5 +346,16 @@ export function HomeClient({ initialMenu }: { initialMenu: MenuData | null }) {
 
       <SiteFooter />
     </div>
+  );
+}
+
+/** Sign-in and thumbs-up state wrap the whole home screen, so the halls and the food pages share them. */
+export function HomeClient(props: { initialMenu: MenuData | null }) {
+  return (
+    <SessionProvider>
+      <LikesProvider>
+        <Home {...props} />
+      </LikesProvider>
+    </SessionProvider>
   );
 }

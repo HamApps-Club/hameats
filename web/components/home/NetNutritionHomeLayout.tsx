@@ -9,6 +9,7 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet } from "@/components/ItemSheet";
+import { LikeButton } from "@/components/LikeButton";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
@@ -114,13 +115,15 @@ function HallColumn({
               </h3>
               <div>
                 {items.map((it) => (
-                  <button
-                    key={it.name}
-                    onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
-                    className="flex w-full items-center justify-between gap-2 py-1.5 text-left text-[16.5px] hover:text-accent hover:underline hover:underline-offset-[3px]"
-                  >
-                    <span>{it.name}</span>
-                  </button>
+                  <div key={it.name} className="flex w-full items-center justify-between gap-1">
+                    <button
+                      onClick={() => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` })}
+                      className="min-w-0 flex-1 py-1.5 text-left text-[16.5px] hover:text-accent hover:underline hover:underline-offset-[3px]"
+                    >
+                      <span>{it.name}</span>
+                    </button>
+                    <LikeButton dish={it.name} />
+                  </div>
                 ))}
               </div>
             </div>
