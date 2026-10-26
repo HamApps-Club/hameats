@@ -25,6 +25,9 @@ function ThumbIcon({ filled, down, className }: { filled: boolean; down?: boolea
 
 /** Room a bubble needs below the buttons; with less than this left on screen it opens above them instead. */
 const BUBBLE_ROOM = 190;
+/** The bubble's width in px (w-64), and the least it keeps clear of the screen's edges. */
+const BUBBLE_WIDTH = 256;
+const EDGE = 12;
 
 /**
  * The vote pill, in the style of Reddit's: a thumbs up and a thumbs down side by side, each with its own count (one of
@@ -34,7 +37,8 @@ const BUBBLE_ROOM = 190;
  */
 export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" | "lg" }) {
   const { enabled, signedIn, up, down, vote, cast } = useVotes();
-  const [bubble, setBubble] = useState<"above" | "below" | null>(null);
+  // Which way the bubble opens: above or below the pill, and lined up with its left or its right edge.
+  const [bubble, setBubble] = useState<{ y: "above" | "below"; x: "left" | "right" } | null>(null);
   const wrapper = useRef<HTMLDivElement>(null);
 
   // The bubble closes on Escape or a tap anywhere outside it.
@@ -58,8 +62,13 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
 
   const press = (direction: 1 | -1) => {
     if (signedIn) return cast(dish, direction);
-    const bottom = wrapper.current?.getBoundingClientRect().bottom ?? 0;
-    setBubble(window.innerHeight - bottom < BUBBLE_ROOM ? "above" : "below");
+    const rect = wrapper.current?.getBoundingClientRect();
+    const roomRight = window.innerWidth - (rect?.left ?? 0) - EDGE;
+    setBubble({
+      y: window.innerHeight - (rect?.bottom ?? 0) < BUBBLE_ROOM ? "above" : "below",
+      // Opens to the right of the pill's left edge when it fits, otherwise back to the left from its right edge.
+      x: roomRight >= BUBBLE_WIDTH ? "left" : "right",
+    });
     track("vote_login_prompt", { dish });
   };
 
@@ -98,8 +107,8 @@ export function VoteButtons({ dish, size = "sm" }: { dish: string; size?: "sm" |
         <div
           role="dialog"
           aria-label="Log in to vote"
-          className={`absolute ${lg ? "left-0" : "right-0"} z-40 w-64 rounded-xl border border-zinc-200 bg-white p-4 text-left text-base font-normal text-zinc-700 shadow-xl dark:border-zinc-700 dark:bg-surface dark:text-zinc-300 ${
-            bubble === "below" ? "top-full mt-1.5" : "bottom-full mb-1.5"
+          className={`absolute ${bubble.x === "left" ? "left-0" : "right-0"} z-40 w-[min(16rem,calc(100vw-1.5rem))] rounded-xl border border-zinc-200 bg-white p-4 text-left text-base font-normal text-zinc-700 shadow-xl dark:border-zinc-700 dark:bg-surface dark:text-zinc-300 ${
+            bubble.y === "below" ? "top-full mt-1.5" : "bottom-full mb-1.5"
           }`}
         >
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">Log in to vote</p>
