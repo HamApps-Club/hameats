@@ -59,6 +59,12 @@ export type StandingMenu = {
   /** Shown above the menu, e.g. pricing. */
   note: string;
   pdf: string;
+  /**
+   * Show this menu every day, even when Nutrislice posts something for the hall. The Diner's menu never changes,
+   * but Nutrislice lists a few daily items for it (soup, a sandwich, macaroni salad) that would otherwise
+   * replace the whole menu on those days.
+   */
+  always?: boolean;
 };
 
 export const STANDING_MENUS: StandingMenu[] = [
@@ -67,14 +73,15 @@ export const STANDING_MENUS: StandingMenu[] = [
     meals: { Breakfast: DINER_BREAKFAST, Lunch: DINER_ALL_DAY, Dinner: DINER_ALL_DAY },
     note: "Meal swipe combo: entrée, side of fries, and a small beverage. À la carte: breakfast (staff) $7.17 · staff combo $9.55 · visitor meal $12.50 · iced coffee $4.50 (tax not included).",
     pdf: "/menus/howard-diner.pdf",
+    always: true,
   },
 ];
 
 export const standingMenuFor = (slug: string) => STANDING_MENUS.find((m) => m.slug === slug);
 
 /**
- * Fill in each standing menu on the days and meals its hall is open, wherever Nutrislice posted nothing.
- * Posted menus always win.
+ * Fill in each standing menu on the days and meals its hall is open. Wherever Nutrislice posted something, the
+ * posted menu wins, except for a standing menu marked `always`, which replaces it.
  */
 export function withStandingMenus(data: MenuData): MenuData {
   const dates = structuredClone(data.dates);
@@ -86,8 +93,12 @@ export function withStandingMenus(data: MenuData): MenuData {
       const loc = (day[hall.name] ??= {});
       for (const [meal, menu] of Object.entries(standing.meals)) {
         const served = open.some((p) => p.meal === meal);
-        if (served && menu && !Object.keys(loc[meal] ?? {}).length) loc[meal] = menu;
+        if (served && menu && (standing.always || !Object.keys(loc[meal] ?? {}).length)) loc[meal] = menu;
       }
+      // An `always` menu is the hall's whole menu, so what Nutrislice posted for a meal the hall isn't serving
+      // that day (the Diner has no lunch on weekends) isn't shown either.
+      if (standing.always)
+        for (const meal of Object.keys(loc)) if (!open.some((p) => p.meal === meal)) delete loc[meal];
     }
   }
   return { ...data, dates };
