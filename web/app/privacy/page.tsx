@@ -43,7 +43,7 @@ export default function PrivacyPage() {
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
           an account. Logging in is only for Hamilton students and staff, using your @hamilton.edu Google account. If
           you log in to vote on a dish or write a review, HamEats saves
-          your Google account ID, your thumbs ups and downs, and your reviews. It also collects anonymous usage statistics so I
+          your Hamilton email address, your thumbs ups and downs, and your reviews. It also collects anonymous usage statistics so I
           can improve the app.
         </p>
 
@@ -74,12 +74,13 @@ export default function PrivacyPage() {
             any other account and doesn&apos;t keep a record of the attempt. HamEats saves these in its database:
           </p>
           <ul className="list-disc space-y-1 pl-6">
-            <li>Your Google account ID (an anonymous code, not your email)</li>
+            <li>Your Hamilton email address, which is how your votes and reviews are tied to you</li>
             <li>Each thumbs up or thumbs down you gave a dish, and when</li>
             <li>Each review you wrote: the dish, what you wrote, your first name, and when you wrote it</li>
+            <li>Each review you reported, with the reason you picked if you chose one, and when</li>
           </ul>
           <p>
-            Your email address and profile photo are not saved in the database. While you&apos;re logged in, a sign-in
+            Your profile photo is not saved in the database. When you report a review, I get a message with your name and email address so I can follow up. While you&apos;re logged in, a sign-in
             cookie on your device holds your name, email, and photo so you stay logged in. Logging out removes it.
           </p>
           <p>
@@ -100,8 +101,7 @@ export default function PrivacyPage() {
 
         <Section title="What I don&apos;t collect">
           <p>
-            HamEats does not collect passwords, phone numbers, home addresses, or payment information, and it does not
-            save your email address in its database.
+            HamEats does not collect passwords, phone numbers, home addresses, or payment information.
           </p>
         </Section>
 
