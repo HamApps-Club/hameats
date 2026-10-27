@@ -68,29 +68,8 @@ export default function PrivacyPage() {
             name, your email, or your Google login. Analytics requests are routed through hameats.app itself.
           </p>
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> Logging in
-            is limited to Hamilton College Google accounts. When you tap &quot;Log in,&quot; Google tells HamEats your
-            name, email address, and profile photo, and whether your account belongs to hamilton.edu. HamEats turns away
-            any other account and doesn&apos;t keep a record of the attempt. HamEats saves these in its database:
-          </p>
-          <ul className="list-disc space-y-1 pl-6">
-            <li>Your Hamilton email address, which is how your votes and reviews are tied to you</li>
-            <li>Each thumbs up or thumbs down you gave a dish, and when</li>
-            <li>Each review you wrote: the dish, what you wrote, your first name, and when you wrote it</li>
-            <li>Each review you reported, with the reason you picked if you chose one, and when</li>
-          </ul>
-          <p>
-            Your profile photo is not saved in the database. When you report a review, I get a message with your name and email address so I can follow up. While you&apos;re logged in, a sign-in
-            cookie on your device holds your name, email, and photo so you stay logged in. Logging out removes it.
-          </p>
-          <p>
-            Anyone can see how many thumbs ups and thumbs downs a dish has, and its reviews. Nobody can see who gave a thumbs up or down. A review is shown with your first name, the
-            date, and what you wrote. Please don&apos;t put anything private in a review.
-          </p>
-          <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Information you send me.</strong> If you use the
-            Feedback form (which opens in Google Forms) or email me, I receive whatever you choose to submit, plus
-            anything Google collects under its own privacy policy.
+            <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> By
+            logging in with your Hamilton Google account, you agree to share your name and email address with HamEats.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Vercel,
