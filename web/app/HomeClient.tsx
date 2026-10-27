@@ -250,6 +250,7 @@ function HallView({
         <MenuList
           stations={day?.[hall.name]?.[meal]}
           stationOrder={hall.stationOrder}
+          itemRank={hall.itemRank}
           emptyText={`No ${mealLabel(hall.hours, hoursDate, meal).toLowerCase()} menu posted for this day.`}
           note={
             standing && (

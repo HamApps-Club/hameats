@@ -28,17 +28,19 @@ export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => v
 export function MenuList({
   stations,
   stationOrder,
+  itemRank,
   emptyText,
   note,
   onSelect,
 }: {
   stations: MealMenu | undefined;
   stationOrder?: string[];
+  itemRank?: (name: string) => number;
   emptyText: string;
   note?: React.ReactNode;
   onSelect: (item: MenuItem, station: string) => void;
 }) {
-  const entries = orderedStations(stations, stationOrder);
+  const entries = orderedStations(stations, stationOrder, itemRank);
   if (!entries.length) {
     return (
       <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">

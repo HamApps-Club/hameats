@@ -81,7 +81,7 @@ function HallColumn({
   const isToday = date === now.iso;
   const win = windowFor(hall, date, meal);
   const servingNow = isToday && win && mealNow(hall.hours, now) === meal && statusAt(hall.hours, now).open;
-  const stations = orderedStations(mealMenu, hall.stationOrder).filter(([, items]) => items.length > 0);
+  const stations = orderedStations(mealMenu, hall.stationOrder, hall.itemRank).filter(([, items]) => items.length > 0);
 
   return (
     <section
