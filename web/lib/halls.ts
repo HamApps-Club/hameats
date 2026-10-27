@@ -51,7 +51,7 @@ export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
 
 /** Stations whose foods are an entree plus sides, so the main protein is listed first. */
 const ENTREE_STATIONS = new Set(["Spoon & Fork", "Inspired Eats", "Grill"]);
-const MEAT = /\b(chicken|beef|pork|turkey|ham|bacon|sausage|steak|meatballs?|lamb|fish|salmon|cod|tuna|shrimp|burger|brisket|ribs?)\b/i;
+const MEAT = /\b(chicken|beef|pork|turkey|ham|bacon|sausage|steak|meatballs?|lamb|fish|salmon|cod|haddock|tilapia|trout|catfish|pollock|mahi|swordfish|scallops?|tuna|shrimp|burger|brisket|ribs?)\b/i;
 const PLANT_PROTEIN = /\b(tofu|tempeh|seitan|chickpeas?|lentils?|beans?|falafel|eggs?)\b/i;
 // Meat-style names that are vegetarian ("Garden Burger", "Vegetarian Breakfast Sausage Patty").
 const MEATLESS = /\b(garden|veggie|vegetarian|vegan|plant)\b/i;
