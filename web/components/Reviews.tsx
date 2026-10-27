@@ -5,7 +5,15 @@ import { useSession } from "next-auth/react";
 import { REFRESH_MS, signInWithGoogle, useVotes } from "@/lib/likes";
 import { track } from "@/lib/analytics";
 
-type Review = { name: string; body: string; createdAt: string; mine: boolean };
+type Review = { id: number; name: string; body: string; createdAt: string; mine: boolean; reported: boolean };
+
+const REASONS = [
+  "Offensive or hateful",
+  "Harassment or targets someone",
+  "Spam",
+  "Not about this food",
+  "Something else",
+];
 
 const MAX = 500;
 
@@ -144,6 +152,77 @@ function DeleteDialog({ busy, onCancel, onConfirm }: { busy: boolean; onCancel: 
   );
 }
 
+/** Asks why a review is being reported, in a small window like the delete one. The reason is optional. */
+function ReportDialog({
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onCancel();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [busy, onCancel]);
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-6"
+      onClick={() => !busy && onCancel()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-review-title"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm space-y-2 rounded-2xl bg-white p-6 text-zinc-700 shadow-xl dark:bg-surface dark:text-zinc-300"
+      >
+        <h3 id="report-review-title" className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          Report this review?
+        </h3>
+        <p className="text-base">
+          I&apos;ll be notified and will see that it was you. Reviews that several people report are hidden.
+        </p>
+        <fieldset className="space-y-1 pt-2">
+          <legend className="sr-only">Reason (optional)</legend>
+          {REASONS.map((r) => (
+            <label key={r} className="flex min-h-11 items-center gap-3 text-base">
+              <input
+                type="radio"
+                name="report-reason"
+                checked={reason === r}
+                onChange={() => setReason(r)}
+                className="size-4 accent-[var(--accent)]"
+              />
+              {r}
+            </label>
+          ))}
+        </fieldset>
+        <div className="flex justify-end gap-2 pt-4">
+          <button
+            onClick={onCancel}
+            disabled={busy}
+            autoFocus
+            className="rounded-full bg-zinc-200/70 px-5 py-2.5 font-semibold text-zinc-900 disabled:opacity-60 dark:bg-zinc-800 dark:text-zinc-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(reason)}
+            disabled={busy}
+            className="rounded-full bg-red-600 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
+          >
+            {busy ? "Reporting…" : "Report"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** What students have written about a dish. Your own review has a "⋯" menu to edit or delete it; add one below (Google sign-in needed). */
 export function Reviews({ dish }: { dish: string }) {
   const { enabled, setReviews: syncCount } = useVotes();
@@ -154,6 +233,7 @@ export function Reviews({ dish }: { dish: string }) {
   const [editText, setEditText] = useState("");
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [reportingId, setReportingId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -216,6 +296,24 @@ export function Reviews({ dish }: { dish: string }) {
     return true;
   };
 
+  const sendReport = async (id: number, reason: string) => {
+    setBusy(true);
+    setError("");
+    const res = await fetch("/api/reviews/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, reason }),
+    }).catch(() => null);
+    setBusy(false);
+    if (!res?.ok) {
+      setError("Couldn't send that report. Please try again.");
+      return;
+    }
+    track("review_reported", { dish, reason });
+    setReportingId(null);
+    setReviews((await fetchReviews()) ?? []);
+  };
+
   const postNew = async () => {
     if (await send("POST", newText)) setNewText("");
   };
@@ -244,7 +342,7 @@ export function Reviews({ dish }: { dish: string }) {
       ) : (
         <ul className="space-y-3">
           {reviews.map((r) => (
-            <li key={`${r.name}-${r.createdAt}`} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+            <li key={r.id} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
               {r.mine && editing ? (
                 <div className="space-y-2">
                   <textarea
@@ -288,6 +386,22 @@ export function Reviews({ dish }: { dish: string }) {
                     <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">You</span>
                   )}
                 </p>
+                {!r.mine &&
+                  userId &&
+                  (r.reported ? (
+                    <span className="text-sm text-zinc-500">Reported</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setReportingId(r.id);
+                      }}
+                      className="min-h-9 rounded-full px-3 text-sm font-medium text-zinc-500 hover:bg-zinc-200/60 dark:hover:bg-zinc-800"
+                    >
+                      Report
+                    </button>
+                  ))}
                 {r.mine && !editing && (
                   <ReviewMenu
                     onEdit={() => {
@@ -335,6 +449,10 @@ export function Reviews({ dish }: { dish: string }) {
             Log in with Google to write a review
           </button>
         )
+      )}
+
+      {reportingId !== null && (
+        <ReportDialog busy={busy} onCancel={() => setReportingId(null)} onConfirm={(reason) => sendReport(reportingId, reason)} />
       )}
 
       {confirmingDelete && (
