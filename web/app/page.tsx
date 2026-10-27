@@ -8,7 +8,7 @@ import { MenuList } from "@/components/MenuList";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDate } from "@/lib/dates";
-import { hallBySlug, type Hall } from "@/lib/halls";
+import { hallBySlug, withoutHiddenStations, type Hall } from "@/lib/halls";
 import { HOME_LAYOUTS, hasChosenLayout, useHomeLayoutId, type HomeLayoutId } from "@/lib/homeLayouts";
 import { campusNow, dowOf, mealLabel, mealNow, type CampusTime } from "@/lib/hours";
 import { useMenuData } from "@/lib/menuData";
@@ -286,7 +286,7 @@ export default function Home() {
   const { data: posted, status, refresh } = useMenuData();
   // Posted the menu source menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
-  const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
+  const data = useMemo(() => posted && withoutHiddenStations(withSpecials(withMirroredMenus(withStandingMenus(posted)))), [posted]);
   const hall = hallBySlug(useHash());
   const now = useCampusNow();
   // When the campus date rolls over (usually the app being reopened the next day), fetch the menus

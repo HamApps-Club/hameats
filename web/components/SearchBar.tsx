@@ -29,7 +29,7 @@ export function SearchBar({ onSearch }: { onSearch: (q: string) => void }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === "Escape" && setValue("")}
-        placeholder='Find a food across all halls — try "pizza" or "omelet"'
+        placeholder='Find a food across all halls — try "burger" or "omelet"'
         aria-label="Search menu items"
         className="w-full rounded-lg border border-zinc-200 bg-white py-3 pl-10 pr-4 text-base shadow-sm outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-400/30 dark:border-zinc-700 dark:bg-surface"
       />
