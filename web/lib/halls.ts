@@ -8,9 +8,27 @@ export type Hall = {
   hours: WeekHours;
   /** Stations shown first, in this order; the rest keep the menu's order. */
   stationOrder?: string[];
+  /**
+   * Orders every station's foods, lowest first (ties keep the menu's order), for halls whose menu isn't split into
+   * entree stations: the Little Pub lists all its foods in one.
+   */
+  itemRank?: (name: string) => number;
   /** Menu tabs to show, when not every meal in `hours` has a menu (Little Pub's pub nights have none). */
   menuMeals?: Meal[];
 };
+
+// The Little Pub lists everything in one station: pizza every day, the day's featured food (wings, riggies, mac and
+// cheese...), and its sides, salads and taco toppings. The featured food is the main, so it goes first.
+const PUB_PIZZA = /\bpizza\b/i;
+const PUB_SIDE =
+  /\b(salads?|coleslaw|slaw|fries|potato(es)?|wedges|tots|chips|bread(sticks?)?|rice|guacamole|salsa|sour cream|lettuce|cheddar jack|dressing)\b/i;
+
+/** 0 = the featured main, 1 = pizza, 2 = sides, salads and toppings. */
+function pubRank(name: string) {
+  if (PUB_PIZZA.test(name)) return 1;
+  if (PUB_SIDE.test(name)) return 2;
+  return 0;
+}
 
 export const HALLS: Hall[] = [
   {
@@ -26,7 +44,7 @@ export const HALLS: Hall[] = [
     stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo", "Oven"],
   },
   { slug: "diner", name: "Howard Diner", hours: HOURS.diner },
-  { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub, menuMeals: ["Lunch"] },
+  { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub, menuMeals: ["Lunch"], itemRank: pubRank },
 ];
 
 export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
@@ -49,7 +67,11 @@ function proteinRank(name: string) {
   return 2;
 }
 
-export function orderedStations(stations: MealMenu | undefined, order: string[] = []) {
+export function orderedStations(
+  stations: MealMenu | undefined,
+  order: string[] = [],
+  itemRank?: (name: string) => number,
+) {
   const entries = stations ? Object.entries(stations) : [];
   const rank = (s: string) => (order.includes(s) ? order.indexOf(s) : order.length);
   // Array.prototype.sort is stable, so unlisted stations keep their original order.
@@ -57,6 +79,10 @@ export function orderedStations(stations: MealMenu | undefined, order: string[] 
     .sort(([a], [b]) => rank(a) - rank(b))
     .map(([station, items]): [string, typeof items] => [
       station,
-      ENTREE_STATIONS.has(station) ? [...items].sort((a, b) => proteinRank(a.name) - proteinRank(b.name)) : items,
+      itemRank
+        ? [...items].sort((a, b) => itemRank(a.name) - itemRank(b.name))
+        : ENTREE_STATIONS.has(station)
+          ? [...items].sort((a, b) => proteinRank(a.name) - proteinRank(b.name))
+          : items,
     ]);
 }
