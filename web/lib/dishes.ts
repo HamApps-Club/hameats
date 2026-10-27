@@ -30,7 +30,7 @@ const SCHEMA = [
   // Added after the first release; harmless to run again.
   "ALTER TABLE dishes ADD COLUMN IF NOT EXISTS thumbs_down integer NOT NULL DEFAULT 0",
   "ALTER TABLE dish_likes ADD COLUMN IF NOT EXISTS value smallint NOT NULL DEFAULT 1 CHECK (value IN (1, -1))",
-  // The difference (thumbs ups minus thumbs downs) that the menu is ranked by. The database keeps it in step by itself.
+  // The difference (thumbs ups minus thumbs downs), kept in step by the database itself. Not used for ordering the menu.
   "ALTER TABLE dishes ADD COLUMN IF NOT EXISTS score integer GENERATED ALWAYS AS (thumbs_up - thumbs_down) STORED",
 ];
 
