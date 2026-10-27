@@ -1,5 +1,5 @@
 import { HOURS, type WeekHours } from "./hours";
-import type { Meal, MealMenu, MenuData } from "./types";
+import type { Meal, MealMenu } from "./types";
 
 export type Hall = {
   slug: string;
@@ -8,8 +8,6 @@ export type Hall = {
   hours: WeekHours;
   /** Stations shown first, in this order; the rest keep the menu's order. */
   stationOrder?: string[];
-  /** Stations left off the app entirely, even when the menu source posts them. */
-  hiddenStations?: string[];
   /** Menu tabs to show, when not every meal in `hours` has a menu (Little Pub's pub nights have none). */
   menuMeals?: Meal[];
 };
@@ -19,31 +17,19 @@ export const HALLS: Hall[] = [
     slug: "commons",
     name: "Soper Commons",
     hours: HOURS.commons,
-    stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo"],
-    hiddenStations: ["Oven"],
+    stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo", "Oven"],
   },
   {
     slug: "mcewen",
     name: "McEwen Dining Hall",
     hours: HOURS.mcewen,
-    stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo"],
-    hiddenStations: ["Oven"],
+    stationOrder: ["Spoon & Fork", "Inspired Eats", "Fresh Stock", "V2", "Grill", "Bravo", "Oven"],
   },
   { slug: "diner", name: "Howard Diner", hours: HOURS.diner },
   { slug: "little-pub", name: "Little Pub", hours: HOURS.littlePub, menuMeals: ["Lunch"] },
 ];
 
 export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
-
-/** Drop each hall's hidden stations (the pizza Oven) from every date and meal. */
-export function withoutHiddenStations(data: MenuData): MenuData {
-  const dates = structuredClone(data.dates);
-  for (const day of Object.values(dates))
-    for (const { name, hiddenStations = [] } of HALLS)
-      for (const menu of Object.values(day[name] ?? {}))
-        for (const station of hiddenStations) delete menu[station];
-  return { ...data, dates };
-}
 
 /** Stations whose foods are an entree plus sides, so the main protein is listed first. */
 const ENTREE_STATIONS = new Set(["Spoon & Fork", "Inspired Eats", "Grill"]);

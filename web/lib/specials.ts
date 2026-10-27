@@ -3,7 +3,7 @@ import type { Meal, MenuData, MenuItem } from "./types";
 
 // One-off dishes a hall is serving that the menu source didn't list. Add one line per dish:
 //
-//   special("2026-09-28", "commons", "Dinner", "Bravo", "Mac and Cheese", ["Vegetarian", "Dairy", "Wheat"]),
+//   special("2026-09-28", "commons", "Dinner", "Oven", "Mac and Cheese", ["Vegetarian", "Dairy", "Wheat"]),
 //
 //   date     YYYY-MM-DD, the day it's served (entries for past days are simply ignored)
 //   hall     "commons" | "mcewen" | "diner" | "little-pub"
