@@ -31,6 +31,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // The private test-login link: never cached, indexed, or passed on in a Referer header.
+        source: "/t/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
         // Browsers must always re-check the service worker so updates reach installed apps.
         source: "/sw.js",
         headers: [
