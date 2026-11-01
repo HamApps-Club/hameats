@@ -1,6 +1,6 @@
-import { publicName } from "@/lib/auth";
-import { deleteReview, getReviews, saveReview } from "@/lib/dishes";
-import { currentUser, dbEnabled, dishParam, noStore, sameOrigin, unavailable } from "@/lib/apiGuard";
+import { deleteReview, getReviews, saveReview, type ReviewPlace } from "@/lib/dishes";
+import { MEALS } from "@/lib/types";
+import { currentUser, dbEnabled, dishParam, hallParam, noStore, sameOrigin, unavailable } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,15 @@ export async function GET(request: Request) {
   }
 }
 
-/** { dish, body }: writes (or replaces) the signed-in person's review of a dish. */
+/** Where the review was written from, when the request says (the hall card, day and meal on the Menu). */
+function placeParam(p: { hall?: unknown; date?: unknown; meal?: unknown } | null): ReviewPlace | null {
+  const hall = hallParam(p?.hall);
+  const date = typeof p?.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : null;
+  const meal = typeof p?.meal === "string" && (MEALS as readonly string[]).includes(p.meal) ? p.meal : null;
+  return hall ? { hall, date, meal } : null;
+}
+
+/** { dish, body, hall?, date?, meal? }: writes (or replaces) the signed-in person's review of a dish. */
 export async function POST(request: Request) {
   if (!dbEnabled()) return unavailable();
   if (!sameOrigin(request)) return Response.json({ error: "forbidden" }, { status: 403, headers: noStore });
@@ -32,7 +40,7 @@ export async function POST(request: Request) {
   const text = typeof payload?.body === "string" ? payload.body.trim() : "";
   if (!dish || !text || text.length > MAX_REVIEW) return Response.json({ error: "bad request" }, { status: 400, headers: noStore });
   try {
-    if (!(await saveReview(dish, user.id, publicName(user.name), text)))
+    if (!(await saveReview(dish, user.id, text, placeParam(payload))))
       return Response.json({ error: "unknown dish" }, { status: 404, headers: noStore });
     return Response.json({ ok: true }, { headers: noStore });
   } catch (e) {

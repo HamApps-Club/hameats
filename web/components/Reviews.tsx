@@ -4,14 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { REFRESH_MS, signInWithGoogle, useVotes } from "@/lib/likes";
 import { track } from "@/lib/analytics";
+import { useMe } from "@/lib/me";
+import type { ReviewPlace } from "@/components/ItemSheet";
 
-type Review = { id: number; name: string; body: string; createdAt: string; mine: boolean; reported: boolean };
+type Review = { id: number; name: string; body: string; createdAt: string; mine: boolean; reported: boolean; hall: string | null; verdict: number };
 
 const REASONS = [
   "Offensive or hateful",
   "Harassment or targets someone",
   "Spam",
-  "Not about this food",
+  "Not about food",
   "Something else",
 ];
 
@@ -108,7 +110,18 @@ function ReviewMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => 
 }
 
 /** Like Reddit's "Delete comment?" box: a small window in the middle of the screen. */
-function DeleteDialog({ busy, onCancel, onConfirm }: { busy: boolean; onCancel: () => void; onConfirm: () => void }) {
+export function DeleteDialog({
+  busy,
+  onCancel,
+  onConfirm,
+  what = "review",
+}: {
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  /** What's being deleted: "review", "post" or "comment". */
+  what?: string;
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onCancel();
     document.addEventListener("keydown", onKey);
@@ -127,7 +140,7 @@ function DeleteDialog({ busy, onCancel, onConfirm }: { busy: boolean; onCancel: 
         className="w-full max-w-sm space-y-2 rounded-2xl bg-white p-6 text-zinc-700 shadow-xl dark:bg-surface dark:text-zinc-300"
       >
         <h3 id="delete-review-title" className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-          Delete review?
+          Delete {what}?
         </h3>
         <p className="text-base">You can&apos;t undo this once it&apos;s deleted.</p>
         <div className="flex justify-end gap-2 pt-4">
@@ -152,15 +165,18 @@ function DeleteDialog({ busy, onCancel, onConfirm }: { busy: boolean; onCancel: 
   );
 }
 
-/** Asks why a review is being reported, in a small window like the delete one. The reason is optional. */
-function ReportDialog({
+/** Asks why something is being reported, in a small window like the delete one. The reason is optional. */
+export function ReportDialog({
   busy,
   onCancel,
   onConfirm,
+  what = "review",
 }: {
   busy: boolean;
   onCancel: () => void;
   onConfirm: (reason: string) => void;
+  /** What's being reported: "review", "post" or "comment". */
+  what?: string;
 }) {
   const [reason, setReason] = useState("");
   useEffect(() => {
@@ -181,10 +197,10 @@ function ReportDialog({
         className="w-full max-w-sm space-y-2 rounded-2xl bg-white p-6 text-zinc-700 shadow-xl dark:bg-surface dark:text-zinc-300"
       >
         <h3 id="report-review-title" className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-          Report this review?
+          Report this {what}?
         </h3>
         <p className="text-base">
-          I&apos;ll be notified and will see that it was you. Reviews that several people report are hidden.
+          I&apos;ll be notified and will see that it was you. Anything that several people report is hidden.
         </p>
         <fieldset className="space-y-1 pt-2">
           <legend className="sr-only">Reason (optional)</legend>
@@ -224,7 +240,8 @@ function ReportDialog({
 }
 
 /** What students have written about a dish. Your own review has a "⋯" menu to edit or delete it; add one below (Google sign-in needed). */
-export function Reviews({ dish }: { dish: string }) {
+export function Reviews({ dish, place }: { dish: string; place?: ReviewPlace }) {
+  const me = useMe();
   const { enabled, setReviews: syncCount } = useVotes();
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
@@ -284,7 +301,7 @@ export function Reviews({ dish }: { dish: string }) {
     const res = await fetch("/api/reviews", {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dish, body }),
+      body: JSON.stringify({ dish, body, ...place }),
     }).catch(() => null);
     setBusy(false);
     if (!res?.ok) {
@@ -381,7 +398,7 @@ export function Reviews({ dish }: { dish: string }) {
               )}
               <div className="mt-2 flex items-center justify-between gap-2">
                 <p className="text-sm text-zinc-500">
-                  {r.name} · {when(r.createdAt)}
+                  u/{r.name} · {when(r.createdAt)}
                   {r.mine && (
                     <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">You</span>
                   )}
@@ -442,7 +459,7 @@ export function Reviews({ dish }: { dish: string }) {
                 {newText.length}/{MAX}
               </span>
             </div>
-            <p className="text-xs text-zinc-500">Shown with your first name.</p>
+            <p className="text-xs text-zinc-500">Shown as u/{me.username ?? "your username"}, in the Feed and on your profile.</p>
           </div>
         ) : (
           <button onClick={() => void signInWithGoogle()} className={primary}>

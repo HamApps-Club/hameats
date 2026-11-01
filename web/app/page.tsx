@@ -1,6 +1,6 @@
 import saved from "@/public/dining_menu.json";
 import { dbEnabled } from "@/lib/db";
-import { dishNames, recordDishes } from "@/lib/dishes";
+import { recordMenu } from "@/lib/dishes";
 import { countItems, fetchMenus, menuCacheSeconds } from "@/lib/menuSource";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { withSpecials } from "@/lib/specials";
@@ -21,7 +21,7 @@ export default async function Home() {
     // Remember every dish name that has been served (the thumbs-up and review tables are keyed by it). A page
     // rebuild must never fail over this, so any trouble is only logged.
     if (dbEnabled())
-      await recordDishes(dishNames(withSpecials(withMirroredMenus(withStandingMenus(live))))).catch((e) =>
+      await recordMenu(withSpecials(withMirroredMenus(withStandingMenus(live)))).catch((e) =>
         console.error("recording dishes failed:", e),
       );
     return <HomeClient initialMenu={live} />;

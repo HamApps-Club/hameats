@@ -49,6 +49,14 @@ export const HALLS: Hall[] = [
 
 export const hallBySlug = (slug: string) => HALLS.find((h) => h.slug === slug);
 
+/** Short names, so all four fit across a phone screen (the hall scroller) and in a flair. */
+export const HALL_SHORT: Record<string, string> = {
+  commons: "Commons",
+  mcewen: "McEwen",
+  diner: "Diner",
+  "little-pub": "Pub",
+};
+
 /** Stations whose foods are an entree plus sides, so the main protein is listed first. */
 const ENTREE_STATIONS = new Set(["Spoon & Fork", "Inspired Eats", "Grill"]);
 const MEAT = /\b(chicken|beef|pork|turkey|ham|bacon|sausage|steak|meatballs?|lamb|fish|salmon|cod|haddock|tilapia|trout|catfish|pollock|mahi|swordfish|scallops?|tuna|shrimp|burger|brisket|ribs?)\b/i;

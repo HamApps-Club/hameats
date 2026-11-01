@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { HALLS, orderedStations, type Hall } from "@/lib/halls";
+import { HALLS, HALL_SHORT, orderedStations, type Hall } from "@/lib/halls";
 import { compactRange, dayHours, mealNow, statusAt, type CampusTime } from "@/lib/hours";
 import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
-import { ItemSheet } from "@/components/ItemSheet";
+import { ItemSheet, type ReviewPlace } from "@/components/ItemSheet";
 import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
@@ -18,7 +18,7 @@ import { SiteTitle } from "@/components/SiteTitle";
  * above and the hall scroller below. Tapping a food opens its page (see ItemSheet).
  */
 
-export type Selected = { item: MenuItem; context: string };
+export type Selected = { item: MenuItem; context: string; place?: ReviewPlace };
 
 export function useItemSheet() {
   const [selected, setSelected] = useState<Selected | null>(null);
@@ -36,7 +36,7 @@ export function useItemSheet() {
     if (history.state?.itemSheet) history.back();
     else setSelected(null);
   }, []);
-  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} onClose={close} />;
+  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} place={selected.place} onClose={close} />;
   return { open, sheet };
 }
 
@@ -115,7 +115,7 @@ function HallColumn({
               </h3>
               <div className="divide-y divide-rule/70">
                 {items.map((it) => {
-                  const select = () => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` });
+                  const select = () => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}`, place: { hall: hall.slug, date, meal } });
                   return (
                     <div key={it.name} className="py-2.5">
                       <button
@@ -146,13 +146,7 @@ function HallColumn({
 /** Element id of a hall's card, for the scroller to jump to. (Not a #hash: those open the hall's own page.) */
 const sectionId = (hall: Hall) => `continental-${hall.slug}`;
 
-/** Short names so all four hall labels fit across a phone screen. */
-const SHORT_NAMES: Record<string, string> = {
-  commons: "Commons",
-  mcewen: "McEwen",
-  diner: "Diner",
-  "little-pub": "Pub",
-};
+const SHORT_NAMES = HALL_SHORT;
 
 /**
  * Keeps a `position: fixed; bottom: 0` element on the bottom of the visible screen. iOS Safari places fixed
@@ -332,7 +326,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
   );
 }
 
-export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
+export function NetNutritionHomeLayout({ data, now, tabs }: HomeLayoutProps) {
   // Follows the clock (moving on as each meal ends) until the student picks a meal themselves.
   const [pickedMeal, setMeal] = useState<Meal | null>(null);
   const meal = pickedMeal ?? mealByClock(now);
@@ -352,6 +346,7 @@ export function NetNutritionHomeLayout({ data, now }: HomeLayoutProps) {
       {/* Solid navy, so iOS copies it behind the clock and battery (see repaintStatusBar in lib/theme.ts). */}
       <header className="sticky top-0 z-10 border-b border-band-edge bg-band text-band-ink">
         <SiteTitle />
+        {tabs}
       </header>
 
       <main className="mx-auto max-w-6xl px-3.5 pb-6 pt-3">

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
-import { ItemSheet } from "@/components/ItemSheet";
+import { ItemSheet, type ReviewPlace } from "@/components/ItemSheet";
 import { LoginButton } from "@/components/LoginButton";
 import { MenuList } from "@/components/MenuList";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -20,7 +20,13 @@ import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMe
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
 import { VotesProvider } from "@/lib/likes";
+import { MeProvider } from "@/lib/me";
 import { SessionProvider } from "next-auth/react";
+import { SiteTitle } from "@/components/SiteTitle";
+import { FeedTab } from "@/components/social/FeedTab";
+import { MeTab } from "@/components/social/Profile";
+import { SectionTabs, sectionFor } from "@/components/social/SectionTabs";
+import { SocialLayers } from "@/components/social/SocialLayers";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -41,7 +47,7 @@ function goHome(state: unknown) {
   window.scrollTo({ top: 0 });
 }
 
-type Selected = { item: MenuItem; context: string };
+type Selected = { item: MenuItem; context: string; place?: ReviewPlace };
 
 /**
  * The food detail page. Opening it adds a history entry, so the phone's back
@@ -63,7 +69,7 @@ function useItemSheet() {
     if (history.state?.itemSheet) history.back();
     else setSelected(null);
   }, []);
-  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} onClose={close} />;
+  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} place={selected.place} onClose={close} />;
   return { open, sheet };
 }
 
@@ -260,7 +266,7 @@ function HallView({
             )
           }
           onSelect={(item, station) =>
-            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, hoursDate, meal)}` })
+            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, hoursDate, meal)}`, place: { hall: hall.slug, date: hoursDate, meal } })
           }
         />
       </main>
@@ -274,7 +280,10 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   // Posted the menu source menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
-  const hall = hallBySlug(useHash());
+  const hash = useHash();
+  const hall = hallBySlug(hash);
+  // No hall page open: the Menu, the Feed or your profile (Me), by the address (#feed, #me).
+  const { section, postId } = sectionFor(hash);
   const now = useCampusNow();
   // When the campus date rolls over (usually the app being reopened the next day), fetch the menus
   // again so the new day's menu is there.
@@ -310,14 +319,14 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   };
 
   useEffect(() => {
-    if (data && !hall)
+    if (data && !hall && section === "menu")
       track("home_layout_viewed", {
         layout: HOME_LAYOUTS[layoutId].analyticsName,
         layout_label: HOME_LAYOUTS[layoutId].label,
         // false while they're still on the default layout new visitors land on.
         chosen: hasChosenLayout(),
       });
-  }, [data, hall, layoutId]);
+  }, [data, hall, layoutId, section]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background text-zinc-900 dark:text-zinc-100">
@@ -341,7 +350,17 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
           <>
             <ThemeToggle />
             {visible.length > 1 ? <SwitchLayoutButton onClick={switchLayout} /> : <LoginButton />}
-            <HomeLayout key={now.iso} data={data} now={now} />
+            {section === "menu" ? (
+              <HomeLayout key={now.iso} data={data} now={now} tabs={<SectionTabs active="menu" />} />
+            ) : (
+              <>
+                <header className="sticky top-0 z-10 border-b border-band-edge bg-band text-band-ink">
+                  <SiteTitle />
+                  <SectionTabs active={section} />
+                </header>
+                {section === "feed" ? <FeedTab openPostId={postId} /> : <MeTab />}
+              </>
+            )}
           </>
         )}
       </div>
@@ -351,13 +370,17 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   );
 }
 
-/** Sign-in and vote state wrap the whole home screen, so the halls and the food pages share them. */
+/** Sign-in, vote and profile state wrap the whole home screen, so the halls, the food pages, the Feed and profiles share them. */
 export function HomeClient(props: { initialMenu: MenuData | null }) {
   return (
     <SessionProvider>
       <VotesProvider>
-        <PullToRefresh />
-        <Home {...props} />
+        <MeProvider>
+          <SocialLayers>
+            <PullToRefresh />
+            <Home {...props} />
+          </SocialLayers>
+        </MeProvider>
       </VotesProvider>
     </SessionProvider>
   );
