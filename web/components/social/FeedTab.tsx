@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FeedItem } from "@/lib/social";
+import type { FeedItem, FeedKind } from "@/lib/social";
 import { useMe } from "@/lib/me";
 import { signInWithGoogle } from "@/lib/likes";
 import { track } from "@/lib/analytics";
@@ -11,9 +11,33 @@ import { FEED_CHANGED } from "@/components/social/bits";
 
 type Page = { items: FeedItem[]; next: string | null };
 
+const FILTERS: [FeedKind, string][] = [
+  ["all", "All"],
+  ["review", "Reviews"],
+  ["post", "Posts"],
+];
+
+const STORAGE_KEY = "feed-filter";
+const savedKind = (): FeedKind => {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY);
+    return v === "review" || v === "post" ? v : "all";
+  } catch {
+    return "all";
+  }
+};
+
+const feedUrl = (kind: FeedKind, cursor?: string) => {
+  const q = new URLSearchParams();
+  if (kind !== "all") q.set("kind", kind);
+  if (cursor) q.set("cursor", cursor);
+  const s = q.toString();
+  return `/api/feed${s ? `?${s}` : ""}`;
+};
+
 /** The Feed's first page, or null when it couldn't be loaded. */
-async function firstPage(): Promise<Page | null> {
-  const res = await fetch("/api/feed", { cache: "no-store" }).catch(() => null);
+async function firstPage(kind: FeedKind): Promise<Page | null> {
+  const res = await fetch(feedUrl(kind), { cache: "no-store" }).catch(() => null);
   return res?.ok ? ((await res.json()) as Page) : null;
 }
 
@@ -29,6 +53,8 @@ export function FeedTab({ openPostId }: { openPostId: number | null }) {
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [more, setMore] = useState(false);
+  // All, only reviews, or only posts. Remembered on this phone, so the Feed opens the way it was left.
+  const [kind, setKind] = useState<FeedKind>(savedKind);
   const sentinel = useRef<HTMLDivElement>(null);
 
   // A failed refresh keeps what's on screen; only a first load that fails says so.
@@ -42,19 +68,19 @@ export function FeedTab({ openPostId }: { openPostId: number | null }) {
   const loadMore = useCallback(async () => {
     if (!next || more) return;
     setMore(true);
-    const res = await fetch(`/api/feed?cursor=${encodeURIComponent(next)}`, { cache: "no-store" }).catch(() => null);
+    const res = await fetch(feedUrl(kind, next), { cache: "no-store" }).catch(() => null);
     if (res?.ok) {
       const data = (await res.json()) as { items: FeedItem[]; next: string | null };
       setItems((list) => [...list, ...data.items.filter((i) => !list.some((x) => x.id === i.id))]);
       setNext(data.next);
     }
     setMore(false);
-  }, [next, more]);
+  }, [next, more, kind]);
 
   // Loads on arrival and whenever a post or comment changes; a home-screen app also refreshes when it comes back into view.
   useEffect(() => {
     let cancelled = false;
-    const load = () => void firstPage().then((data) => !cancelled && show(data));
+    const load = () => void firstPage(kind).then((data) => !cancelled && show(data));
     load();
     const onChange = () => load();
     const onVisible = () => document.visibilityState === "visible" && load();
@@ -65,7 +91,7 @@ export function FeedTab({ openPostId }: { openPostId: number | null }) {
       window.removeEventListener(FEED_CHANGED, onChange);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [show]);
+  }, [show, kind]);
 
   // The next page loads as the end of the list comes into view.
   useEffect(() => {
@@ -96,12 +122,39 @@ export function FeedTab({ openPostId }: { openPostId: number | null }) {
 
   return (
     <main className="mx-auto max-w-2xl pb-28">
+      <div role="group" aria-label="Show in the Feed" className="flex gap-2 border-b border-rule px-3.5 py-3">
+        {FILTERS.map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={kind === k}
+            onClick={() => {
+              if (k === kind) return;
+              setKind(k);
+              setState("loading");
+              setItems([]);
+              setNext(null);
+              try {
+                localStorage.setItem(STORAGE_KEY, k);
+              } catch {}
+              track("feed_filtered", { kind: k });
+            }}
+            className={`min-h-9 rounded-full border px-4 text-[15px] font-semibold ${
+              kind === k ? "border-accent bg-accent-fill text-on-accent" : "border-rule bg-surface text-zinc-700 dark:text-zinc-300"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       {state === "loading" && <p className="py-16 text-center text-muted">Loading the Feed…</p>}
       {state === "error" && <p className="px-4 py-16 text-center text-muted">Couldn&apos;t load the Feed. Check your connection and try again.</p>}
       {state === "ready" && items.length === 0 && (
         <div className="px-6 py-16 text-center">
-          <p className="font-display text-2xl font-bold">Nothing here yet</p>
-          <p className="mt-2 text-muted">Be the first: tap Post, or review a dish from the Menu.</p>
+          <p className="font-display text-2xl font-bold">{kind === "review" ? "No reviews yet" : kind === "post" ? "No posts yet" : "Nothing here yet"}</p>
+          <p className="mt-2 text-muted">
+            {kind === "review" ? "Tap a dish on the Menu to write the first one." : kind === "post" ? "Tap Post to share the first one." : "Be the first: tap Post, or review a dish from the Menu."}
+          </p>
         </div>
       )}
       {items.map((item) => (
