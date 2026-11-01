@@ -85,8 +85,10 @@ export function decodeCursor(cursor: string | null): { at: string; id: number } 
 
 export const FEED_PAGE = 20;
 
-/** The Feed, newest first, one page at a time. */
-export async function getFeed(viewerId: string | undefined, cursor: { at: string; id: number } | null) {
+export type FeedKind = "all" | "review" | "post";
+
+/** The Feed, newest first, one page at a time: everything, or only reviews, or only posts. */
+export async function getFeed(viewerId: string | undefined, cursor: { at: string; id: number } | null, kind: FeedKind = "all") {
   await ensureSchema();
   const params: unknown[] = [viewerId ?? ""];
   let after = "";
@@ -94,8 +96,10 @@ export async function getFeed(viewerId: string | undefined, cursor: { at: string
     params.push(cursor.at, cursor.id);
     after = "AND (p.created_at, p.id) < ($2::timestamptz, $3::bigint)";
   }
+  // kind is one of two fixed words, never text from the request, so it can go straight into the query.
+  const only = kind === "all" ? "" : `AND p.kind = '${kind}'`;
   const rows = await run(
-    `SELECT ${POST_COLUMNS} ${POST_FROM} WHERE ${POST_VISIBLE} ${after}
+    `SELECT ${POST_COLUMNS} ${POST_FROM} WHERE ${POST_VISIBLE} ${after} ${only}
      ORDER BY p.created_at DESC, p.id DESC LIMIT ${FEED_PAGE + 1}`,
     params,
   );
