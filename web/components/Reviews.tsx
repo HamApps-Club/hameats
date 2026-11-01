@@ -316,10 +316,10 @@ export function Reviews({ dish, place }: { dish: string; place?: ReviewPlace }) 
   const sendReport = async (id: number, reason: string) => {
     setBusy(true);
     setError("");
-    const res = await fetch("/api/reviews/report", {
+    const res = await fetch("/api/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, reason }),
+      body: JSON.stringify({ postId: id, reason }),
     }).catch(() => null);
     setBusy(false);
     if (!res?.ok) {
