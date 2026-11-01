@@ -4,14 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { track } from "@/lib/analytics";
 import { signInWithGoogle } from "@/lib/likes";
+import { useMe } from "@/lib/me";
 
 /**
- * Log in with Google (or log out), in the corner of the home screen: an outlined button on the header's navy band.
- * Logging out asks first, then confirms with a message at the top of the screen.
+ * Log in with Google, in the corner of the home screen: an outlined button on the header's navy band. Once logged in it
+ * becomes your picture (the first letter of your username); tapping it asks whether to log out, then confirms with a
+ * message at the top of the screen.
  */
 export function LoginButton() {
   const { status } = useSession();
   const signedIn = status === "authenticated";
+  const { username } = useMe();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loggedOut, setLoggedOut] = useState(false);
@@ -61,12 +64,15 @@ export function LoginButton() {
               void signInWithGoogle();
             }
           }}
-          aria-label={signedIn ? "Log out" : "Log in with Google"}
+          aria-label={signedIn ? `u/${username ?? "you"}: log out` : "Log in with Google"}
           aria-expanded={signedIn ? confirming : undefined}
-          // Same size either way, so the corner doesn't jump when the session finishes loading.
-          className="flex min-h-10 min-w-[4.25rem] items-center justify-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
+          className={
+            signedIn
+              ? "flex size-10 items-center justify-center rounded-full border-2 border-band-ink/60 bg-gold font-display text-xl font-bold text-zinc-950"
+              : "flex min-h-10 min-w-[4.25rem] items-center justify-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
+          }
         >
-          {signedIn ? "Log out" : "Log in"}
+          {signedIn ? (username?.[0]?.toUpperCase() ?? "") : "Log in"}
         </button>
 
         {confirming && (

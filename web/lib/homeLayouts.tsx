@@ -1,10 +1,15 @@
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { useCallback, useSyncExternalStore } from "react";
 import type { CampusTime } from "@/lib/hours";
 import type { MenuData } from "@/lib/types";
 import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout";
 
-export type HomeLayoutProps = { data: MenuData; now: CampusTime };
+export type HomeLayoutProps = {
+  data: MenuData;
+  now: CampusTime;
+  /** The Menu / Feed / Me tabs, shown in the header band under the title. */
+  tabs?: ReactNode;
+};
 
 // Extend this union as new home layouts are registered below.
 export type HomeLayoutId = "net-nutrition";
