@@ -23,6 +23,8 @@ type Votes = {
   setReviews: (dish: string, count: number) => void;
   /** This person's own vote on the dish: 1, -1, or 0. */
   vote: (dish: string) => 1 | -1 | 0;
+  /** Every dish this person has voted on, with their vote. */
+  mine: Mine;
   /** Gives a thumbs up or down (tapping the same one again takes it back). Does nothing when signed out. */
   cast: (dish: string, direction: 1 | -1) => void;
 };
@@ -39,6 +41,7 @@ const VotesContext = createContext<Votes>({
   reviews: () => 0,
   setReviews: () => {},
   vote: () => 0,
+  mine: {},
   cast: () => {},
 });
 
@@ -167,6 +170,7 @@ export function VotesProvider({ children }: { children: React.ReactNode }) {
       reviews: (dish) => counts(dish).reviews,
       setReviews,
       vote: (dish) => state.mine[dish] ?? 0,
+      mine: state.mine,
       cast,
     };
   }, [state, cast, userId, setReviews]);

@@ -58,6 +58,36 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request));
   }
 });
+
+// Alerts. The server sends { title, body, url } (see lib/social.ts: notification_prefs and push_subscriptions).
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "HamEats", {
+      body: data.body || "",
+      icon: "/icons/icon-192.png?v=9",
+      badge: "/icons/icon-192.png?v=9",
+      data: { url: data.url || "/" },
+    }),
+  );
+});
+
+// Tapping an alert opens HamEats (or brings an open one to the front) on the page it points to.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((w) => w.url.startsWith(self.location.origin));
+      return open ? open.focus().then((w) => w.navigate(url)) : self.clients.openWindow(url);
+    }),
+  );
+});
 `;
 
 export function GET() {

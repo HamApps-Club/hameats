@@ -2,6 +2,9 @@
 
 import { useEffect } from "react";
 import type { MenuItem } from "@/lib/types";
+
+/** Where a food was opened from: a hall slug, and the day and meal when known. */
+export type ReviewPlace = { hall: string; date: string | null; meal: string | null };
 import { track } from "@/lib/analytics";
 import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { Reviews } from "@/components/Reviews";
@@ -10,11 +13,14 @@ import { Reviews } from "@/components/Reviews";
 export function ItemSheet({
   item,
   context,
+  place,
   onClose,
 }: {
   item: MenuItem;
   /** e.g. "Spoon & Fork · Lunch" */
   context: string;
+  /** The hall, day and meal the food was opened from, saved with a review so it shows that hall's flair in the Feed. */
+  place?: ReviewPlace;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -82,7 +88,7 @@ export function ItemSheet({
             </a>
           </p>
 
-          <Reviews dish={item.name} />
+          <Reviews dish={item.name} place={place} />
 
           <p className="text-xs text-zinc-500">For allergen and ingredient information, please ask dining staff.</p>
         </div>
