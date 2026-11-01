@@ -29,7 +29,7 @@ function Hero({ profile, edit, actions }: { profile: PublicProfile; edit?: React
         {profile.username[0]?.toUpperCase()}
       </span>
       <div className="mt-4 flex items-center gap-3">
-        <h2 className="min-w-0 truncate font-display text-[32px] font-bold leading-none">u/{profile.username}</h2>
+        <h2 className="min-w-0 truncate font-display text-[26px] font-bold leading-none min-[400px]:text-[30px]">u/{profile.username}</h2>
         {edit}
       </div>
       <p className="mt-1.5 text-[15px] text-band-ink/75">Joined {joinedLabel(profile.joined)}</p>
