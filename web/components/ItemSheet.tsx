@@ -6,6 +6,7 @@ import type { MenuItem } from "@/lib/types";
 /** Where a food was opened from: a hall slug, and the day and meal when known. */
 export type ReviewPlace = { hall: string; date: string | null; meal: string | null };
 import { track } from "@/lib/analytics";
+import { lockScroll } from "@/lib/scrollLock";
 import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { Reviews } from "@/components/Reviews";
 
@@ -27,11 +28,10 @@ export function ItemSheet({
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     // Keep the menu underneath from scrolling while the sheet is open.
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockScroll();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
+      unlock();
     };
   }, [onClose]);
 
