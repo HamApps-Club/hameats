@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { lockScroll } from "@/lib/scrollLock";
 
 /**
  * Full-screen pages that open on top of each other (a post, then someone's profile from it). Each one adds a history
@@ -25,11 +26,7 @@ export function useLayers<T>() {
   // The page underneath stays put while something is open on top.
   useEffect(() => {
     if (!stack.length) return;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = overflow;
-    };
+    return lockScroll();
   }, [stack.length]);
 
   const push = useCallback((layer: T) => {
