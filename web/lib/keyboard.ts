@@ -2,17 +2,23 @@
 
 import { useEffect, useState } from "react";
 
+/** Anything smaller than this is browser toolbars or rounding, not a keyboard. */
+const KEYBOARD_MIN = 120;
+
 /**
- * The part of the screen that's actually visible: on phones the keyboard covers the bottom of the page without
- * shrinking it, so a toolbar pinned to the bottom ends up hidden behind the keyboard. The visual viewport says how much
- * is really showing, so a full-screen page can fit itself above the keyboard (like Reddit's new-post toolbar).
+ * Where the on-screen keyboard is, while it's open. Phones lay the keyboard over the page without shrinking it, so a
+ * bar pinned to the bottom ends up behind the keyboard. The visual viewport says how much is really showing. Null
+ * while there's no keyboard (or the page is pinch-zoomed), so pages stay full screen.
  */
-export function useVisibleArea() {
-  const [area, setArea] = useState<{ top: number; height: number } | null>(null);
+export function useKeyboard() {
+  const [kb, setKb] = useState<{ top: number; page: number; covered: number } | null>(null);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setArea(Math.abs(vv.height - window.innerHeight) < 1 && vv.offsetTop === 0 ? null : { top: vv.offsetTop, height: vv.height });
+    const update = () => {
+      const covered = window.innerHeight - vv.height;
+      setKb(covered >= KEYBOARD_MIN && Math.abs(vv.scale - 1) < 0.01 ? { top: vv.offsetTop, page: window.innerHeight, covered } : null);
+    };
     update();
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
@@ -21,5 +27,5 @@ export function useVisibleArea() {
       vv.removeEventListener("scroll", update);
     };
   }, []);
-  return area;
+  return kb;
 }
