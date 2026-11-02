@@ -2,6 +2,7 @@ import { idParam } from "@/lib/apiGuard";
 import { dbEnabled } from "@/lib/db";
 import { getForReview, restorePost, validLink } from "@/lib/moderation";
 import { escape, page } from "@/lib/modPage";
+import { captureServer } from "@/lib/serverAnalytics";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,9 @@ export async function POST(request: Request) {
   const ok = check(request);
   if (!ok) return page("Link not valid", "<p>This restore link isn't valid.</p>", 403);
   try {
-    return (await restorePost(ok.id))
-      ? page("Restored", "<p>The post is back up for everyone.</p>")
-      : page("Nothing to restore", "<p>This post isn't hidden, or it has been deleted.</p>");
+    if (!(await restorePost(ok.id))) return page("Nothing to restore", "<p>This post isn't hidden, or it has been deleted.</p>");
+    await captureServer("post_restored_by_owner");
+    return page("Restored", "<p>The post is back up for everyone.</p>");
   } catch (e) {
     console.error("mod restore failed:", e);
     return page("Something went wrong", "<p>The post couldn't be restored. Try again in a minute.</p>", 503);

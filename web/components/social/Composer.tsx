@@ -65,6 +65,7 @@ export function Composer({ onClose }: { onClose: () => void }) {
     const res = await fetch("/api/photos", { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: blob }).catch(() => null);
     const data = res ? await res.json().catch(() => null) : null;
     if (!res?.ok || typeof data?.id !== "number") {
+      track("photo_upload_failed", { source, status: res?.status ?? 0 });
       URL.revokeObjectURL(preview);
       return setPhoto({ step: "failed", message: messageFrom(data, "That photo didn't upload. Please try again.") });
     }
@@ -80,6 +81,7 @@ export function Composer({ onClose }: { onClose: () => void }) {
       announceFeedChange();
       onClose();
     } catch (e) {
+      track("post_failed", { has_photo: photo.step === "ready" });
       setError((e as Error).message);
       setBusy(false);
     }

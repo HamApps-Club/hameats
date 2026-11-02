@@ -4,6 +4,7 @@ import { run } from "@/lib/db";
 import { ensureProfile } from "@/lib/dishes";
 import { removePhotos } from "@/lib/photos";
 import { getForReview, sendAiNotice } from "@/lib/moderation";
+import { captureServer, isTestAccount } from "@/lib/serverAnalytics";
 
 // Every photo is looked over by Claude Haiku as soon as it's uploaded, usually while the student is still typing their
 // caption. A photo that breaks the rules below is never shown: if the post isn't up yet it's refused, and if it already
@@ -44,7 +45,7 @@ const client = () => (anthropic ??= new Anthropic({ timeout: 30_000, maxRetries:
 export const photoCheckEnabled = () => !!process.env.ANTHROPIC_API_KEY;
 
 /** Asks Claude Haiku whether the photo at `url` follows the rules. Throws when there's no clear answer. */
-async function askClaude(url: string): Promise<{ allowed: boolean; reason: string }> {
+async function askClaude(url: string): Promise<{ allowed: boolean; reason: string; refused?: boolean }> {
   const response = await client().messages.create({
     model: "claude-haiku-5-5",
     max_tokens: 2048,
@@ -61,7 +62,7 @@ async function askClaude(url: string): Promise<{ allowed: boolean; reason: strin
     ],
   });
   // Claude declining to look at a photo at all is a sign it's one that shouldn't be up.
-  if (response.stop_reason === "refusal") return { allowed: false, reason: "the model refused to review it" };
+  if (response.stop_reason === "refusal") return { allowed: false, reason: "the model refused to review it", refused: true };
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") throw new Error(`no verdict (stop reason ${response.stop_reason})`);
   const verdict = JSON.parse(text.text) as { allowed: unknown; reason: unknown };
@@ -75,11 +76,20 @@ async function askClaude(url: string): Promise<{ allowed: boolean; reason: strin
  */
 export async function checkPhoto(photoId: number) {
   if (!photoCheckEnabled()) return;
+  const started = Date.now();
+  let test = false;
   try {
-    const rows = await run("SELECT url FROM photos WHERE id = $1 AND ai_verdict IS NULL", [photoId]);
+    const rows = await run("SELECT url, user_id FROM photos WHERE id = $1 AND ai_verdict IS NULL", [photoId]);
     if (!rows.length) return;
+    test = isTestAccount(rows[0].user_id);
     const verdict = await askClaude(rows[0].url as string);
     await run("UPDATE photos SET ai_verdict = $2 WHERE id = $1", [photoId, verdict.allowed ? "allowed" : "rejected"]);
+    await captureServer("photo_ai_checked", {
+      verdict: verdict.allowed ? "allowed" : "rejected",
+      model_refused: !!verdict.refused,
+      duration_ms: Date.now() - started,
+      test_account: test,
+    });
     if (!verdict.allowed) {
       // The reason isn't sent to Discord, but it's kept in the server logs in case the AI gets one wrong.
       console.warn(`photo ${photoId} rejected by the AI: ${verdict.reason}`);
@@ -87,6 +97,7 @@ export async function checkPhoto(photoId: number) {
     }
   } catch (e) {
     console.error(`photo check failed for photo ${photoId}:`, e);
+    await captureServer("photo_ai_checked", { verdict: "error", duration_ms: Date.now() - started, test_account: test });
   }
 }
 
@@ -97,12 +108,13 @@ export async function hideIfPosted(photoId: number) {
     const rows = await run(
       `UPDATE posts p SET hidden_by_ai_at = now() FROM photos ph
        WHERE ph.id = $1 AND ph.ai_verdict = 'rejected' AND p.id = ph.post_id AND p.hidden_by_ai_at IS NULL
-       RETURNING p.id, ph.url`,
+       RETURNING p.id, p.user_id, ph.url`,
       [photoId],
     );
     if (!rows.length) return;
     const postId = Number(rows[0].id);
     const item = await getForReview("post", postId);
+    await captureServer("post_hidden_by_ai", { test_account: isTestAccount(rows[0].user_id) });
     if (item) await sendAiNotice(item, { hiddenPostId: postId, photoUrl: rows[0].url as string });
   } catch (e) {
     console.error(`hiding photo ${photoId}'s post failed:`, e);
@@ -117,6 +129,7 @@ export async function reportRefusedPost(userId: string, photoId: number, body: s
   try {
     const rows = await run("DELETE FROM photos WHERE id = $1 AND user_id = $2 AND post_id IS NULL RETURNING url, storage_key", [photoId, userId]);
     if (!rows.length) return;
+    await captureServer("post_blocked_by_ai", { test_account: isTestAccount(userId) });
     const image = await download(rows[0].url as string);
     await removePhotos([rows[0].storage_key as string]);
     await sendAiNotice({ what: "Photo post", author: await ensureProfile(userId), hall, body }, { refusedImage: image });

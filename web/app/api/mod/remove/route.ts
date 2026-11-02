@@ -2,6 +2,7 @@ import { idParam } from "@/lib/apiGuard";
 import { dbEnabled } from "@/lib/db";
 import { getForReview, removeAsOwner, validLink, type Target } from "@/lib/moderation";
 import { escape, page } from "@/lib/modPage";
+import { captureServer } from "@/lib/serverAnalytics";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,9 @@ export async function POST(request: Request) {
   const ok = check(request);
   if (!ok) return page("Link not valid", "<p>This removal link isn't valid.</p>", 403);
   try {
+    const item = await getForReview(ok.target, ok.id);
     const removed = await removeAsOwner(ok.target, ok.id);
+    if (removed) await captureServer("removed_by_owner", { target: ok.target, what: item?.what ?? null, was_hidden_by_ai: !!item?.hiddenByAi });
     return removed
       ? page("Removed", `<p>The ${ok.target} has been deleted.</p>`)
       : page("Already gone", `<p>This ${ok.target} had already been deleted.</p>`);
