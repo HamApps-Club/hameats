@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { HALL_SHORT } from "@/lib/halls";
+import { useVisibleArea } from "@/lib/keyboard";
 
 /** "now", "5m", "3h", "2d", then a date. */
 export function ago(iso: string) {
@@ -131,9 +132,18 @@ export function Screen({
   /** Names the page for screen readers when the title isn't plain text. */
   label: string;
 }) {
+  const visible = useVisibleArea();
   // Escape is handled by the page stack (SocialLayers), so only the top page closes.
   return (
-    <div role="dialog" aria-modal="true" aria-label={label} className="fixed inset-0 z-50 flex flex-col bg-background text-zinc-900 dark:text-zinc-100">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={label}
+      // While the keyboard is up, the page shrinks to what's visible, so its bottom bar (Post's photo button, a
+      // comment box) sits right on top of the keyboard instead of behind it.
+      style={visible ? { top: visible.top, height: visible.height, bottom: "auto" } : undefined}
+      className="fixed inset-0 z-50 flex flex-col bg-background text-zinc-900 dark:text-zinc-100"
+    >
       <div className="mx-auto flex w-full max-w-2xl items-center gap-1 border-b border-rule px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <button type="button" onClick={onClose} aria-label="Close" className="flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-zinc-200/60 dark:hover:bg-zinc-800">
           <CloseIcon />
