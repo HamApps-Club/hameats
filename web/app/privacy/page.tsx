@@ -44,8 +44,8 @@ export default function PrivacyPage() {
           an account, and anyone can read the menus and the Feed. Logging in is only for Hamilton students and staff, using
           your @hamilton.edu Google account. If you log in, HamEats saves your Hamilton email address, a username
           (the only name other students see), and whatever you choose to add: thumbs ups and downs, reviews, posts,
-          photos, comments and votes. Posts are moderated, and moderators can see the name and email of anyone who posts
-          something inappropriate. You can download your data or delete your account anytime in Settings. It also collects
+          photos, comments and votes. HamEats doesn&apos;t save your name. Posts are moderated, and moderators can see the
+          email address of anyone who posts something inappropriate. You can download your data or delete your account anytime in Settings. It also collects
           anonymous usage statistics so I can improve the app.
         </p>
 
@@ -71,7 +71,8 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> By
-            logging in with your Hamilton Google account, you agree to share your name and email address with HamEats.
+            logging in with your Hamilton Google account, you agree to share your email address with HamEats. Google also
+            sends your name when you log in, but HamEats doesn&apos;t save it or show it to anyone.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Your username and what you post (only if you log in).</strong> You
@@ -87,7 +88,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Moderation.</strong> Photos are checked by an AI safety filter
-            that keeps out pictures that aren&apos;t about food. Moderators can see the name and email of anyone who posts something
+            that keeps out pictures that aren&apos;t about food. Moderators can see the email address of anyone who posts something
             inappropriate. When you report something, the person you reported never sees who reported them.
           </p>
           <p>
