@@ -160,6 +160,24 @@ export function Screen({
   );
 }
 
+/**
+ * On your own post or comment that nobody else can see: why, and where the rules are. Shown only to its author, the way
+ * Reddit labels a removed post for the person who wrote it.
+ */
+export function HiddenNotice({ why }: { why: "ai" | "reports" }) {
+  return (
+    <p role="note" className="mt-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[13px] leading-snug text-amber-950 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-100">
+      <strong className="font-semibold">Only you can see this.</strong>{" "}
+      {why === "ai"
+        ? "Our photo filter thought this photo isn't about food, so it's hidden. If it got it wrong, it can be put back."
+        : "Several people reported it, so it's hidden from everyone else."}{" "}
+      <a href="/rules" className="font-semibold underline">
+        See the rules
+      </a>
+    </p>
+  );
+}
+
 /** Error codes meant for the app, not for people. Anything else the server says is already written to be shown. */
 const TECHNICAL = new Set(["bad request", "not found", "forbidden", "login required", "unavailable", "own"]);
 

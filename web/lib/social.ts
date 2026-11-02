@@ -1,6 +1,6 @@
 import "server-only";
 import { run, transaction } from "@/lib/db";
-import { POST_VISIBLE, REPORTS_TO_HIDE, ensureProfile, ensureSchema } from "@/lib/dishes";
+import { POST_HIDDEN, POST_VISIBLE, REPORTS_TO_HIDE, ensureProfile, ensureSchema } from "@/lib/dishes";
 import { usernameProblem } from "@/lib/usernames";
 
 // The Feed, comments, profiles, alert settings and photos. Tables are described in lib/dishes.ts.
@@ -35,6 +35,8 @@ export type FeedItem = {
   myVote: number;
   comments: number;
   reported: boolean;
+  /** Only on your own posts: why nobody else can see it ('ai': the photo filter, 'reports': several people reported it). */
+  hidden: "ai" | "reports" | null;
 };
 
 /** SQL for posts as FeedItems. $1 is the person looking ('' when logged out). */
@@ -48,6 +50,7 @@ const POST_COLUMNS = `
           AND (SELECT count(*) FROM reports x WHERE x.post_id = q.id) < ${REPORTS_TO_HIDE}) ELSE 0 END AS dish_reviews,
   COALESCE((SELECT value FROM post_votes v WHERE v.post_id = p.id AND v.user_id = $1), 0) AS my_vote,
   EXISTS (SELECT 1 FROM reports x WHERE x.post_id = p.id AND x.reporter_id = $1) AS reported,
+  CASE WHEN p.user_id = $1 THEN ${POST_HIDDEN} END AS hidden,
   (SELECT json_build_object('url', ph.url, 'width', ph.width, 'height', ph.height)
      FROM photos ph WHERE ph.post_id = p.id ORDER BY ph.position, ph.id LIMIT 1) AS photo`;
 
@@ -73,6 +76,7 @@ function toFeedItem(r: Record<string, unknown>): FeedItem {
     myVote: Number(r.my_vote),
     comments: Number(r.comment_count),
     reported: r.reported === true,
+    hidden: r.hidden === "ai" || r.hidden === "reports" ? r.hidden : null,
   };
 }
 
@@ -178,6 +182,8 @@ export type CommentItem = {
   score: number;
   myVote: number;
   reported: boolean;
+  /** Only on your own comments: several people reported it, so nobody else sees it. */
+  hidden: boolean;
 };
 
 /** A post's comments: highest score first, then oldest first. Reported-away comments are left out, except for their author. */
@@ -186,7 +192,8 @@ export async function getComments(viewerId: string | undefined, postId: number):
   const rows = await run(
     `SELECT c.id, c.user_id = $1 AS mine, COALESCE(pr.username, 'student') AS author, c.body, c.created_at, c.score,
             COALESCE((SELECT value FROM comment_votes v WHERE v.comment_id = c.id AND v.user_id = $1), 0) AS my_vote,
-            EXISTS (SELECT 1 FROM reports x WHERE x.comment_id = c.id AND x.reporter_id = $1) AS reported
+            EXISTS (SELECT 1 FROM reports x WHERE x.comment_id = c.id AND x.reporter_id = $1) AS reported,
+            c.user_id = $1 AND (SELECT count(*) FROM reports x WHERE x.comment_id = c.id) >= ${REPORTS_TO_HIDE} AS hidden
      FROM comments c LEFT JOIN profiles pr ON pr.user_id = c.user_id
      WHERE c.post_id = $2 AND (c.user_id = $1 OR (SELECT count(*) FROM reports x WHERE x.comment_id = c.id) < ${REPORTS_TO_HIDE})
      ORDER BY c.score DESC, c.created_at ASC, c.id ASC LIMIT 300`,
@@ -201,6 +208,7 @@ export async function getComments(viewerId: string | undefined, postId: number):
     score: Number(r.score),
     myVote: Number(r.my_vote),
     reported: r.reported === true,
+    hidden: r.hidden === true,
   }));
 }
 
@@ -224,14 +232,14 @@ export async function deleteComment(userId: string, id: number) {
 
 // ---- Profiles
 
-export type Me = { username: string; joined: string; unread: boolean };
+export type Me = { username: string; joined: string; unread: boolean; rulesAccepted: boolean };
 
 /** The signed-in person's own profile (created on first use), and whether anyone has commented on or voted on their posts since they last opened the Feed. */
 export async function getMe(userId: string): Promise<Me> {
   await ensureSchema();
   await ensureProfile(userId);
   const rows = await run(
-    `SELECT pr.username, pr.created_at,
+    `SELECT pr.username, pr.created_at, pr.rules_accepted_at IS NOT NULL AS rules_accepted,
        EXISTS (SELECT 1 FROM comments c JOIN posts p ON p.id = c.post_id
                WHERE p.user_id = $1 AND c.user_id <> $1 AND c.created_at > pr.feed_seen_at)
        OR EXISTS (SELECT 1 FROM post_votes v JOIN posts p ON p.id = v.post_id
@@ -239,7 +247,19 @@ export async function getMe(userId: string): Promise<Me> {
      FROM profiles pr WHERE pr.user_id = $1`,
     [userId],
   );
-  return { username: rows[0].username as string, joined: iso(rows[0].created_at), unread: rows[0].unread === true };
+  return {
+    username: rows[0].username as string,
+    joined: iso(rows[0].created_at),
+    unread: rows[0].unread === true,
+    rulesAccepted: rows[0].rules_accepted === true,
+  };
+}
+
+/** Records that the person agreed to the Rules, on the welcome screen. */
+export async function acceptRules(userId: string) {
+  await ensureSchema();
+  await ensureProfile(userId);
+  await run("UPDATE profiles SET rules_accepted_at = COALESCE(rules_accepted_at, now()) WHERE user_id = $1", [userId]);
 }
 
 export async function markFeedSeen(userId: string) {

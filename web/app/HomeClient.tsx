@@ -5,6 +5,7 @@ import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
 import { ItemSheet, type ReviewPlace } from "@/components/ItemSheet";
 import { LoginButton } from "@/components/LoginButton";
+import { LoginSheet, WelcomeSheet } from "@/components/JoinSheets";
 import { MenuList } from "@/components/MenuList";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -379,6 +380,8 @@ export function HomeClient(props: { initialMenu: MenuData | null }) {
           <SocialLayers>
             <PullToRefresh />
             <Home {...props} />
+            <LoginSheet />
+            <WelcomeSheet />
           </SocialLayers>
         </MeProvider>
       </VotesProvider>

@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Privacy Policy</h1>
-          <p className="text-sm italic">Last updated: November 1, 2026</p>
+          <p className="text-sm italic">Last updated: November 2, 2026</p>
         </div>
 
         <p>
@@ -44,7 +44,9 @@ export default function PrivacyPage() {
           an account, and anyone can read the menus and the Feed. Logging in is only for Hamilton students and staff, using
           your @hamilton.edu Google account. If you log in, HamEats saves your Hamilton email address, a username
           (the only name other students see), and whatever you choose to add: thumbs ups and downs, reviews, posts,
-          photos, comments and votes. It also collects anonymous usage statistics so I can improve the app.
+          photos, comments and votes. Posts are moderated, and moderators can see the name and email of anyone who posts
+          something inappropriate. You can download your data or delete your account anytime in Settings. It also collects
+          anonymous usage statistics so I can improve the app.
         </p>
 
         <Section title="What I collect">
@@ -82,6 +84,12 @@ export default function PrivacyPage() {
             <strong className="text-zinc-900 dark:text-zinc-100">Photos.</strong> Photos you post are shrunk and saved
             again before they&apos;re stored, which removes the hidden details your phone adds to a photo, including
             where it was taken.
+          </p>
+          <p>
+            <strong className="text-zinc-900 dark:text-zinc-100">Moderation.</strong> Photos are checked by an AI safety filter
+            that keeps out pictures that aren&apos;t about food. New posts and anything reported are sent to a private Discord
+            channel, where moderators review them. Moderators can see the name and email of anyone who posts something
+            inappropriate. When you report something, the person you reported never sees who reported them.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Alerts (only if you turn them on).</strong> If you ask to
@@ -127,8 +135,9 @@ export default function PrivacyPage() {
         <Section title="Who I share it with">
           <p>
             Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
-            thumbs ups, thumbs downs, reviews, posts and comments), Vercel Blob (where photos are stored), and Google
-            (log in and feedback forms). They process data on my behalf under their
+            thumbs ups, thumbs downs, reviews, posts and comments), Vercel Blob (where photos are stored), Google
+            (log in and feedback forms), Discord (the private moderation channel), and an AI safety filter that checks
+            photos. They process data on my behalf under their
             own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
@@ -141,6 +150,11 @@ export default function PrivacyPage() {
             down (not shown to anyone) so it can count the most popular dishes over time. Feedback submissions are kept as
             long as they&apos;re useful for improving the app. You can ask me to delete anything you&apos;ve sent me.
           </p>
+          <p>
+            Deleting your account (Settings, on your profile) deletes your username, reviews, posts, photos, comments, votes,
+            alert settings and push notification addresses right away. Reports you made stay, so hidden posts stay hidden, but
+            they&apos;re no longer linked to you. Copies already sent to the moderation channel may remain there.
+          </p>
         </Section>
 
         <Section title="Your choices">
@@ -149,8 +163,16 @@ export default function PrivacyPage() {
             <li>Log out at any time, take back a thumbs up or down, or edit or delete your own reviews, posts and comments in the app.</li>
             <li>Change your username at any time from your profile.</li>
             <li>Turn alerts and push notifications on or off in Settings, on your profile.</li>
-            <li>Report a post, review or comment that breaks the rules. Anything several people report is hidden.</li>
-            <li>Ask me to delete your account and everything you&apos;ve added, or any feedback you&apos;ve submitted.</li>
+            <li>
+              Report a post, review or comment that breaks the{" "}
+              <Link href="/rules" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                Rules
+              </Link>
+              . Anything several people report is hidden.
+            </li>
+            <li>Download everything HamEats keeps about you, from Settings (Download my data).</li>
+            <li>Delete your account and everything you&apos;ve added, from Settings (Delete account).</li>
+            <li>Ask me to delete any feedback you&apos;ve submitted.</li>
             <li>Ask me any question about this policy.</li>
           </ul>
         </Section>
