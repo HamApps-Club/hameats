@@ -3,6 +3,7 @@ import { deleteReview, getReviews, saveReview, type ReviewPlace } from "@/lib/di
 import { MEALS } from "@/lib/types";
 import { currentUser, dbEnabled, dishParam, hallParam, noStore, sameOrigin, unavailable } from "@/lib/apiGuard";
 import { sendForReview } from "@/lib/moderation";
+import { BAD_WORDS_MESSAGE, hasBadWords } from "@/lib/wordFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
   const dish = dishParam(payload?.dish);
   const text = typeof payload?.body === "string" ? payload.body.trim() : "";
   if (!dish || !text || text.length > MAX_REVIEW) return Response.json({ error: "bad request" }, { status: 400, headers: noStore });
+  if (hasBadWords(text)) return Response.json({ error: BAD_WORDS_MESSAGE }, { status: 400, headers: noStore });
   try {
     const id = await saveReview(dish, user.id, text, placeParam(payload));
     if (id === null) return Response.json({ error: "unknown dish" }, { status: 404, headers: noStore });
