@@ -440,8 +440,8 @@ export async function getReviews(dish: string, userId: string | undefined): Prom
 }
 
 /**
- * One review per person per dish: writing again replaces the words and keeps where it was first written from. False
- * when the dish isn't one HamEats has shown.
+ * One review per person per dish: writing again replaces the words and keeps where it was first written from. Returns
+ * the review's post id, or null when the dish isn't one HamEats has shown.
  */
 export async function saveReview(dish: string, userId: string, body: string, place: ReviewPlace | null) {
   await ensureSchema();
@@ -458,7 +458,7 @@ export async function saveReview(dish: string, userId: string, body: string, pla
      RETURNING id`,
     [dish, userId, place?.hall ?? null, place?.date ?? null, place?.meal ?? null, body],
   );
-  return rows.length > 0;
+  return rows.length ? Number(rows[0].id) : null;
 }
 
 export async function deleteReview(dish: string, userId: string) {
