@@ -228,18 +228,23 @@ const SCHEMA = [
 
   "CREATE TABLE IF NOT EXISTS schema_meta (id integer PRIMARY KEY CHECK (id = 1), version integer NOT NULL)",
 
-  // What the AI photo check (lib/photoCheck.ts) decided: null until it has looked, then 'allowed' or 'removed'.
+  // What the AI photo check (lib/photoCheck.ts) decided: null until it has looked, then 'allowed' or 'rejected' ('restored' once the owner puts a hidden post back).
   "ALTER TABLE photos ADD COLUMN IF NOT EXISTS ai_verdict text",
+  // Set when the AI photo check hides a post (it's then shown to nobody); cleared by the Restore link in Discord.
+  "ALTER TABLE posts ADD COLUMN IF NOT EXISTS hidden_by_ai_at timestamptz",
 ];
 
 /** Bump whenever SCHEMA changes, so every server runs the new statements once. */
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 /** A post or comment stops being shown to other students once this many different people have reported it. */
 export const REPORTS_TO_HIDE = 3;
 
-/** SQL: whether the post aliased `p` is hidden from everyone but its author ($1 is the person looking). */
-export const POST_VISIBLE = `(p.user_id = $1 OR (SELECT count(*) FROM reports x WHERE x.post_id = p.id) < ${REPORTS_TO_HIDE})`;
+/**
+ * SQL: whether the post aliased `p` can be seen by the person looking ($1). One hidden by reports is still shown to its
+ * author; one hidden by the AI photo check is shown to nobody.
+ */
+export const POST_VISIBLE = `(p.hidden_by_ai_at IS NULL AND (p.user_id = $1 OR (SELECT count(*) FROM reports x WHERE x.post_id = p.id) < ${REPORTS_TO_HIDE}))`;
 
 let schemaReady: Promise<void> | undefined;
 
