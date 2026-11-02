@@ -132,7 +132,7 @@ export async function createPost(userId: string, body: string, hall: string | nu
     const photo = await run("SELECT ai_verdict FROM photos WHERE id = $1 AND user_id = $2 AND post_id IS NULL", [photoId, userId]);
     if (!photo.length) return { ok: false, error: "bad photo" };
     // The AI photo check (lib/photoCheck.ts) already turned this photo down.
-    if (photo[0].ai_verdict === "removed") return { ok: false, error: "photo removed" };
+    if (photo[0].ai_verdict === "rejected") return { ok: false, error: "photo removed" };
   }
   const [inserted] = await transaction([
     ["INSERT INTO posts (kind, user_id, hall, body) VALUES ('post', $1, $2, $3) RETURNING id", [userId, hall, body]],
