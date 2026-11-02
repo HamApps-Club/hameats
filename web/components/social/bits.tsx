@@ -179,7 +179,7 @@ export function HiddenNotice({ why }: { why: "ai" | "reports" }) {
 }
 
 /** Error codes meant for the app, not for people. Anything else the server says is already written to be shown. */
-const TECHNICAL = new Set(["bad request", "not found", "forbidden", "login required", "unavailable", "own"]);
+const TECHNICAL = new Set(["bad request", "not found", "forbidden", "login required", "unavailable", "own", "unknown dish"]);
 
 /** The server's error, when it's written to be shown, or `fallback`. */
 export function messageFrom(data: { error?: unknown } | null, fallback: string) {

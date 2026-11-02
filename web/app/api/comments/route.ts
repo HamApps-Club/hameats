@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { MAX_COMMENT, addComment, deleteComment } from "@/lib/social";
 import { idParam, reply, textParam, unavailable, writer } from "@/lib/apiGuard";
 import { sendForReview } from "@/lib/moderation";
+import { BAD_WORDS_MESSAGE, hasBadWords } from "@/lib/wordFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
   const postId = idParam(payload?.postId);
   const body = textParam(payload?.body, MAX_COMMENT);
   if (!postId || !body) return reply({ error: "bad request" }, 400);
+  if (hasBadWords(body)) return reply({ error: BAD_WORDS_MESSAGE }, 400);
   try {
     const result = await addComment(user.id, postId, body);
     if (!result.ok)

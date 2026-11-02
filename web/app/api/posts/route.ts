@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { MAX_POST, createPost, deletePost } from "@/lib/social";
 import { removePhotos } from "@/lib/photos";
 import { sendForReview } from "@/lib/moderation";
+import { BAD_WORDS_MESSAGE, hasBadWords } from "@/lib/wordFilter";
 import { hideIfPosted, reportRefusedPost } from "@/lib/photoCheck";
 import { hallParam, idParam, reply, textParam, unavailable, writer } from "@/lib/apiGuard";
 
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
   const photoId = payload?.photoId == null ? null : idParam(payload.photoId);
   if (body === null || (payload?.hall && !hall) || (payload?.photoId != null && !photoId) || (!body && !photoId))
     return reply({ error: "bad request" }, 400);
+  if (hasBadWords(body)) return reply({ error: BAD_WORDS_MESSAGE }, 400);
   try {
     const result = await createPost(user.id, body, hall, photoId);
     if (!result.ok && result.error === "photo removed") {

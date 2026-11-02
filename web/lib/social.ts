@@ -2,6 +2,7 @@ import "server-only";
 import { run, transaction } from "@/lib/db";
 import { POST_HIDDEN, POST_VISIBLE, REPORTS_TO_HIDE, ensureProfile, ensureSchema } from "@/lib/dishes";
 import { usernameProblem } from "@/lib/usernames";
+import { hasBadWords } from "@/lib/wordFilter";
 
 // The Feed, comments, profiles, alert settings and photos. Tables are described in lib/dishes.ts.
 // Nothing here ever returns a person's id (their email): other people only see usernames, plus `mine` flags.
@@ -271,6 +272,7 @@ export async function markFeedSeen(userId: string) {
 export async function usernameUnavailable(name: string, userId: string | undefined): Promise<string | null> {
   const problem = usernameProblem(name);
   if (problem) return problem;
+  if (hasBadWords(name)) return "That username isn't allowed. Try another.";
   await ensureSchema();
   const rows = await run("SELECT user_id = $2 AS mine FROM profiles WHERE lower(username) = lower($1)", [name, userId ?? ""]);
   if (!rows.length) return null;
