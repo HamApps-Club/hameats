@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   try {
     const id = await saveReview(dish, user.id, text, placeParam(payload));
     if (id === null) return Response.json({ error: "unknown dish" }, { status: 404, headers: noStore });
-    after(() => sendForReview(id));
+    after(() => sendForReview("post", id));
     return Response.json({ ok: true }, { headers: noStore });
   } catch (e) {
     console.error("reviews POST failed:", e);

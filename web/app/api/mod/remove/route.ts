@@ -1,6 +1,6 @@
 import { idParam } from "@/lib/apiGuard";
 import { dbEnabled } from "@/lib/db";
-import { postForReview, removePostAsOwner, validRemoval } from "@/lib/moderation";
+import { getForReview, removeAsOwner, validRemoval, type Target } from "@/lib/moderation";
 
 export const dynamic = "force-dynamic";
 
@@ -25,25 +25,27 @@ button{font:inherit;font-weight:600;padding:10px 18px;border:0;border-radius:8px
 
 function check(request: Request) {
   const url = new URL(request.url);
+  const type = url.searchParams.get("type");
+  const target: Target | null = type === "post" || type === "comment" ? type : null;
   const id = idParam(url.searchParams.get("id"));
   const sig = url.searchParams.get("sig");
-  return id && validRemoval(id, sig) ? { id, sig: sig! } : null;
+  return target && id && validRemoval(target, id, sig) ? { target, id, sig: sig! } : null;
 }
 
 export async function GET(request: Request) {
   if (!dbEnabled()) return page("Unavailable", "<p>The database isn't connected.</p>", 503);
   const ok = check(request);
   if (!ok) return page("Link not valid", "<p>This removal link isn't valid.</p>", 403);
-  const post = await postForReview(ok.id);
-  if (!post) return page("Already gone", "<p>This post has already been deleted.</p>", 404);
-  const what = post.kind === "review" ? `Review of ${post.dish}` : "Post";
+  const item = await getForReview(ok.target, ok.id);
+  if (!item) return page("Already gone", `<p>This ${ok.target} has already been deleted.</p>`, 404);
   return page(
-    `Remove this ${post.kind}?`,
-    `<p><strong>${escape(what)}</strong> by u/${escape(post.author)}</p>
-${post.body ? `<blockquote>${escape(post.body)}</blockquote>` : ""}
-${post.photoUrl ? `<p><img src="${escape(post.photoUrl)}" alt="The post's photo"></p>` : ""}
-<form method="post" action="/api/mod/remove?id=${ok.id}&amp;sig=${escape(ok.sig)}"><button type="submit">Remove it</button></form>
-<p>This deletes it for everyone, with its comments, votes and photo. It can't be undone.</p>`,
+    `Remove this ${ok.target}?`,
+    `<p><strong>${escape(item.what)}</strong> by u/${escape(item.author)}</p>
+${item.onPost ? `<p>On: ${escape(item.onPost.slice(0, 300))}</p>` : ""}
+${item.body ? `<blockquote>${escape(item.body)}</blockquote>` : ""}
+${item.photoUrl ? `<p><img src="${escape(item.photoUrl)}" alt="The post's photo"></p>` : ""}
+<form method="post" action="/api/mod/remove?type=${ok.target}&amp;id=${ok.id}&amp;sig=${escape(ok.sig)}"><button type="submit">Remove it</button></form>
+<p>This deletes it for everyone${ok.target === "post" ? ", with its comments, votes and photo" : ", with its replies and votes"}. It can't be undone.</p>`,
   );
 }
 
@@ -52,10 +54,12 @@ export async function POST(request: Request) {
   const ok = check(request);
   if (!ok) return page("Link not valid", "<p>This removal link isn't valid.</p>", 403);
   try {
-    const removed = await removePostAsOwner(ok.id);
-    return removed ? page("Removed", "<p>The post has been deleted.</p>") : page("Already gone", "<p>This post had already been deleted.</p>");
+    const removed = await removeAsOwner(ok.target, ok.id);
+    return removed
+      ? page("Removed", `<p>The ${ok.target} has been deleted.</p>`)
+      : page("Already gone", `<p>This ${ok.target} had already been deleted.</p>`);
   } catch (e) {
     console.error("mod remove failed:", e);
-    return page("Something went wrong", "<p>The post couldn't be removed. Try again in a minute.</p>", 503);
+    return page("Something went wrong", `<p>The ${ok.target} couldn't be removed. Try again in a minute.</p>`, 503);
   }
 }

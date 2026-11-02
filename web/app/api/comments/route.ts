@@ -1,5 +1,7 @@
+import { after } from "next/server";
 import { MAX_COMMENT, addComment, deleteComment } from "@/lib/social";
 import { idParam, reply, textParam, unavailable, writer } from "@/lib/apiGuard";
+import { sendForReview } from "@/lib/moderation";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,7 @@ export async function POST(request: Request) {
       return result.error === "missing"
         ? reply({ error: "not found" }, 404)
         : reply({ error: "You've commented a lot today. Try again tomorrow." }, 400);
+    after(() => sendForReview("comment", result.id));
     return reply({ ok: true, id: result.id });
   } catch (e) {
     console.error("comments POST failed:", e);
