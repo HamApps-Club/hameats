@@ -11,7 +11,7 @@ import { removePhotos } from "@/lib/photos";
 export async function exportAccount(userId: string) {
   await ensureSchema();
   const q = (text: string) => run(text, [userId]);
-  const [profile, posts, comments, photos, dishVotes, postVotes, commentVotes, reports, prefs, mutes, devices] = await Promise.all([
+  const [profile, posts, comments, photos, dishVotes, postVotes, commentVotes, reports, prefs, mutes, devices, notifications] = await Promise.all([
     q("SELECT username, created_at AS joined, username_changed_at, rules_accepted_at FROM profiles WHERE user_id = $1"),
     q(`SELECT id, kind, dish, hall, served_on, meal, body, score, comment_count, created_at, updated_at,
               hidden_by_ai_at IS NOT NULL AS hidden_by_photo_filter
@@ -25,6 +25,7 @@ export async function exportAccount(userId: string) {
     q("SELECT alerts, email, push, updated_at FROM notification_prefs WHERE user_id = $1"),
     q("SELECT dish FROM alert_mutes WHERE user_id = $1 ORDER BY dish"),
     q("SELECT created_at FROM push_subscriptions WHERE user_id = $1 ORDER BY created_at"),
+    q("SELECT kind, served_on, title, body, items, created_at, read_at FROM notifications WHERE user_id = $1 ORDER BY created_at"),
   ]);
   return {
     exportedAt: new Date().toISOString(),
@@ -40,12 +41,13 @@ export async function exportAccount(userId: string) {
     alertSettings: prefs[0] ?? null,
     alertsSwitchedOff: mutes.map((m) => m.dish),
     pushDevices: devices.length,
+    notifications,
   };
 }
 
 /**
  * Deletes the person's account and everything they added: profile, posts and reviews (with their photos, and the
- * comments and votes on them), comments, votes, alert settings and push subscriptions. Reports they made are kept, so
+ * comments and votes on them), comments, votes, alert settings, push subscriptions and saved notifications. Reports they made are kept, so
  * a post hidden by reports doesn't come back, but are no longer linked to them. All in one transaction, then the photo
  * files are removed from storage.
  */
@@ -81,6 +83,7 @@ export async function deleteAccount(userId: string) {
     ["DELETE FROM notification_prefs WHERE user_id = $1", u],
     ["DELETE FROM alert_mutes WHERE user_id = $1", u],
     ["DELETE FROM push_subscriptions WHERE user_id = $1", u],
+    ["DELETE FROM notifications WHERE user_id = $1", u],
     ["DELETE FROM profiles WHERE user_id = $1", u],
   ]);
   await removePhotos(photos.map((p) => p.storage_key as string));

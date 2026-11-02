@@ -6,15 +6,17 @@ import { track } from "@/lib/analytics";
 export type Section = "menu" | "feed" | "me";
 
 /**
- * Which part of the app the address shows: #feed and #me, or a shared post (#post-123, which opens in the Feed).
- * Anything else, including no hash, is the Menu. The dining halls' own pages (#commons) are handled before this.
+ * Which part of the app the address shows: #feed and #me, your Notifications (#notifications, on Me: where tapping a
+ * notification goes), or a shared post (#post-123, which opens in the Feed). Anything else, including no hash, is the
+ * Menu. The dining halls' own pages (#commons) are handled before this.
  */
-export function sectionFor(hash: string): { section: Section; postId: number | null } {
-  if (hash === "feed") return { section: "feed", postId: null };
-  if (hash === "me") return { section: "me", postId: null };
+export function sectionFor(hash: string): { section: Section; postId: number | null; notifications: boolean } {
+  if (hash === "feed") return { section: "feed", postId: null, notifications: false };
+  if (hash === "me") return { section: "me", postId: null, notifications: false };
+  if (hash === "notifications") return { section: "me", postId: null, notifications: true };
   const post = hash.match(/^post-(\d{1,15})$/);
-  if (post) return { section: "feed", postId: Number(post[1]) };
-  return { section: "menu", postId: null };
+  if (post) return { section: "feed", postId: Number(post[1]), notifications: false };
+  return { section: "menu", postId: null, notifications: false };
 }
 
 /** Moves to a section, adding a history entry so the phone's back gesture returns to the last one. */
@@ -31,9 +33,12 @@ const TABS: [Section, string][] = [
   ["me", "Me"],
 ];
 
-/** Menu / Feed / Me, in the blue header band under the title. A gold dot on Feed means someone replied to or upvoted your post. */
+/**
+ * Menu / Feed / Me, in the blue header band under the title. A gold dot on Feed means someone replied to or upvoted
+ * your post; a gold dot on Me means a notification you haven't opened (Me, Notifications).
+ */
 export function SectionTabs({ active }: { active: Section }) {
-  const { unread, status } = useMe();
+  const { unread, notifications, status } = useMe();
   if (status === "off") return null;
   return (
     <div role="tablist" aria-label="Sections" className="mx-auto flex max-w-2xl">
@@ -55,6 +60,7 @@ export function SectionTabs({ active }: { active: Section }) {
         >
           {label}
           {section === "feed" && unread && active !== "feed" && <span aria-label="New activity" className="size-[7px] rounded-full bg-gold" />}
+          {section === "me" && notifications > 0 && <span aria-label={`${notifications} new notification${notifications === 1 ? "" : "s"}`} className="size-[9px] rounded-full bg-gold" />}
         </button>
       ))}
     </div>
