@@ -2,7 +2,7 @@ import { after } from "next/server";
 import { MAX_POST, createPost, deletePost } from "@/lib/social";
 import { removePhotos } from "@/lib/photos";
 import { sendForReview } from "@/lib/moderation";
-import { removeIfPosted, reportRefusedPost } from "@/lib/photoCheck";
+import { hideIfPosted, reportRefusedPost } from "@/lib/photoCheck";
 import { hallParam, idParam, reply, textParam, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     after(async () => {
       await sendForReview("post", result.id);
       // The check may have finished in the moment between the post being checked and saved.
-      if (photoId !== null) await removeIfPosted(photoId);
+      if (photoId !== null) await hideIfPosted(photoId);
     });
     return reply({ ok: true, id: result.id });
   } catch (e) {
