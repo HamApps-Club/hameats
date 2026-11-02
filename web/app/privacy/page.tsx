@@ -87,8 +87,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Moderation.</strong> Photos are checked by an AI safety filter
-            that keeps out pictures that aren&apos;t about food. New posts and anything reported are sent to a private Discord
-            channel, where moderators review them. Moderators can see the name and email of anyone who posts something
+            that keeps out pictures that aren&apos;t about food. Moderators can see the name and email of anyone who posts something
             inappropriate. When you report something, the person you reported never sees who reported them.
           </p>
           <p>
@@ -136,8 +135,7 @@ export default function PrivacyPage() {
           <p>
             Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
             thumbs ups, thumbs downs, reviews, posts and comments), Vercel Blob (where photos are stored), Google
-            (log in and feedback forms), Discord (the private moderation channel), and an AI safety filter that checks
-            photos. They process data on my behalf under their
+            (log in and feedback forms), and an AI safety filter that checks photos. They process data on my behalf under their
             own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
@@ -153,7 +151,7 @@ export default function PrivacyPage() {
           <p>
             Deleting your account (Settings, on your profile) deletes your username, reviews, posts, photos, comments, votes,
             alert settings and push notification addresses right away. Reports you made stay, so hidden posts stay hidden, but
-            they&apos;re no longer linked to you. Copies already sent to the moderation channel may remain there.
+            they&apos;re no longer linked to you.
           </p>
         </Section>
 
