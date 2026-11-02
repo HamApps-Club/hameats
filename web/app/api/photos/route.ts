@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { PHOTO_DAILY_LIMIT, photosToday, recordPhoto } from "@/lib/social";
 import { MAX_UPLOAD_BYTES, PhotoError, photosEnabled, storePhoto } from "@/lib/photos";
 import { reply, unavailable, writer } from "@/lib/apiGuard";
+import { checkPhoto } from "@/lib/photoCheck";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,8 @@ export async function POST(request: Request) {
     if (bytes.length > MAX_UPLOAD_BYTES) return reply({ error: "That photo is too big." }, 413);
     const stored = await storePhoto(bytes);
     const id = await recordPhoto(user.id, stored);
+    // The AI looks it over while the person is still writing their post (lib/photoCheck.ts).
+    after(() => checkPhoto(id));
     return reply({ id, url: stored.url, width: stored.width, height: stored.height });
   } catch (e) {
     if (e instanceof PhotoError) return reply({ error: e.message }, 400);

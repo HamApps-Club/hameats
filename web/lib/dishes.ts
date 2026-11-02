@@ -227,10 +227,13 @@ const SCHEMA = [
    ON CONFLICT DO NOTHING`,
 
   "CREATE TABLE IF NOT EXISTS schema_meta (id integer PRIMARY KEY CHECK (id = 1), version integer NOT NULL)",
+
+  // What the AI photo check (lib/photoCheck.ts) decided: null until it has looked, then 'allowed' or 'removed'.
+  "ALTER TABLE photos ADD COLUMN IF NOT EXISTS ai_verdict text",
 ];
 
 /** Bump whenever SCHEMA changes, so every server runs the new statements once. */
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 /** A post or comment stops being shown to other students once this many different people have reported it. */
 export const REPORTS_TO_HIDE = 3;

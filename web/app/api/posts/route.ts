@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { MAX_POST, createPost, deletePost } from "@/lib/social";
 import { removePhotos } from "@/lib/photos";
 import { sendForReview } from "@/lib/moderation";
+import { removeIfPosted, reportRefusedPost } from "@/lib/photoCheck";
 import { hallParam, idParam, reply, textParam, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +19,17 @@ export async function POST(request: Request) {
     return reply({ error: "bad request" }, 400);
   try {
     const result = await createPost(user.id, body, hall, photoId);
+    if (!result.ok && result.error === "photo removed") {
+      after(() => reportRefusedPost(user.id, photoId!, body, hall));
+      return reply({ error: "That photo doesn't look like it's about food, so it can't be posted. Try a different one." }, 400);
+    }
     if (!result.ok)
       return reply({ error: result.error === "too many" ? "You've posted a lot today. Try again tomorrow." : "That photo can't be used." }, 400);
-    after(() => sendForReview("post", result.id));
+    after(async () => {
+      await sendForReview("post", result.id);
+      // The check may have finished in the moment between the post being checked and saved.
+      if (photoId !== null) await removeIfPosted(photoId);
+    });
     return reply({ ok: true, id: result.id });
   } catch (e) {
     console.error("posts POST failed:", e);
