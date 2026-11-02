@@ -5,102 +5,127 @@ import { ensureSchema } from "@/lib/dishes";
 import { removePhotos } from "@/lib/photos";
 import { SITE_URL } from "@/lib/site";
 
-// Every new post and review (and every edited review) is sent to a Discord channel so the site's owner can look it
-// over. Each message carries a private link that removes the post. The link is signed with a secret, so only someone
-// who has the Discord message can use it.
+// Everything students write (posts, photos, reviews and comments) is sent to the same Discord channel as reports
+// (REPORT_WEBHOOK_URL), so the site's owner can look it over. Each message carries a private link that removes it.
+// The link is signed with a secret, so only someone who has the Discord message can use it.
 
-/** The channel for new posts: NEW_POSTS_WEBHOOK_URL, or the reports channel when that isn't set. */
-const webhookUrl = () => process.env.NEW_POSTS_WEBHOOK_URL || process.env.REPORT_WEBHOOK_URL;
+export type Target = "post" | "comment";
 
 /** What signs removal links. MODERATION_SECRET if set, else the login secret the site already has. */
 const secret = () => process.env.MODERATION_SECRET || process.env.AUTH_SECRET;
 
-function sign(postId: number) {
+function sign(target: Target, id: number) {
   const key = secret();
-  return key ? createHmac("sha256", key).update(`remove-post:${postId}`).digest("hex") : null;
+  return key ? createHmac("sha256", key).update(`remove-${target}:${id}`).digest("hex") : null;
 }
 
-/** Whether `sig` is the signature for removing this post. */
-export function validRemoval(postId: number, sig: string | null) {
-  const expected = sign(postId);
+/** Whether `sig` is the signature for removing this post or comment. */
+export function validRemoval(target: Target, id: number, sig: string | null) {
+  const expected = sign(target, id);
   if (!expected || !sig || sig.length !== expected.length) return false;
   return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
 }
 
-export function removalUrl(postId: number) {
-  const sig = sign(postId);
-  return sig ? `${SITE_URL}/api/mod/remove?id=${postId}&sig=${sig}` : null;
+function removalUrl(target: Target, id: number) {
+  const sig = sign(target, id);
+  return sig ? `${SITE_URL}/api/mod/remove?type=${target}&id=${id}&sig=${sig}` : null;
 }
 
-export type PostForReview = {
+export type ForReview = {
+  target: Target;
   id: number;
-  kind: "review" | "post";
-  dish: string | null;
+  /** "Review of Chicken Tenders", "Photo post", "Comment on a post" and the like. */
+  what: string;
   hall: string | null;
   body: string;
   author: string;
   edited: boolean;
   photoUrl: string | null;
+  /** For a comment, what the post it's on says (so it can be read in context). */
+  onPost: string | null;
 };
 
-/** A post as the owner needs to see it, whoever wrote it and whether or not it has been hidden by reports. */
-export async function postForReview(postId: number): Promise<PostForReview | null> {
+/** A post or comment as the owner needs to see it, whoever wrote it and whether or not reports have hidden it. */
+export async function getForReview(target: Target, id: number): Promise<ForReview | null> {
   await ensureSchema();
+  if (target === "comment") {
+    const rows = await run(
+      `SELECT c.id, c.body, COALESCE(pr.username, 'student') AS author, p.kind, p.dish, p.hall,
+              CASE WHEN p.body <> '' THEN p.body ELSE '(photo only)' END AS on_post
+       FROM comments c JOIN posts p ON p.id = c.post_id LEFT JOIN profiles pr ON pr.user_id = c.user_id WHERE c.id = $1`,
+      [id],
+    );
+    if (!rows.length) return null;
+    const r = rows[0];
+    return {
+      target,
+      id,
+      what: r.kind === "review" ? `Comment on a review of ${r.dish}` : "Comment on a post",
+      hall: (r.hall as string) ?? null,
+      body: r.body as string,
+      author: r.author as string,
+      edited: false,
+      photoUrl: null,
+      onPost: r.on_post as string,
+    };
+  }
   const rows = await run(
     `SELECT p.id, p.kind, p.dish, p.hall, p.body, p.updated_at > p.created_at AS edited,
             COALESCE(pr.username, 'student') AS author,
             (SELECT ph.url FROM photos ph WHERE ph.post_id = p.id ORDER BY ph.position, ph.id LIMIT 1) AS photo_url
      FROM posts p LEFT JOIN profiles pr ON pr.user_id = p.user_id WHERE p.id = $1`,
-    [postId],
+    [id],
   );
   if (!rows.length) return null;
   const r = rows[0];
+  const photoUrl = (r.photo_url as string) ?? null;
   return {
-    id: Number(r.id),
-    kind: r.kind as "review" | "post",
-    dish: (r.dish as string) ?? null,
+    target,
+    id,
+    what: r.kind === "review" ? `Review of ${r.dish}` : photoUrl ? "Photo post" : "Post",
     hall: (r.hall as string) ?? null,
     body: r.body as string,
     author: r.author as string,
     edited: !!r.edited,
-    photoUrl: (r.photo_url as string) ?? null,
+    photoUrl,
+    onPost: null,
   };
 }
 
 /**
- * Sends a post to the Discord channel. Never throws and never waits long: the post is saved either way. Meant to be
- * called from `after()`, so the person posting isn't kept waiting.
+ * Sends a new post, review or comment to the Discord channel. Never throws and never waits long: it's saved either
+ * way. Meant to be called from `after()`, so the person writing isn't kept waiting.
  */
-export async function sendForReview(postId: number) {
-  const url = webhookUrl();
+export async function sendForReview(target: Target, id: number) {
+  const url = process.env.REPORT_WEBHOOK_URL;
   if (!url) {
-    console.warn("NEW_POSTS_WEBHOOK_URL is not set; new post not sent to Discord");
+    console.warn("REPORT_WEBHOOK_URL is not set; new post not sent to Discord");
     return;
   }
   try {
-    const post = await postForReview(postId);
-    if (!post) return;
-    const what = post.kind === "review" ? `review of ${post.dish}` : post.photoUrl ? "photo post" : "post";
-    const remove = removalUrl(post.id);
+    const item = await getForReview(target, id);
+    if (!item) return;
+    const remove = removalUrl(target, id);
     const fields = [
-      { name: "By", value: `u/${post.author}`, inline: true },
-      ...(post.hall ? [{ name: "Hall", value: post.hall, inline: true }] : []),
-      { name: "Remove", value: remove ? `[Remove this ${post.kind}](${remove})` : "Set MODERATION_SECRET or AUTH_SECRET to get a removal link." },
+      { name: "By", value: `u/${item.author}`, inline: true },
+      ...(item.hall ? [{ name: "Hall", value: item.hall, inline: true }] : []),
+      ...(item.onPost ? [{ name: "On", value: item.onPost.slice(0, 300) }] : []),
+      { name: "Remove", value: remove ? `[Remove this ${target}](${remove})` : "Set MODERATION_SECRET or AUTH_SECRET to get a removal link." },
     ];
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        // Posts are written by students, so they must never be able to ping anyone (@everyone and the like).
+        // Students write these, so they must never be able to ping anyone (@everyone and the like).
         allowed_mentions: { parse: [] },
         embeds: [
           {
-            title: `${post.edited ? "Edited" : "New"} ${what}`.slice(0, 256),
-            description: (post.body || "(no text)").slice(0, 4000),
-            color: post.photoUrl ? 0xe67e22 : 0x3498db,
+            title: `${item.edited ? "Edited" : "New"}: ${item.what}`.slice(0, 256),
+            description: (item.body || "(no text)").slice(0, 4000),
+            color: target === "comment" ? 0x95a5a6 : item.photoUrl ? 0xe67e22 : 0x3498db,
             fields,
-            ...(post.photoUrl ? { image: { url: post.photoUrl } } : {}),
-            footer: { text: `Post id ${post.id}` },
+            ...(item.photoUrl ? { image: { url: item.photoUrl } } : {}),
+            footer: { text: `${target === "comment" ? "Comment" : "Post"} id ${id}` },
             timestamp: new Date().toISOString(),
           },
         ],
@@ -113,11 +138,15 @@ export async function sendForReview(postId: number) {
   }
 }
 
-/** Removes any post or review, with its comments, votes and photo files. False when it was already gone. */
-export async function removePostAsOwner(postId: number) {
+/**
+ * Removes any post or review (with its comments, votes and photo files) or any comment (with its replies and votes).
+ * False when it was already gone.
+ */
+export async function removeAsOwner(target: Target, id: number) {
   await ensureSchema();
-  const photos = await run("SELECT storage_key FROM photos WHERE post_id = $1", [postId]);
-  const rows = await run("DELETE FROM posts WHERE id = $1 RETURNING id", [postId]);
+  if (target === "comment") return (await run("DELETE FROM comments WHERE id = $1 RETURNING id", [id])).length > 0;
+  const photos = await run("SELECT storage_key FROM photos WHERE post_id = $1", [id]);
+  const rows = await run("DELETE FROM posts WHERE id = $1 RETURNING id", [id]);
   await removePhotos(photos.map((p) => p.storage_key as string));
   return rows.length > 0;
 }
