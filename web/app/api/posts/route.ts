@@ -1,5 +1,7 @@
+import { after } from "next/server";
 import { MAX_POST, createPost, deletePost } from "@/lib/social";
 import { removePhotos } from "@/lib/photos";
+import { sendForReview } from "@/lib/moderation";
 import { hallParam, idParam, reply, textParam, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +20,7 @@ export async function POST(request: Request) {
     const result = await createPost(user.id, body, hall, photoId);
     if (!result.ok)
       return reply({ error: result.error === "too many" ? "You've posted a lot today. Try again tomorrow." : "That photo can't be used." }, 400);
+    after(() => sendForReview(result.id));
     return reply({ ok: true, id: result.id });
   } catch (e) {
     console.error("posts POST failed:", e);
