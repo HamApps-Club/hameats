@@ -84,7 +84,7 @@ export default function RulesPage() {
             </li>
             <li>Reported posts are reviewed by moderators, who can remove them for good.</li>
             <li>
-              <strong className={strong}>Moderators can see the name and email of anyone who posts something inappropriate.</strong>{" "}
+              <strong className={strong}>Moderators can see the email address of anyone who posts something inappropriate.</strong>{" "}
               Serious or repeated breaks can lose you your account, and anything threatening someone&apos;s safety may be passed
               on to the college or the police.
             </li>

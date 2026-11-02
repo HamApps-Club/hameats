@@ -54,8 +54,7 @@ export function matchesTestSecret(key: unknown) {
 /**
  * Sign-in with Google, nothing else, and only for Hamilton accounts. The one exception is the private test link
  * (/t/<TEST_LOGIN_SECRET>, see app/t/[key]/route.ts), which exists only while that secret is set. The session lives in a signed cookie (no
- * accounts table): the only things the database keeps about a person are their email address (as their id) and the
- * first name shown on a review.
+ * accounts table): the database keeps a person's email address (as their id), never their name.
  * Reads AUTH_SECRET, AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET from the environment.
  */
 export const { handlers, auth, signIn } = NextAuth({
@@ -88,8 +87,3 @@ export const { handlers, auth, signIn } = NextAuth({
   },
 });
 
-/** "Brandon Taylor" -> "Brandon"; the only form of a name that is stored or shown. */
-export function publicName(name: string | null | undefined): string {
-  const first = (name ?? "").trim().split(/\s+/)[0]?.slice(0, 30);
-  return first || "A student";
-}
