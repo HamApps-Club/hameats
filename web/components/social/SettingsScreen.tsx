@@ -116,12 +116,12 @@ export function SettingsScreen({ onClose }: { onClose: () => void }) {
               }}
             />
           </section>
-          <p className="-mt-3 px-1 text-[13px] text-muted">Alerts are on their way: your choices are saved now, and messages start soon.</p>
+          <p className="-mt-3 px-1 text-[13px] text-muted">Push alerts arrive each morning. Email alerts are coming soon.</p>
 
           <section className={off ? "opacity-50" : ""}>
             <Label>How should we tell you?</Label>
             <div className={`${card} divide-y divide-rule`}>
-              <Row title="Email" text="Sent to your Hamilton email address. Works for everyone." on={s.email} onChange={(email) => save({ ...s, email })} disabled={off} />
+              <Row title="Email" text="Sent to your Hamilton email address. Coming soon." on={s.email} onChange={(email) => save({ ...s, email })} disabled={off} />
               <Row
                 title="Push notification"
                 text="A notification on this phone. On iPhone it only works once HamEats is on your Home Screen, and your phone asks you first."
