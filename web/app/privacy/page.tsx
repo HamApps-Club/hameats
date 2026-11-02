@@ -93,7 +93,8 @@ export default function PrivacyPage() {
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Alerts (only if you turn them on).</strong> If you ask to
             be told when a dish you like is served, HamEats saves that choice and which dishes you switched off. If you
-            allow push notifications, it saves the address your phone or browser gives for sending them. Email alerts
+            allow push notifications, it saves the address your phone or browser gives for sending them. Each alert is also
+            saved under Notifications on your profile, where only you can see it. Email alerts
             go to your Hamilton email address.
           </p>
           <p>
@@ -150,7 +151,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             Deleting your account (Settings, on your profile) deletes your username, reviews, posts, photos, comments, votes,
-            alert settings and push notification addresses right away. Reports you made stay, so hidden posts stay hidden, but
+            alert settings, notifications and push notification addresses right away. Reports you made stay, so hidden posts stay hidden, but
             they&apos;re no longer linked to you.
           </p>
         </Section>
