@@ -4,6 +4,7 @@ import { run } from "@/lib/db";
 import { ensureSchema } from "@/lib/dishes";
 import { removePhotos } from "@/lib/photos";
 import { SITE_URL } from "@/lib/site";
+import { captureServer } from "@/lib/serverAnalytics";
 
 // Everything students write (posts, photos, reviews and comments) is sent to the same Discord channel as reports
 // (REPORT_WEBHOOK_URL), so the site's owner can look it over. Each message carries a private link that removes it.
@@ -107,6 +108,7 @@ export async function sendForReview(target: Target, id: number) {
   const url = process.env.REPORT_WEBHOOK_URL;
   if (!url) {
     console.warn("REPORT_WEBHOOK_URL is not set; new post not sent to Discord");
+    await captureServer("discord_notice", { type: target, ok: false, error: "no webhook" });
     return;
   }
   try {
@@ -140,8 +142,11 @@ export async function sendForReview(target: Target, id: number) {
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) console.error("new post notice failed:", res.status);
+    const type = target === "comment" ? "comment" : item.what.startsWith("Review of") ? "review" : item.photoUrl ? "photo post" : "text post";
+    await captureServer("discord_notice", { type, edited: item.edited, ok: res.ok, ...(res.ok ? {} : { error: `HTTP ${res.status}` }) });
   } catch (e) {
     console.error("new post notice failed:", e);
+    await captureServer("discord_notice", { type: target, ok: false, error: "request failed" });
   }
 }
 
@@ -157,6 +162,7 @@ export async function sendAiNotice(
   const url = process.env.REPORT_WEBHOOK_URL;
   if (!url) {
     console.warn("REPORT_WEBHOOK_URL is not set; AI photo check notice not sent");
+    await captureServer("discord_notice", { type: "hiddenPostId" in outcome ? "ai hid" : "ai blocked", ok: false, error: "no webhook" });
     return;
   }
   try {
@@ -195,8 +201,10 @@ export async function sendAiNotice(
     if (attached) form.append("files[0]", new Blob([attached], { type: "image/jpeg" }), "photo.jpg");
     const res = await fetch(url, { method: "POST", body: form, signal: AbortSignal.timeout(8000) });
     if (!res.ok) console.error("AI photo check notice failed:", res.status);
+    await captureServer("discord_notice", { type: hidden ? "ai hid" : "ai blocked", ok: res.ok, ...(res.ok ? {} : { error: `HTTP ${res.status}` }) });
   } catch (e) {
     console.error("AI photo check notice failed:", e);
+    await captureServer("discord_notice", { type: "hiddenPostId" in outcome ? "ai hid" : "ai blocked", ok: false, error: "request failed" });
   }
 }
 
