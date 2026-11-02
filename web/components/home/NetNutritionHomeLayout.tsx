@@ -208,6 +208,15 @@ function usePinToVisualBottom(ref: React.RefObject<HTMLElement | null>) {
 }
 
 /**
+ * Where a jump puts a hall card's top: a little below the sticky header's bottom edge. Measured rather than a fixed
+ * scroll margin, because the header grows when the Menu / Feed / Me tabs are shown and would otherwise cover the card's top.
+ */
+function jumpOffset() {
+  const header = document.querySelector("header");
+  return (header ? header.getBoundingClientRect().bottom : 0) + 12;
+}
+
+/**
  * TigerMenus-style hall scroller, phones only (wider screens show the halls side by side): a floating
  * card with a line of dots, one per hall, named underneath. Tapping one scrolls to that hall and
  * moves focus to its heading (without drawing an outline); the hall on screen gets the gold dot.
@@ -235,7 +244,7 @@ function HallScroller({ halls }: { halls: Hall[] }) {
       // The active hall is the last one whose card has reached a line just under the sticky header (where a
       // jump puts a card's top). A line lower down, like the top third, would pass a short card (a hall with
       // nothing served) on to the next hall while the short one still sits at the top of the screen.
-      const line = parseFloat(getComputedStyle(cards[0]).scrollMarginTop) + 40;
+      const line = jumpOffset() + 40;
       let current = halls[0].slug;
       cards.forEach((el, i) => {
         if (el.getBoundingClientRect().top <= line) current = halls[i].slug;
@@ -266,7 +275,10 @@ function HallScroller({ halls }: { halls: Hall[] }) {
     pinned.current = hall.slug;
     setActive(hall.slug);
     const card = document.getElementById(sectionId(hall));
-    card?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    if (card) {
+      const top = card.getBoundingClientRect().top + window.scrollY - jumpOffset();
+      window.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+    }
     // Move focus to the hall's heading so screen readers land there too; nothing is drawn around it.
     document.getElementById(`${sectionId(hall)}-title`)?.focus({ preventScroll: true });
     track("continental_hall_jumped", { hall: hall.slug });
