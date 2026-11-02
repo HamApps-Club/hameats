@@ -14,17 +14,20 @@ type MeState = {
   photos: boolean;
   /** The public key for push notifications, or null when they aren't set up. */
   pushKey: string | null;
+  /** Whether the signed-in person has agreed to the Rules on the welcome screen. */
+  rulesAccepted: boolean;
 };
 
 type Me = MeState & {
   refresh: () => void;
   setUsername: (name: string) => void;
   clearUnread: () => void;
+  acceptRules: () => Promise<void>;
 };
 
-const INITIAL: MeState = { status: "loading", username: null, joined: null, unread: false, photos: false, pushKey: null };
+const INITIAL: MeState = { status: "loading", username: null, joined: null, unread: false, photos: false, pushKey: null, rulesAccepted: false };
 
-const MeContext = createContext<Me>({ ...INITIAL, refresh: () => {}, setUsername: () => {}, clearUnread: () => {} });
+const MeContext = createContext<Me>({ ...INITIAL, refresh: () => {}, setUsername: () => {}, clearUnread: () => {}, acceptRules: async () => {} });
 
 export const useMe = () => useContext(MeContext);
 
@@ -51,6 +54,7 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
             unread: b.unread === true,
             photos: b.photos === true,
             pushKey: b.pushKey ?? null,
+            rulesAccepted: b.rulesAccepted === true,
           });
         })
         .catch(() => !cancelled && setState((s) => (s.status === "loading" ? { ...INITIAL, status: "off" } : s)));
@@ -67,6 +71,18 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(() => setTick((t) => t + 1), []);
   const setUsername = useCallback((username: string) => setState((s) => ({ ...s, username })), []);
   const clearUnread = useCallback(() => setState((s) => ({ ...s, unread: false })), []);
-  const value = useMemo(() => ({ ...state, refresh, setUsername, clearUnread }), [state, refresh, setUsername, clearUnread]);
+  const acceptRules = useCallback(async () => {
+    const res = await fetch("/api/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acceptRules: true }),
+    }).catch(() => null);
+    if (!res?.ok) throw new Error("That didn't go through. Please try again.");
+    setState((s) => ({ ...s, rulesAccepted: true }));
+  }, []);
+  const value = useMemo(
+    () => ({ ...state, refresh, setUsername, clearUnread, acceptRules }),
+    [state, refresh, setUsername, clearUnread, acceptRules],
+  );
   return <MeContext.Provider value={value}>{children}</MeContext.Provider>;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 import type { Settings } from "@/lib/social";
 import { HALL_SHORT } from "@/lib/halls";
 import { useMe } from "@/lib/me";
@@ -163,6 +164,139 @@ export function SettingsScreen({ onClose }: { onClose: () => void }) {
           </section>
         </div>
       )}
+      {(s || failed) && <AccountSection card={card} />}
     </Screen>
+  );
+}
+
+const linkRow = "flex min-h-12 items-center justify-between py-3 text-[16.5px] font-semibold";
+
+/** Privacy & account: the rules and policies, download my data, and delete my account. */
+function AccountSection({ card }: { card: string }) {
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <div className="space-y-6 px-3.5 pb-10">
+      <section>
+        <Label>Privacy &amp; account</Label>
+        <div className={`${card} divide-y divide-rule`}>
+          <a href="/rules" className={linkRow}>
+            Rules <span aria-hidden className="text-muted">›</span>
+          </a>
+          <a href="/privacy" className={linkRow}>
+            Privacy Policy <span aria-hidden className="text-muted">›</span>
+          </a>
+          <a href="/terms" className={linkRow}>
+            Terms <span aria-hidden className="text-muted">›</span>
+          </a>
+          <a href="/api/me/export" download onClick={() => track("data_downloaded")} className={linkRow}>
+            <span>
+              Download my data
+              <span className="mt-0.5 block text-[13px] font-normal leading-snug text-muted">
+                Everything HamEats keeps about you, as a file: posts, reviews, comments, photos, votes and settings.
+              </span>
+            </span>
+            <span aria-hidden className="text-muted">↓</span>
+          </a>
+        </div>
+      </section>
+
+      <section>
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="min-h-12 w-full rounded-[10px] border border-red-300 bg-surface px-4 text-left text-[16.5px] font-semibold text-red-600 dark:border-red-900 dark:text-red-400"
+        >
+          Delete account
+        </button>
+        <p className="mt-2 px-1 text-[13px] text-muted">Deletes your profile and everything you&apos;ve posted. This can&apos;t be undone.</p>
+      </section>
+
+      {confirming && <DeleteAccountDialog onCancel={() => setConfirming(false)} />}
+    </div>
+  );
+}
+
+/** Asks twice (the person types DELETE), then deletes the account, logs out and reloads the app. */
+function DeleteAccountDialog({ onCancel }: { onCancel: () => void }) {
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const ready = typed.trim().toUpperCase() === "DELETE";
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onCancel();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [busy, onCancel]);
+
+  const remove = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      // Stops this phone's notifications too. serviceWorker.ready never settles without a service worker, so don't wait long.
+      await Promise.race([disablePush(), new Promise((r) => setTimeout(r, 3000))]);
+      await api("/api/me", "DELETE");
+      track("account_deleted");
+      await signOut({ redirect: false }).catch(() => {});
+      // A full reload, so every part of the app starts again logged out.
+      window.location.reload();
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-6" onClick={() => !busy && onCancel()}>
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-account-title"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm space-y-3 rounded-2xl bg-white p-6 text-zinc-700 shadow-xl dark:bg-surface dark:text-zinc-300"
+      >
+        <h3 id="delete-account-title" className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          Delete your account?
+        </h3>
+        <p className="text-[15px] leading-snug">
+          This permanently deletes your username, reviews, posts, photos, comments, votes and alert settings. Other people&apos;s replies to your
+          posts go too. It can&apos;t be undone. You can log in again later, but you&apos;ll start fresh.
+        </p>
+        <label className="block text-[15px]">
+          Type <strong className="text-zinc-900 dark:text-zinc-100">DELETE</strong> to confirm
+          <input
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            autoFocus
+            autoCapitalize="characters"
+            autoComplete="off"
+            className="mt-1.5 block min-h-11 w-full rounded-lg border border-rule bg-background px-3 text-base outline-none focus:border-accent"
+          />
+        </label>
+        {error && (
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            className="rounded-full bg-zinc-200/70 px-5 py-2.5 font-semibold text-zinc-900 disabled:opacity-60 dark:bg-zinc-800 dark:text-zinc-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => void remove()}
+            disabled={!ready || busy}
+            className="rounded-full bg-red-600 px-5 py-2.5 font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? "Deleting…" : "Delete account"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
