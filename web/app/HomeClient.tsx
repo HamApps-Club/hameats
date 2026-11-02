@@ -283,8 +283,8 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hash = useHash();
   const hall = hallBySlug(hash);
-  // No hall page open: the Menu, the Feed or your profile (Me), by the address (#feed, #me).
-  const { section, postId } = sectionFor(hash);
+  // No hall page open: the Menu, the Feed or your profile (Me), by the address (#feed, #me, #notifications).
+  const { section, postId, notifications } = sectionFor(hash);
   const now = useCampusNow();
   // When the campus date rolls over (usually the app being reopened the next day), fetch the menus
   // again so the new day's menu is there.
@@ -359,7 +359,7 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
                   <SiteTitle />
                   <SectionTabs active={section} />
                 </header>
-                {section === "feed" ? <FeedTab openPostId={postId} /> : <MeTab />}
+                {section === "feed" ? <FeedTab openPostId={postId} /> : <MeTab notifications={notifications} />}
               </>
             )}
           </>
