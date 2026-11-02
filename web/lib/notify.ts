@@ -1,4 +1,5 @@
 import "server-only";
+import { captureServer } from "@/lib/serverAnalytics";
 
 /**
  * Posts a message to the Discord channel behind REPORT_WEBHOOK_URL (set in Vercel's environment variables). Never
@@ -8,6 +9,7 @@ export async function notifyOwner(content: string) {
   const url = process.env.REPORT_WEBHOOK_URL;
   if (!url) {
     console.warn("REPORT_WEBHOOK_URL is not set; report notice not sent");
+    await captureServer("discord_notice", { type: "report", ok: false, error: "no webhook" });
     return;
   }
   try {
@@ -19,7 +21,9 @@ export async function notifyOwner(content: string) {
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) console.error("report notice failed:", res.status);
+    await captureServer("discord_notice", { type: "report", ok: res.ok, ...(res.ok ? {} : { error: `HTTP ${res.status}` }) });
   } catch (e) {
     console.error("report notice failed:", e);
+    await captureServer("discord_notice", { type: "report", ok: false, error: "request failed" });
   }
 }
