@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { deleteReview, getReviews, saveReview, type ReviewPlace } from "@/lib/dishes";
 import { MEALS } from "@/lib/types";
 import { currentUser, dbEnabled, dishParam, hallParam, noStore, sameOrigin, unavailable } from "@/lib/apiGuard";
+import { sendForReview } from "@/lib/moderation";
 
 export const dynamic = "force-dynamic";
 
@@ -40,8 +42,9 @@ export async function POST(request: Request) {
   const text = typeof payload?.body === "string" ? payload.body.trim() : "";
   if (!dish || !text || text.length > MAX_REVIEW) return Response.json({ error: "bad request" }, { status: 400, headers: noStore });
   try {
-    if (!(await saveReview(dish, user.id, text, placeParam(payload))))
-      return Response.json({ error: "unknown dish" }, { status: 404, headers: noStore });
+    const id = await saveReview(dish, user.id, text, placeParam(payload));
+    if (id === null) return Response.json({ error: "unknown dish" }, { status: 404, headers: noStore });
+    after(() => sendForReview(id));
     return Response.json({ ok: true }, { headers: noStore });
   } catch (e) {
     console.error("reviews POST failed:", e);
