@@ -140,7 +140,14 @@ export function Composer({ onClose }: { onClose: () => void }) {
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             {me.photos ? (
-              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => setSheet(true)} aria-label="Add a photo" className="flex size-11 items-center justify-center rounded-full text-zinc-800 hover:bg-zinc-200/60 dark:text-zinc-200 dark:hover:bg-zinc-800">
+              <button
+                type="button"
+                onClick={() => {
+                  // Close the keyboard first, so it doesn't cover the Take photo / Photo Library sheet.
+                  (document.activeElement as HTMLElement | null)?.blur();
+                  setSheet(true);
+                }}
+                aria-label="Add a photo" className="flex size-11 items-center justify-center rounded-full text-zinc-800 hover:bg-zinc-200/60 dark:text-zinc-200 dark:hover:bg-zinc-800">
                 <LibraryIcon />
               </button>
             ) : (
