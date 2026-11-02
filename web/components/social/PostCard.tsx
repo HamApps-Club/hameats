@@ -7,7 +7,7 @@ import { signInWithGoogle } from "@/lib/likes";
 import { track } from "@/lib/analytics";
 import { DeleteDialog, ReportDialog } from "@/components/Reviews";
 import { useOpen } from "@/components/social/SocialLayers";
-import { Avatar, Bubble, Chevron, ChevronRight, HallFlair, ShareIcon, Trend, VerdictFlair, ago, announceFeedChange, api } from "@/components/social/bits";
+import { Avatar, Bubble, Chevron, ChevronRight, HallFlair, HiddenNotice, ShareIcon, Trend, VerdictFlair, ago, announceFeedChange, api } from "@/components/social/bits";
 
 /** The up and down arrows with the score between them, like Reddit's. Logged out, a tap goes to Google login. */
 export function VoteColumn({ target, id, score: start, myVote: startVote }: { target: "post" | "comment"; id: number; score: number; myVote: number }) {
@@ -121,6 +121,7 @@ export function PostCard({ item, inThread = false }: { item: FeedItem; inThread?
         </div>
       </div>
 
+      {item.mine && item.hidden && <HiddenNotice why={item.hidden} />}
       {item.body && (
         <button type="button" onClick={openPost} disabled={inThread} className="mt-2.5 block w-full text-left text-[18px] leading-snug [overflow-wrap:anywhere] whitespace-pre-wrap disabled:cursor-text">
           {item.body}

@@ -8,7 +8,7 @@ import { track } from "@/lib/analytics";
 import { DeleteDialog, ReportDialog } from "@/components/Reviews";
 import { PostCard, VoteColumn } from "@/components/social/PostCard";
 import { useOpen } from "@/components/social/SocialLayers";
-import { Avatar, FEED_CHANGED, Screen, ago, announceFeedChange, api } from "@/components/social/bits";
+import { Avatar, FEED_CHANGED, HiddenNotice, Screen, ago, announceFeedChange, api } from "@/components/social/bits";
 
 const MAX_COMMENT = 500;
 
@@ -43,6 +43,7 @@ function Comment({ c, onChanged }: { c: CommentItem; onChanged: () => void }) {
           <span className="text-[13px] text-muted">· {ago(c.createdAt)}</span>
         </p>
       </div>
+      {c.mine && c.hidden && <HiddenNotice why="reports" />}
       <p className="mt-1.5 whitespace-pre-wrap text-[16.5px] leading-snug [overflow-wrap:anywhere]">{c.body}</p>
       <div className="mt-1 flex items-center gap-4 text-muted">
         <VoteColumn target="comment" id={c.id} score={c.score} myVote={c.myVote} />

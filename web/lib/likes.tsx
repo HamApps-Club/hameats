@@ -50,7 +50,17 @@ export const useVotes = () => useContext(VotesContext);
 /** While the app is on screen, the counts are fetched again this often (and at once whenever it comes back into view). */
 export const REFRESH_MS = 30_000;
 
-export const signInWithGoogle = () => signIn("google", { callbackUrl: window.location.href });
+/** Asked for by every "Log in" button: opens the screen that says what logging in means (components/JoinSheets.tsx). */
+export const LOGIN_REQUESTED = "hameats:login-requested";
+
+/**
+ * What every "Log in" button calls. It doesn't go to Google straight away: first a screen says what logging in shares
+ * and what's public, with links to the Rules and Privacy Policy, the way social apps do before sign-up.
+ */
+export const signInWithGoogle = () => void window.dispatchEvent(new Event(LOGIN_REQUESTED));
+
+/** Goes to Google's login, from the Continue button on that screen. */
+export const continueWithGoogle = () => signIn("google", { callbackUrl: window.location.href });
 
 /** Thumbs-up and thumbs-down counts for every dish, and the signed-in person's own votes, kept in step with the server. */
 export function VotesProvider({ children }: { children: React.ReactNode }) {

@@ -164,6 +164,15 @@ export function SiteFooter() {
         </Link>
       </div>
 
+      <div className="flex justify-center gap-6 text-center text-sm text-zinc-900 dark:text-zinc-100">
+        <Link href="/rules" className="font-medium hover:underline">
+          Rules
+        </Link>
+        <Link href="/terms" className="font-medium hover:underline">
+          Terms
+        </Link>
+      </div>
+
       {/* Plain text in the page from the first byte, so search engines see what the site is without running the app. */}
       <p className="pt-3 text-center">
         HamEats: Hamilton College dining menus and hours for Soper Commons, McEwen, the Diner and the Little Pub.

@@ -232,19 +232,25 @@ const SCHEMA = [
   "ALTER TABLE photos ADD COLUMN IF NOT EXISTS ai_verdict text",
   // Set when the AI photo check hides a post (it's then shown to nobody); cleared by the Restore link in Discord.
   "ALTER TABLE posts ADD COLUMN IF NOT EXISTS hidden_by_ai_at timestamptz",
+  // When the person agreed to the Rules (/rules), on the welcome screen after their first login. Null: not yet.
+  "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS rules_accepted_at timestamptz",
 ];
 
 /** Bump whenever SCHEMA changes, so every server runs the new statements once. */
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 /** A post or comment stops being shown to other students once this many different people have reported it. */
 export const REPORTS_TO_HIDE = 3;
 
 /**
- * SQL: whether the post aliased `p` can be seen by the person looking ($1). One hidden by reports is still shown to its
- * author; one hidden by the AI photo check is shown to nobody.
+ * SQL: whether the post aliased `p` can be seen by the person looking ($1). A post hidden by reports or by the AI photo
+ * check is shown to nobody but its author, who sees it marked as hidden (see POST_HIDDEN), like Reddit's "removed" label.
  */
-export const POST_VISIBLE = `(p.hidden_by_ai_at IS NULL AND (p.user_id = $1 OR (SELECT count(*) FROM reports x WHERE x.post_id = p.id) < ${REPORTS_TO_HIDE}))`;
+export const POST_VISIBLE = `(p.user_id = $1 OR (p.hidden_by_ai_at IS NULL AND (SELECT count(*) FROM reports x WHERE x.post_id = p.id) < ${REPORTS_TO_HIDE}))`;
+
+/** SQL: why the post aliased `p` is hidden from everyone else: 'ai' (the photo filter), 'reports', or null. */
+export const POST_HIDDEN = `CASE WHEN p.hidden_by_ai_at IS NOT NULL THEN 'ai'
+  WHEN (SELECT count(*) FROM reports x WHERE x.post_id = p.id) >= ${REPORTS_TO_HIDE} THEN 'reports' END`;
 
 let schemaReady: Promise<void> | undefined;
 
