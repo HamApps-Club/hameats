@@ -117,7 +117,7 @@ export function SettingsScreen({ onClose }: { onClose: () => void }) {
               }}
             />
           </section>
-          <p className="-mt-3 px-1 text-[13px] text-muted">Push alerts arrive each morning. Email alerts are coming soon.</p>
+          <p className="-mt-3 px-1 text-[13px] text-muted">Alerts arrive at 8 AM and are saved under Notifications on your profile. Email alerts are coming soon.</p>
 
           <section className={off ? "opacity-50" : ""}>
             <Label>How should we tell you?</Label>

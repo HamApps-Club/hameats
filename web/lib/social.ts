@@ -232,9 +232,12 @@ export async function deleteComment(userId: string, id: number) {
 
 // ---- Profiles
 
-export type Me = { username: string; joined: string; unread: boolean; rulesAccepted: boolean };
+export type Me = { username: string; joined: string; unread: boolean; rulesAccepted: boolean; unreadNotifications: number };
 
-/** The signed-in person's own profile (created on first use), and whether anyone has commented on or voted on their posts since they last opened the Feed. */
+/**
+ * The signed-in person's own profile (created on first use), whether anyone has commented on or voted on their posts
+ * since they last opened the Feed, and how many of their notifications they haven't seen.
+ */
 export async function getMe(userId: string): Promise<Me> {
   await ensureSchema();
   await ensureProfile(userId);
@@ -243,7 +246,8 @@ export async function getMe(userId: string): Promise<Me> {
        EXISTS (SELECT 1 FROM comments c JOIN posts p ON p.id = c.post_id
                WHERE p.user_id = $1 AND c.user_id <> $1 AND c.created_at > pr.feed_seen_at)
        OR EXISTS (SELECT 1 FROM post_votes v JOIN posts p ON p.id = v.post_id
-               WHERE p.user_id = $1 AND v.user_id <> $1 AND v.value = 1 AND v.created_at > pr.feed_seen_at) AS unread
+               WHERE p.user_id = $1 AND v.user_id <> $1 AND v.value = 1 AND v.created_at > pr.feed_seen_at) AS unread,
+       (SELECT count(*) FROM notifications n WHERE n.user_id = $1 AND n.read_at IS NULL) AS unread_notifications
      FROM profiles pr WHERE pr.user_id = $1`,
     [userId],
   );
@@ -252,6 +256,7 @@ export async function getMe(userId: string): Promise<Me> {
     joined: iso(rows[0].created_at),
     unread: rows[0].unread === true,
     rulesAccepted: rows[0].rules_accepted === true,
+    unreadNotifications: Number(rows[0].unread_notifications),
   };
 }
 
@@ -343,6 +348,43 @@ export async function getProfile(username: string, viewerId: string | undefined)
     liked: likes.filter((l) => Number(l.value) === 1).map((l) => l.dish as string),
     disliked: mine ? likes.filter((l) => Number(l.value) === -1).map((l) => l.dish as string) : null,
   };
+}
+
+// ---- Notifications (saved by lib/alerts.ts; only ever shown to their owner)
+
+export type NotificationItem = {
+  id: number;
+  kind: string;
+  title: string;
+  body: string;
+  /** For 'menu' notifications: each liked dish on the menu, with its hall slug and meal. */
+  items: { dish: string; hall: string; meal: string }[];
+  createdAt: string;
+  read: boolean;
+};
+
+/** The person's latest notifications, newest first. */
+export async function getNotifications(userId: string): Promise<NotificationItem[]> {
+  await ensureSchema();
+  const rows = await run(
+    "SELECT id, kind, title, body, items, created_at, read_at FROM notifications WHERE user_id = $1 ORDER BY created_at DESC, id DESC LIMIT 60",
+    [userId],
+  );
+  return rows.map((r) => ({
+    id: Number(r.id),
+    kind: r.kind as string,
+    title: r.title as string,
+    body: r.body as string,
+    items: parseJson<NotificationItem["items"]>(r.items) ?? [],
+    createdAt: iso(r.created_at),
+    read: r.read_at != null,
+  }));
+}
+
+/** The person opened their Notifications: they've all been seen, which clears the dot on the Me tab. */
+export async function markNotificationsRead(userId: string) {
+  await ensureSchema();
+  await run("UPDATE notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL", [userId]);
 }
 
 // ---- Alert settings
