@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useId, useState, type ReactNode } from "react";
-import type { PublicProfile } from "@/lib/social";
+import type { FeedItem, NotificationItem, ProfileComment, PublicProfile } from "@/lib/social";
 import { useMe } from "@/lib/me";
 import { useVotes } from "@/lib/likes";
 import { usernameProblem } from "@/lib/usernames";
 import { track } from "@/lib/analytics";
 import { PostCard } from "@/components/social/PostCard";
 import { useOpen } from "@/components/social/SocialLayers";
-import { FEED_CHANGED, GearIcon, Screen, Thumb, ago, api, joinedLabel } from "@/components/social/bits";
+import { Bubble, ChevronRight, FEED_CHANGED, GearIcon, Screen, Thumb, ago, api, joinedLabel } from "@/components/social/bits";
 
-type Tab = "Posts" | "Comments" | "Liked" | "Disliked";
-type Kind = "all" | "post" | "review";
+type Tab = "Posts" | "Notifications" | "Liked" | "Disliked";
+type Kind = "all" | "post" | "review" | "comment";
 
 /** The top of a profile, laid out like Reddit's: a blue header with a big avatar, the name, when they joined, and counts. */
 function Hero({ profile, edit, actions }: { profile: PublicProfile; edit?: ReactNode; actions?: ReactNode }) {
@@ -79,19 +79,192 @@ function DishList({ dishes, dir, own }: { dishes: string[]; dir: 1 | -1; own: bo
   );
 }
 
-/** The tabs and lists under a profile's header. */
-function ProfileBody({ profile, own }: { profile: PublicProfile; own: boolean }) {
+/** One of the person's comments, in the profile's list: which post it's on, and what they wrote. Opens the post. */
+function CommentRow({ c }: { c: ProfileComment }) {
   const open = useOpen();
+  return (
+    <article className="border-b border-rule">
+      <button type="button" onClick={() => open.post(c.postId)} className="block w-full px-3.5 py-3.5 text-left hover:bg-accent/5">
+        <p className="flex items-center gap-1.5 text-sm text-muted">
+          <Bubble className="size-4 shrink-0 text-accent" />
+          <span className="truncate">
+            Commented on <b className="font-semibold">u/{c.on}</b>&apos;s post · {ago(c.createdAt)}
+          </span>
+        </p>
+        <p className="mt-1 truncate text-[13px] italic text-muted">&ldquo;{c.snippet}&rdquo;</p>
+        <p className="mt-2 whitespace-pre-wrap text-[16px] leading-snug [overflow-wrap:anywhere]">{c.body}</p>
+      </button>
+    </article>
+  );
+}
+
+const Bell = ({ className = "size-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+);
+
+const MEAL_TIME = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+/** Opens a dining hall's menu (its page lives at #slug). */
+function openHall(slug: string) {
+  history.pushState(null, "", `#${slug}`);
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+  window.scrollTo({ top: 0 });
+}
+
+/**
+ * Your notifications: the morning alerts, each listing the liked dishes on that day's menu with their hall and meal
+ * (tap one for that hall's menu). Opening the tab marks them all read, which clears the dot on the Me tab; the ones that
+ * were new keep a gold dot until you leave.
+ */
+function NotificationsList() {
+  const me = useMe();
+  const open = useOpen();
+  const { clearNotifications } = me;
+  const [list, setList] = useState<NotificationItem[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  // Notifications shown as new: unread when they loaded here. Kept while the tab is open, even once marked read.
+  const [fresh, setFresh] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () =>
+      fetch("/api/notifications", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((b: { notifications: NotificationItem[] }) => {
+          if (cancelled) return;
+          setList(b.notifications);
+          const unread = b.notifications.filter((n) => !n.read).map((n) => n.id);
+          if (unread.length) {
+            setFresh((f) => new Set([...f, ...unread]));
+            clearNotifications();
+            void fetch("/api/notifications", { method: "POST" }).catch(() => {});
+          }
+        })
+        .catch(() => !cancelled && setFailed(true));
+    load();
+    // New ones can arrive while this is open: check again when the app comes back into view, or a notification arrives.
+    const onVisible = () => document.visibilityState === "visible" && load();
+    const onMessage = (e: MessageEvent) => e.data?.type === "hameats:notification" && load();
+    document.addEventListener("visibilitychange", onVisible);
+    navigator.serviceWorker?.addEventListener("message", onMessage);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      navigator.serviceWorker?.removeEventListener("message", onMessage);
+    };
+  }, [clearNotifications]);
+
+  if (!list) return <p className="py-10 text-center text-muted">{failed ? "Couldn't load your notifications. Check your connection and try again." : "Loading…"}</p>;
+  if (!list.length)
+    return (
+      <div className="mx-3.5 rounded-xl border border-dashed border-rule p-8 text-center text-muted">
+        <p className="font-semibold">No notifications yet</p>
+        <p className="mt-1 text-sm">Like dishes on the Menu and turn on alerts. At 8 AM we&apos;ll tell you which ones are served that day, where, and for which meal.</p>
+        <button type="button" onClick={open.settings} className="mt-4 rounded-full border border-rule bg-surface px-4 py-2 text-[14px] font-semibold text-accent hover:border-accent/50">
+          Alert settings
+        </button>
+      </div>
+    );
+  return (
+    <ul className="border-t border-rule">
+      {list.map((n) => (
+        <li key={n.id} className="border-b border-rule px-3.5 py-3.5">
+          <div className="flex items-start gap-3">
+            <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-band text-band-ink">
+              <Bell className="size-[22px]" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="flex items-center gap-2 text-sm text-muted">
+                <span className="font-semibold text-foreground">HamEats</span>
+                <span>· {MEAL_TIME.format(new Date(n.createdAt))}</span>
+                {fresh.has(n.id) && <span aria-label="New" className="ml-auto size-[9px] shrink-0 rounded-full bg-gold" />}
+              </p>
+              <p className="mt-0.5 text-[17px] font-bold leading-snug">{n.title}</p>
+              {n.items.length ? (
+                <ul className="mt-2 divide-y divide-rule rounded-[10px] border border-rule bg-surface">
+                  {groupItems(n.items).map((g) => (
+                    <li key={`${g.dish}|${g.hall}`}>
+                      <button type="button" onClick={() => openHall(g.hall)} className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-accent/5">
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[16px] font-semibold leading-snug">{g.dish}</span>
+                          <span className="block text-[13.5px] text-muted">
+                            {HALL_NAME[g.hall] ?? g.hall} · {g.meals.join(", ")}
+                          </span>
+                        </span>
+                        <ChevronRight className="size-[18px] shrink-0 text-muted" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 whitespace-pre-wrap text-[15px] leading-snug">{n.body}</p>
+              )}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const HALL_NAME: Record<string, string> = { commons: "Soper Commons", mcewen: "McEwen", diner: "Howard Diner", "little-pub": "Little Pub" };
+const MEALS = ["Breakfast", "Lunch", "Dinner"];
+
+/** One row per dish and hall, with every meal it's served at there, in meal order. */
+function groupItems(items: NotificationItem["items"]) {
+  const rows = new Map<string, { dish: string; hall: string; meals: string[] }>();
+  for (const it of items) {
+    const key = `${it.dish}|${it.hall}`;
+    const row = rows.get(key) ?? { dish: it.dish, hall: it.hall, meals: [] };
+    if (!row.meals.includes(it.meal)) row.meals.push(it.meal);
+    rows.set(key, row);
+  }
+  const rank = (m: string) => (MEALS.indexOf(m) + 4) % 4;
+  return [...rows.values()].map((r) => ({ ...r, meals: r.meals.sort((a, b) => rank(a) - rank(b)) }));
+}
+
+/**
+ * The tabs and lists under a profile's header. Posts has pills for All, Posts, Reviews and Comments. Notifications is
+ * only on your own profile; `notifications` opens it (the #notifications address, where tapping a notification goes).
+ */
+function ProfileBody({ profile, own, notifications = false }: { profile: PublicProfile; own: boolean; notifications?: boolean }) {
   const { mine } = useVotes();
-  const [tab, setTab] = useState<Tab>("Posts");
+  const me = useMe();
+  const [tab, setTabState] = useState<Tab>(own && notifications ? "Notifications" : "Posts");
   const [kind, setKind] = useState<Kind>("all");
+  // Another tap on a notification while you're on a different tab brings you back to Notifications.
+  const [wasNotifications, setWasNotifications] = useState(notifications);
+  if (notifications !== wasNotifications) {
+    setWasNotifications(notifications);
+    if (own && notifications) setTabState("Notifications");
+  }
+  // On your own profile the address follows the Notifications tab, so a notification tapped later always opens it.
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    if (!own) return;
+    const want = t === "Notifications" ? "#notifications" : "#me";
+    if (window.location.hash !== want) history.replaceState(history.state, "", want);
+  };
   // Your own thumbs come from the Menu's live state, so taking one back here shows at once.
   const liked = own ? Object.keys(mine).filter((d) => mine[d] === 1).sort() : profile.liked;
   const disliked = own ? Object.keys(mine).filter((d) => mine[d] === -1).sort() : [];
-  const posts = kind === "all" ? profile.posts : profile.posts.filter((p) => p.kind === kind);
-  const tabs: [Tab, number][] = [
-    ["Posts", profile.posts.length],
-    ["Comments", profile.comments.length],
+  // All: posts, reviews and comments together, newest first.
+  type Entry = { at: string; post?: FeedItem; comment?: ProfileComment };
+  const entries: Entry[] =
+    kind === "comment"
+      ? profile.comments.map((c) => ({ at: c.createdAt, comment: c }))
+      : kind === "all"
+        ? [...profile.posts.map((p) => ({ at: p.createdAt, post: p })), ...profile.comments.map((c) => ({ at: c.createdAt, comment: c }))].sort((a, b) =>
+            b.at.localeCompare(a.at),
+          )
+        : profile.posts.filter((p) => p.kind === kind).map((p) => ({ at: p.createdAt, post: p }));
+  const activity = profile.posts.length + profile.comments.length;
+  const tabs: [Tab, number | null][] = [
+    ["Posts", activity],
+    ...(own ? ([["Notifications", null]] as [Tab, null][]) : []),
     ["Liked", liked.length],
     ...(own ? ([["Disliked", disliked.length]] as [Tab, number][]) : []),
   ];
@@ -99,57 +272,48 @@ function ProfileBody({ profile, own }: { profile: PublicProfile; own: boolean })
     ["all", "All"],
     ["post", "Posts"],
     ["review", "Reviews"],
+    ["comment", "Comments"],
   ];
+  const emptyHint: Record<Kind, string> = {
+    all: "Tap Post in the Feed, or review a dish from the Menu.",
+    post: "Tap Post in the Feed to share something.",
+    review: "Review a dish from the Menu.",
+    comment: "Open a post in the Feed to join the conversation.",
+  };
   return (
     <>
       <div role="tablist" aria-label={`u/${profile.username}'s activity`} className="flex overflow-x-auto border-b border-rule">
         {tabs.map(([t, n]) => (
-          <button key={t} role="tab" aria-selected={t === tab} onClick={() => setTab(t)} className={`-mb-px flex-1 whitespace-nowrap border-b-2 px-2 py-3 text-[15px] font-bold ${t === tab ? "border-accent text-accent" : "border-transparent text-muted"}`}>
-            {t} <span className="font-semibold tabular-nums">{n}</span>
+          <button key={t} role="tab" aria-selected={t === tab} onClick={() => setTab(t)} className={`-mb-px flex flex-1 items-center justify-center gap-1 whitespace-nowrap border-b-2 px-2 py-3 text-[15px] font-bold ${t === tab ? "border-accent text-accent" : "border-transparent text-muted"}`}>
+            {t} {n !== null && <span className="font-semibold tabular-nums">{n}</span>}
+            {t === "Notifications" && me.notifications > 0 && <span aria-label={`${me.notifications} new`} className="size-[9px] rounded-full bg-gold" />}
           </button>
         ))}
       </div>
       <div className="space-y-3 pb-12 pt-4">
         {tab === "Posts" && (
           <>
-            {profile.posts.length > 0 && (
-              <div role="group" aria-label="Show" className="flex gap-2 px-3.5">
+            {activity > 0 && (
+              <div role="group" aria-label="Show" className="flex gap-2 overflow-x-auto px-3.5">
                 {filters.map(([k, label]) => (
-                  <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)} className={`min-h-9 rounded-full border px-4 text-[14px] font-semibold ${kind === k ? "border-accent bg-accent-fill text-on-accent" : "border-rule bg-surface"}`}>
+                  <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)} className={`min-h-9 shrink-0 rounded-full border px-4 text-[14px] font-semibold ${kind === k ? "border-accent bg-accent-fill text-on-accent" : "border-rule bg-surface"}`}>
                     {label}
                   </button>
                 ))}
               </div>
             )}
-            {posts.length ? (
+            {entries.length ? (
               <div className="border-t border-rule">
-                {posts.map((p) => (
-                  <PostCard key={`${p.id}-${p.score}-${p.comments}`} item={p} />
-                ))}
+                {entries.map((e) =>
+                  e.post ? <PostCard key={`p${e.post.id}-${e.post.score}-${e.post.comments}`} item={e.post} /> : <CommentRow key={`c${e.comment!.id}`} c={e.comment!} />,
+                )}
               </div>
             ) : (
-              <Empty title="Nothing here yet" hint={own ? "Tap Post in the Feed, or review a dish from the Menu." : undefined} />
+              <Empty title={kind === "comment" ? "No comments yet" : "Nothing here yet"} hint={own ? emptyHint[kind] : undefined} />
             )}
           </>
         )}
-        {tab === "Comments" &&
-          (profile.comments.length ? (
-            <ul className="space-y-3 px-3.5">
-              {profile.comments.map((c) => (
-                <li key={c.id}>
-                  <button type="button" onClick={() => open.post(c.postId)} className="block w-full rounded-[10px] border border-rule bg-surface p-4 text-left shadow-[0_8px_20px_-14px] shadow-black/20 hover:border-accent/50">
-                    <p className="text-sm text-muted">
-                      On <b className="font-semibold">u/{c.on}</b>&apos;s post · {ago(c.createdAt)}
-                    </p>
-                    <p className="mt-1 truncate text-[13px] italic text-muted">&ldquo;{c.snippet}&rdquo;</p>
-                    <p className="mt-2 whitespace-pre-wrap text-[16px] leading-snug [overflow-wrap:anywhere]">{c.body}</p>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <Empty title="No comments yet" hint={own ? "Open a post in the Feed to join the conversation." : undefined} />
-          ))}
+        {tab === "Notifications" && own && <NotificationsList />}
         {tab === "Liked" && <DishList dishes={liked} dir={1} own={own} />}
         {tab === "Disliked" && own && <DishList dishes={disliked} dir={-1} own />}
       </div>
@@ -296,8 +460,8 @@ function RenameForm({ current, onDone }: { current: string; onDone: (name?: stri
   );
 }
 
-/** The Me tab: your own profile, with Edit (your username) and Settings. */
-export function MeTab() {
+/** The Me tab: your own profile, with Edit (your username), Settings and your Notifications (`notifications` opens them). */
+export function MeTab({ notifications = false }: { notifications?: boolean }) {
   const me = useMe();
   const open = useOpen();
   const { profile, state } = useProfile(me.status === "in" ? me.username : null);
@@ -352,7 +516,7 @@ export function MeTab() {
         />
       )}
       {/* A new username loads the profile again by itself (useProfile follows me.username). */}
-      <ProfileBody profile={profile} own />
+      <ProfileBody profile={profile} own notifications={notifications} />
     </main>
   );
 }

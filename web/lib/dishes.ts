@@ -234,10 +234,26 @@ const SCHEMA = [
   "ALTER TABLE posts ADD COLUMN IF NOT EXISTS hidden_by_ai_at timestamptz",
   // When the person agreed to the Rules (/rules), on the welcome screen after their first login. Null: not yet.
   "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS rules_accepted_at timestamptz",
+
+  // ---- Notifications saved for the person, shown under Notifications on their profile (Me). kind 'menu' is the
+  // morning alert (lib/alerts.ts): at most one a day, so the same day can't be sent twice. items: [{dish, hall, meal}].
+  `CREATE TABLE IF NOT EXISTS notifications (
+     id bigserial PRIMARY KEY,
+     user_id text NOT NULL,
+     kind text NOT NULL,
+     served_on date,
+     title text NOT NULL,
+     body text NOT NULL,
+     items jsonb NOT NULL DEFAULT '[]',
+     created_at timestamptz NOT NULL DEFAULT now(),
+     read_at timestamptz
+   )`,
+  "CREATE INDEX IF NOT EXISTS notifications_by_user ON notifications (user_id, created_at DESC)",
+  "CREATE UNIQUE INDEX IF NOT EXISTS notifications_once_a_day ON notifications (user_id, kind, served_on)",
 ];
 
 /** Bump whenever SCHEMA changes, so every server runs the new statements once. */
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 /** A post or comment stops being shown to other students once this many different people have reported it. */
 export const REPORTS_TO_HIDE = 3;
