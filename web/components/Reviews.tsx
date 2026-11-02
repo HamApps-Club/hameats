@@ -6,6 +6,7 @@ import { REFRESH_MS, signInWithGoogle, useVotes } from "@/lib/likes";
 import { track } from "@/lib/analytics";
 import { useMe } from "@/lib/me";
 import type { ReviewPlace } from "@/components/ItemSheet";
+import { messageFrom } from "@/components/social/bits";
 
 type Review = { id: number; name: string; body: string; createdAt: string; mine: boolean; reported: boolean; hall: string | null; verdict: number };
 
@@ -305,7 +306,8 @@ export function Reviews({ dish, place }: { dish: string; place?: ReviewPlace }) 
     }).catch(() => null);
     setBusy(false);
     if (!res?.ok) {
-      setError("Couldn't save that. Please try again.");
+      const data = res ? await res.json().catch(() => null) : null;
+      setError(messageFrom(data, "Couldn't save that. Please try again."));
       return false;
     }
     track(method === "POST" ? "review_saved" : "review_deleted", { dish });
