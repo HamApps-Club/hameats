@@ -3,11 +3,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { run } from "@/lib/db";
 import { ensureProfile } from "@/lib/dishes";
 import { removePhotos } from "@/lib/photos";
-import { getForReview, removeAsOwner, sendAiRemoval } from "@/lib/moderation";
+import { getForReview, sendAiNotice } from "@/lib/moderation";
 
 // Every photo is looked over by Claude Haiku as soon as it's uploaded, usually while the student is still typing their
 // caption. A photo that breaks the rules below is never shown: if the post isn't up yet it's refused, and if it already
-// went up it's removed. Either way the owner gets a Discord message saying the AI removed it and whose it was.
+// went up the post is hidden from everyone (not deleted). Either way the owner gets a Discord message saying what the
+// AI stopped and whose it was; a hidden post's message has a Restore link in case the AI got it wrong.
 // Switched on by ANTHROPIC_API_KEY (from console.anthropic.com, set in Vercel); without it, photos aren't checked.
 
 /** What a photo has to be. Edit this to change what the AI allows. */
@@ -78,37 +79,33 @@ export async function checkPhoto(photoId: number) {
     const rows = await run("SELECT url FROM photos WHERE id = $1 AND ai_verdict IS NULL", [photoId]);
     if (!rows.length) return;
     const verdict = await askClaude(rows[0].url as string);
-    await run("UPDATE photos SET ai_verdict = $2 WHERE id = $1", [photoId, verdict.allowed ? "allowed" : "removed"]);
+    await run("UPDATE photos SET ai_verdict = $2 WHERE id = $1", [photoId, verdict.allowed ? "allowed" : "rejected"]);
     if (!verdict.allowed) {
       // The reason isn't sent to Discord, but it's kept in the server logs in case the AI gets one wrong.
-      console.warn(`photo ${photoId} removed by the AI: ${verdict.reason}`);
-      await removeIfPosted(photoId);
+      console.warn(`photo ${photoId} rejected by the AI: ${verdict.reason}`);
+      await hideIfPosted(photoId);
     }
   } catch (e) {
     console.error(`photo check failed for photo ${photoId}:`, e);
   }
 }
 
-/** Whether the AI has already turned this photo down. */
-export async function photoRemovedByAi(photoId: number) {
-  const rows = await run("SELECT 1 FROM photos WHERE id = $1 AND ai_verdict = 'removed'", [photoId]);
-  return rows.length > 0;
-}
-
-/** A photo the AI turned down that's already on a post: removes the post and tells the owner. Never throws. */
-export async function removeIfPosted(photoId: number) {
+/** A photo the AI turned down that's already on a post: hides the post and tells the owner. Never throws. */
+export async function hideIfPosted(photoId: number) {
   try {
-    const rows = await run("SELECT post_id, url FROM photos WHERE id = $1 AND ai_verdict = 'removed' AND post_id IS NOT NULL", [photoId]);
+    // Only the call that actually hides the post goes on to send the message, so it's never sent twice.
+    const rows = await run(
+      `UPDATE posts p SET hidden_by_ai_at = now() FROM photos ph
+       WHERE ph.id = $1 AND ph.ai_verdict = 'rejected' AND p.id = ph.post_id AND p.hidden_by_ai_at IS NULL
+       RETURNING p.id, ph.url`,
+      [photoId],
+    );
     if (!rows.length) return;
-    const postId = Number(rows[0].post_id);
+    const postId = Number(rows[0].id);
     const item = await getForReview("post", postId);
-    // Kept before the file is deleted, so the Discord message can still show what was removed.
-    const image = await download(rows[0].url as string);
-    // Only the call that actually deletes the post sends the message, so it's never sent twice.
-    if ((await removeAsOwner("post", postId)) && item)
-      await sendAiRemoval({ what: item.what, author: item.author, hall: item.hall, body: item.body, image });
+    if (item) await sendAiNotice(item, { hiddenPostId: postId, photoUrl: rows[0].url as string });
   } catch (e) {
-    console.error(`removing photo ${photoId}'s post failed:`, e);
+    console.error(`hiding photo ${photoId}'s post failed:`, e);
   }
 }
 
@@ -122,7 +119,7 @@ export async function reportRefusedPost(userId: string, photoId: number, body: s
     if (!rows.length) return;
     const image = await download(rows[0].url as string);
     await removePhotos([rows[0].storage_key as string]);
-    await sendAiRemoval({ what: "Photo post", author: await ensureProfile(userId), hall, body, image });
+    await sendAiNotice({ what: "Photo post", author: await ensureProfile(userId), hall, body }, { refusedImage: image });
   } catch (e) {
     console.error(`reporting refused photo ${photoId} failed:`, e);
   }
