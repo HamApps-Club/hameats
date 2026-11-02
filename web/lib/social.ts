@@ -121,7 +121,7 @@ async function writtenToday(table: "posts" | "comments" | "photos", userId: stri
   return Number(rows[0].n);
 }
 
-export type CreatePostResult = { ok: true; id: number } | { ok: false; error: "too many" | "bad photo" };
+export type CreatePostResult = { ok: true; id: number } | { ok: false; error: "too many" | "bad photo" | "photo removed" };
 
 /** A post (not a review): words, a photo, or both, with an optional dining hall flair. */
 export async function createPost(userId: string, body: string, hall: string | null, photoId: number | null): Promise<CreatePostResult> {
@@ -129,8 +129,10 @@ export async function createPost(userId: string, body: string, hall: string | nu
   await ensureProfile(userId);
   if ((await writtenToday("posts", userId, "post")) >= POSTS_PER_DAY) return { ok: false, error: "too many" };
   if (photoId !== null) {
-    const photo = await run("SELECT 1 FROM photos WHERE id = $1 AND user_id = $2 AND post_id IS NULL", [photoId, userId]);
+    const photo = await run("SELECT ai_verdict FROM photos WHERE id = $1 AND user_id = $2 AND post_id IS NULL", [photoId, userId]);
     if (!photo.length) return { ok: false, error: "bad photo" };
+    // The AI photo check (lib/photoCheck.ts) already turned this photo down.
+    if (photo[0].ai_verdict === "removed") return { ok: false, error: "photo removed" };
   }
   const [inserted] = await transaction([
     ["INSERT INTO posts (kind, user_id, hall, body) VALUES ('post', $1, $2, $3) RETURNING id", [userId, hall, body]],

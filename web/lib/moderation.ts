@@ -139,6 +139,43 @@ export async function sendForReview(target: Target, id: number) {
 }
 
 /**
+ * Tells the owner the AI removed a photo post: what it was and whose it was (not why). The photo is attached to the
+ * message itself, since its file is deleted from the site. Never throws.
+ */
+export async function sendAiRemoval(item: { what: string; author: string; hall: string | null; body: string; image: ArrayBuffer | null }) {
+  const url = process.env.REPORT_WEBHOOK_URL;
+  if (!url) {
+    console.warn("REPORT_WEBHOOK_URL is not set; AI removal notice not sent");
+    return;
+  }
+  try {
+    const payload = {
+      allowed_mentions: { parse: [] },
+      embeds: [
+        {
+          title: `🤖 The AI removed this: ${item.what}`.slice(0, 256),
+          description: (item.body || "(no text)").slice(0, 4000),
+          color: 0xc0392b,
+          fields: [
+            { name: "Posted by", value: `u/${item.author}`, inline: true },
+            ...(item.hall ? [{ name: "Hall", value: item.hall, inline: true }] : []),
+          ],
+          ...(item.image ? { image: { url: "attachment://photo.jpg" } } : {}),
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    };
+    const form = new FormData();
+    form.append("payload_json", JSON.stringify(payload));
+    if (item.image) form.append("files[0]", new Blob([item.image], { type: "image/jpeg" }), "photo.jpg");
+    const res = await fetch(url, { method: "POST", body: form, signal: AbortSignal.timeout(8000) });
+    if (!res.ok) console.error("AI removal notice failed:", res.status);
+  } catch (e) {
+    console.error("AI removal notice failed:", e);
+  }
+}
+
+/**
  * Removes any post or review (with its comments, votes and photo files) or any comment (with its replies and votes).
  * False when it was already gone.
  */
