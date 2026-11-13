@@ -74,7 +74,7 @@ export default function TermsPage() {
             example, a photo you took). Posts other people write are their own opinions, not HamEats&apos;.
           </p>
           <p>
-            Moderators can hide or remove anything that breaks the Rules, and can see the name and email of anyone who posts
+            Moderators can hide or remove anything that breaks the Rules, and can see the email address of anyone who posts
             something inappropriate.
           </p>
         </Section>
