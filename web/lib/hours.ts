@@ -81,14 +81,65 @@ const FALL_BREAK = {
   littlePub: { "2026-10-14": [], "2026-10-15": [], "2026-10-16": [], "2026-10-17": [], "2026-10-18": [] },
 } satisfies Record<string, Record<string, Period[]>>;
 
+// ------------------------------------------------------------------ Thanksgiving break 2026 (Tue 11/17 – Sun 11/29)
+
+const closed = (...dates: string[]) => Object.fromEntries(dates.map((d) => [d, [] as Period[]]));
+/** Every date from `from` through `to`, inclusive. */
+const datesThrough = (from: string, to: string) => {
+  const out: string[] = [];
+  for (let d = from; d <= to; d = addDays(d, 1)) out.push(d);
+  return out;
+};
+
+const BREAK_DINNER = p("Dinner", "Dinner", t(17), t(19));
+const BREAK_BRUNCH_DAY = [p("Brunch", "Lunch", t(11), t(14)), BREAK_DINNER];
+const BREAK_MCEWEN_WEEKDAY = [
+  p("Breakfast", "Breakfast", t(8), t(9)),
+  p("Lunch", "Lunch", t(12), t(14)),
+  BREAK_DINNER,
+];
+
+const THANKSGIVING = {
+  commons: {
+    // Lunch runs until 4, then a short dinner; closed from Saturday until it reopens Sun 11/29.
+    "2026-11-20": [
+      ...COMMONS_WEEKDAY.filter((x) => x.meal !== "Dinner" && x.name !== "Light Lunch"),
+      p("Light Lunch", "Lunch", t(14), t(16)),
+      BREAK_DINNER,
+    ],
+    ...closed(...datesThrough("2026-11-21", "2026-11-28")),
+  },
+  mcewen: {
+    // Wed 11/18 is regular hours (closes after dinner).
+    ...closed("2026-11-19", "2026-11-20", "2026-11-29"),
+    "2026-11-21": BREAK_BRUNCH_DAY,
+    "2026-11-22": BREAK_BRUNCH_DAY,
+    "2026-11-23": BREAK_MCEWEN_WEEKDAY,
+    "2026-11-24": BREAK_MCEWEN_WEEKDAY,
+    "2026-11-25": BREAK_MCEWEN_WEEKDAY,
+    "2026-11-26": BREAK_BRUNCH_DAY,
+    "2026-11-27": BREAK_MCEWEN_WEEKDAY,
+    "2026-11-28": BREAK_BRUNCH_DAY,
+  },
+  diner: {
+    "2026-11-20": [p("Breakfast", "Breakfast", t(9), t(11)), p("Lunch", "Lunch", t(11), t(14))],
+    ...closed(...datesThrough("2026-11-21", "2026-11-29")),
+  },
+  littlePub: {
+    // Bar keeps regular hours Tuesday but there's no pub lunch; fully closed from Wednesday.
+    "2026-11-17": PUB_LUNCH_AND_NIGHT.filter((x) => x.meal !== "Lunch"),
+    ...closed(...datesThrough("2026-11-18", "2026-11-29")),
+  },
+} satisfies Record<string, Record<string, Period[]>>;
+
 const withOverrides = (week: Period[][], overrides: Record<string, Period[]>): WeekHours =>
   Object.assign(week, { overrides });
 
 export const HOURS: Record<string, WeekHours> = {
-  commons: withOverrides([COMMONS_WEEKEND, ...Array(5).fill(COMMONS_WEEKDAY), COMMONS_WEEKEND], FALL_BREAK.commons),
+  commons: withOverrides([COMMONS_WEEKEND, ...Array(5).fill(COMMONS_WEEKDAY), COMMONS_WEEKEND], { ...FALL_BREAK.commons, ...THANKSGIVING.commons }),
   mcewen: withOverrides(
     [[], MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_MON_THU, MCEWEN_FRI, []],
-    FALL_BREAK.mcewen,
+    { ...FALL_BREAK.mcewen, ...THANKSGIVING.mcewen },
   ),
   diner: withOverrides([
     [p("Dinner", "Dinner", t(15), t(24))],
@@ -98,10 +149,10 @@ export const HOURS: Record<string, WeekHours> = {
     DINER_THU_FRI,
     DINER_THU_FRI,
     [p("Late Night", "Dinner", t(15), t(27))],
-  ], FALL_BREAK.diner),
+  ], { ...FALL_BREAK.diner, ...THANKSGIVING.diner }),
   littlePub: withOverrides(
     [[], PUB_LUNCH, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH, []],
-    FALL_BREAK.littlePub,
+    { ...FALL_BREAK.littlePub, ...THANKSGIVING.littlePub },
   ),
 };
 
@@ -184,7 +235,7 @@ export function summaryParts(day: Period[]) {
 
 export type Status =
   | { open: true; period: Period; closesAt: number }
-  /** `opens`: "7 AM", "tomorrow 7:30 AM" or "Mon 7:30 AM"; null if no hours this week. */
+  /** `opens`: "7 AM", "tomorrow 7:30 AM", "Mon 7:30 AM" or "Sun 11/29 7 AM"; null if no hours in the next two weeks. */
   | { open: false; opens: string | null };
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -203,10 +254,15 @@ export function statusAt(week: WeekHours, now: CampusTime): Status {
   }
   const later = today.find((x) => x.open > now.minutes);
   if (later) return { open: false, opens: clock(later.open) };
-  for (let ahead = 1; ahead <= 7; ahead++) {
+  // Look two weeks out so long break closures still say when the hall reopens.
+  for (let ahead = 1; ahead <= 14; ahead++) {
     const date = addDays(now.iso, ahead);
     const first = dayHours(week, date)[0];
-    if (first) return { open: false, opens: `${ahead === 1 ? "tomorrow" : DAY_NAMES[dowOf(date)]} ${clock(first.open)}` };
+    if (!first) continue;
+    const day = ahead === 1 ? "tomorrow" : DAY_NAMES[dowOf(date)];
+    // Past this week, add the date so "Sun" isn't mistaken for this coming Sunday.
+    const when = ahead < 7 ? day : `${day} ${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
+    return { open: false, opens: `${when} ${clock(first.open)}` };
   }
   return { open: false, opens: null };
 }

@@ -81,7 +81,7 @@ export function LoginSheet() {
             <span aria-hidden>🛡️</span>
             <span>
               <strong className="text-zinc-900 dark:text-zinc-100">Posts are moderated.</strong> Photos go through an AI safety filter, and
-              moderators can see the name and email of anyone who posts something inappropriate.
+              moderators can see the email address of anyone who posts something inappropriate.
             </span>
           </li>
           <li className="flex gap-2.5">
@@ -176,7 +176,7 @@ export function WelcomeSheet() {
           ))}
         </ol>
         <p className="mt-3 text-[13px] leading-snug text-muted">
-          Posts that break the rules get hidden, and moderators can see the name and email of whoever posted them. Repeated
+          Posts that break the rules get hidden, and moderators can see the email address of whoever posted them. Repeated
           or serious breaks can lose you your account.{" "}
           <a href="/rules" className={link}>
             Read all the rules

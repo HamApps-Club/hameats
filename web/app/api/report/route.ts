@@ -1,4 +1,3 @@
-import { publicName } from "@/lib/auth";
 import { REPORT_REASONS, REPORTS_TO_HIDE, reportComment, reportPost } from "@/lib/dishes";
 import { notifyOwner } from "@/lib/notify";
 import { idParam, reply, unavailable, writer } from "@/lib/apiGuard";
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
             : `${result.what} reported (${result.count} so far; it is hidden from others at ${REPORTS_TO_HIDE})`,
           `Written by: u/${result.author}`,
           `Text: ${result.body || "(photo only)"}`,
-          `Reported by: ${publicName(user.name)} (${email})`,
+          `Reported by: ${email}`,
           `Reason: ${reason || "none given"}`,
           postId ? `Post id: ${postId}` : `Comment id: ${commentId}`,
         ].join("\n"),
