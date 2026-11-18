@@ -9,7 +9,6 @@ import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
 import { ItemSheet, type ReviewPlace } from "@/components/ItemSheet";
-import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
@@ -124,11 +123,6 @@ function HallColumn({
                       >
                         {it.name}
                       </button>
-                      {/* Like Reddit's posts: the votes and the review count sit under the title. */}
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <VoteButtons dish={it.name} />
-                        <CommentPill dish={it.name} onClick={select} />
-                      </div>
                     </div>
                   );
                 })}

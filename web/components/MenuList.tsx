@@ -1,4 +1,3 @@
-import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { orderedStations } from "@/lib/halls";
 import type { MealMenu, MenuItem } from "@/lib/types";
 
@@ -18,8 +17,6 @@ export function ItemCard({ item, onSelect }: { item: MenuItem; onSelect: () => v
           />
         </svg>
       </button>
-      <VoteButtons dish={item.name} />
-      <CommentPill dish={item.name} onClick={onSelect} />
     </div>
   );
 }
