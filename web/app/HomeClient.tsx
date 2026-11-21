@@ -24,7 +24,8 @@ import { VotesProvider } from "@/lib/likes";
 import { MeProvider } from "@/lib/me";
 import { SessionProvider } from "next-auth/react";
 import { SiteTitle } from "@/components/SiteTitle";
-import { FeedTab } from "@/components/social/FeedTab";
+import { FavoritesTab } from "@/components/tabs/FavoritesTab";
+import { UpdatesTab } from "@/components/tabs/UpdatesTab";
 import { MeTab } from "@/components/social/Profile";
 import { SectionTabs, sectionFor } from "@/components/social/SectionTabs";
 import { SocialLayers } from "@/components/social/SocialLayers";
@@ -283,8 +284,9 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hash = useHash();
   const hall = hallBySlug(hash);
-  // No hall page open: the Menu, the Feed or your profile (Me), by the address (#feed, #me, #notifications).
-  const { section, postId, notifications } = sectionFor(hash);
+  // No hall page open: the Menu, Favorites or Updates, by the address (#favorites, #updates). #me and #notifications
+  // still open the account page for people who signed in before the social features were retired.
+  const { section, notifications } = sectionFor(hash);
   const now = useCampusNow();
   // When the campus date rolls over (usually the app being reopened the next day), fetch the menus
   // again so the new day's menu is there.
@@ -359,7 +361,13 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
                   <SiteTitle />
                   <SectionTabs active={section} />
                 </header>
-                {section === "feed" ? <FeedTab openPostId={postId} /> : <MeTab notifications={notifications} />}
+                {section === "favorites" ? (
+                  <FavoritesTab data={data} now={now} />
+                ) : section === "updates" ? (
+                  <UpdatesTab now={now} />
+                ) : (
+                  <MeTab notifications={notifications} />
+                )}
               </>
             )}
           </>

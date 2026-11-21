@@ -15,7 +15,7 @@ import type { Meal, MenuData, MenuItem } from "./types";
 // Specials appear alongside the posted menu, never twice if the menu source later lists the same dish.
 // The menu source has no nutrition data for them, so calories show as "—".
 
-type Special = { date: string; hall: string; meal: Meal; station: string; item: MenuItem };
+export type Special = { date: string; hall: string; meal: Meal; station: string; item: MenuItem };
 
 const special = (
   date: string,
@@ -33,7 +33,7 @@ const special = (
   item: { name, calories: null, tags, ...(description ? { description } : {}) },
 });
 
-const SPECIALS: Special[] = [
+export const SPECIALS: Special[] = [
   special("2026-09-28", "commons", "Dinner", "Oven", "Mac and Cheese", ["Vegetarian", "Dairy", "Wheat"]),
   special("2026-09-28", "commons", "Dinner", "Bravo", "Loaded Baked Potato", ["Dairy", "Pork", "Gluten Friendly"],
     "Baked potato with cheese, bacon, sour cream and scallions."),
