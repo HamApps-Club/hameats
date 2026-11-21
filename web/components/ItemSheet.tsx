@@ -9,6 +9,7 @@ import { track } from "@/lib/analytics";
 import { lockScroll } from "@/lib/scrollLock";
 import { CommentPill, VoteButtons } from "@/components/VoteButtons";
 import { Reviews } from "@/components/Reviews";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 /** Full-screen page for one food: its name with thumbs up and down underneath, a Google search link, and what students have written about it. */
 export function ItemSheet({
@@ -65,6 +66,7 @@ export function ItemSheet({
           <header className="space-y-2">
             <p className="text-sm text-zinc-500">{context}</p>
             <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
+            <FavoriteButton dish={item.name} source="item_sheet" size="lg" />
             <div className="flex items-center gap-2">
               <VoteButtons dish={item.name} size="lg" />
               <CommentPill
