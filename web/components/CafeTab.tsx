@@ -49,7 +49,7 @@ function Chevron() {
 
 function CafeCard({ cafe, now }: { cafe: Cafe; now: CampusTime }) {
   return (
-    <section id={cafe.slug} className="scroll-mt-32 space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-surface">
+    <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-surface">
       <header className="space-y-1">
         <h2 className="text-2xl font-bold">{cafe.name}</h2>
         <p className="text-sm text-zinc-500">{cafe.where}</p>

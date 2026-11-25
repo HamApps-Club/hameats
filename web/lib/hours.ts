@@ -139,7 +139,7 @@ const cafe = (open: number, close: number) => [p("Open", "Lunch", open, close)];
 const FOJO_WEEKDAY = cafe(t(9), t(16));
 const FOJO_FRI = cafe(t(9), t(15));
 const EUPHORIA_WEEKDAY = cafe(t(8, 30), t(16));
-// The cafés only say they "may close during school breaks"; assume they're closed while Commons is.
+// The cafés only say they "may close during school breaks"; assume they're closed for all of Thanksgiving break.
 const CAFES_THANKSGIVING = closed(...datesThrough("2026-11-21", "2026-11-29"));
 
 const withOverrides = (week: Period[][], overrides: Record<string, Period[]>): WeekHours =>
