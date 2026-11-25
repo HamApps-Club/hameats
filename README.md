@@ -22,37 +22,12 @@ npm run dev        # http://localhost:3000
 - **Compare:** Soper Commons and McEwen appear side by side for the selected meal. Check **Diner** to add Howard.
 - **Offline:** the last menu is saved in localStorage and shows instantly, then updates quietly when fresh data arrives.
 
-## 3. Favorites database (DynamoDB)
+## 3. AWS (hosting, favorites, the 8 AM alert)
 
-People who log in can save favorite dishes and turn on an 8 AM push notification about them. That is the only thing saved, all in one DynamoDB table with one item per person (`web/lib/users.ts`): their email, their favorites, whether notifications are on, and (only while they're on) the push address of each phone that allowed them. Without the four `HAMEATS_*` settings below, the app runs as before with favorites and notifications switched off.
+HamEats runs on AWS: the Next.js server on Lambda behind CloudFront, favorites in DynamoDB, and the 8 AM alert on EventBridge Scheduler, all inside AWS's always-free allowances. Every push to `main` that touches `web/` builds and deploys it (`.github/workflows/deploy-aws.yml`). The setup, from scratch, is in **[infra/aws/README.md](infra/aws/README.md)**; everything AWS creates is in `infra/aws/hameats.yaml`.
 
-### Set it up (once)
+People who log in can save favorite dishes and turn on an 8 AM push notification about them. That is the only thing saved, all in one DynamoDB table with one item per person (`web/lib/users.ts`): their email, their favorites, whether notifications are on, and (only while they're on) the push address of each phone that allowed them.
 
-1. **Create the table.** AWS console → DynamoDB → Create table. Name: `hameats-users`. Partition key: `email` (String), no sort key. Table settings: Customize → Capacity mode: On-demand. Create.
-2. **Create a user for the app.** IAM → Users → Create user, named `hameats-app`, with no console access. On its Permissions tab: Add permissions → Create inline policy → JSON, paste the policy below (put in your region and 12-digit account ID), and name it `hameats-users-table`.
-
-   ```json
-   {
-     "Version": "2012-10-17",
-     "Statement": [{
-       "Effect": "Allow",
-       "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"],
-       "Resource": "arn:aws:dynamodb:us-east-1:123456789012:table/hameats-users"
-     }]
-   }
-   ```
-3. **Make its access key.** On the user's Security credentials tab: Create access key → "Application running outside AWS". Copy both values; the secret is shown only once.
-4. **Add the settings in Vercel** (Project → Settings → Environment Variables, Production): `HAMEATS_AWS_REGION` (e.g. `us-east-1`), `HAMEATS_DYNAMODB_TABLE` (`hameats-users`), `HAMEATS_AWS_ACCESS_KEY_ID` and `HAMEATS_AWS_SECRET_ACCESS_KEY`. (Vercel keeps the plain `AWS_*` names for itself.) `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `CRON_SECRET` stay as they are.
-5. **Copy everyone over from Neon.** In `web/.env.local`, put `DATABASE_URL` (Neon's connection string, from Vercel → Storage → your Neon database) and the four `HAMEATS_*` values, then:
-
-   ```sh
-   cd web
-   node --env-file=.env.local scripts/migrate-neon-to-dynamodb.mjs --dry-run   # what it would copy
-   node --env-file=.env.local scripts/migrate-neon-to-dynamodb.mjs             # copy it
-   ```
-
-   It copies each person's favorites, and turns notifications on for those who had alerts and push on with a phone signed up. It doesn't change Neon and is safe to run again.
-6. **Deploy** (push to `main`).
-7. **Remove Neon and the old photos.** Once the deployed app shows favorites: in Vercel, delete the Neon database and the Blob store (Storage), and remove `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`, `ANTHROPIC_API_KEY`, `REPORT_WEBHOOK_URL` and `MODERATION_SECRET`. Then `npm uninstall @neondatabase/serverless` in `web` and delete `web/scripts/migrate-neon-to-dynamodb.mjs`.
+For local development against the real table, set `HAMEATS_DYNAMODB_TABLE`, `HAMEATS_AWS_REGION`, `HAMEATS_AWS_ACCESS_KEY_ID` and `HAMEATS_AWS_SECRET_ACCESS_KEY` in `web/.env.local` (see `web/.env.local.example`). Without them, favorites and notifications are switched off and the rest of the app works as usual.
 
 To delete someone's account when they ask, delete their item (their email) from the table in the DynamoDB console.

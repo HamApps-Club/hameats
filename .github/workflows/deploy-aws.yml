@@ -1,0 +1,69 @@
+# Builds HamEats and deploys it to AWS Lambda on every push to main (infra/aws/README.md).
+# Does nothing until the repository variable AWS_DEPLOY_ROLE_ARN is set (Settings > Secrets and variables > Actions >
+# Variables). No AWS keys are stored in GitHub: it signs in with the role the CloudFormation stack made, for main only.
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", ".github/workflows/deploy-aws.yml"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - name: Build and package
+        run: scripts/package-lambda.sh
+        env:
+          BUILD_ID: ${{ github.sha }}
+          # Written into the browser code at build time.
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ vars.NEXT_PUBLIC_POSTHOG_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.NEXT_PUBLIC_POSTHOG_HOST }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ vars.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code --function-name hameats --zip-file fileb://hameats-lambda.zip --query CodeSize
+          aws lambda wait function-updated --function-name hameats
+
+      - name: Check the live site is on this version
+        if: vars.SITE_URL != ''
+        run: |
+          want="${GITHUB_SHA::12}"
+          for i in $(seq 1 12); do
+            got=$(curl -fsS "${{ vars.SITE_URL }}/api/version" | sed -E 's/.*"version":"([^"]*)".*/\1/' || true)
+            echo "live: ${got:-no answer}, want: $want"
+            [ "$got" = "$want" ] && exit 0
+            sleep 5
+          done
+          exit 1

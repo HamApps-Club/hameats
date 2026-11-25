@@ -93,7 +93,7 @@ type Sender = (sub: { endpoint: string; keys: { p256dh: string; auth: string } }
 
 /**
  * Sends today's alerts (when push is set up: VAPID keys). Phones that no longer accept notifications (404 or 410) are
- * forgotten. Vercel runs this once in the 8 o'clock hour (see app/api/cron/alerts/route.ts), so each person gets one a day.
+ * forgotten. The scheduler runs this once in the 8 o'clock hour (see app/api/cron/alerts/route.ts), so each person gets one a day.
  */
 export async function sendAlerts(data: MenuData, day: string, send: Sender | null = pushReady() ? defaultSender() : null) {
   const today = dishesOn(data, day);
