@@ -257,6 +257,9 @@ Resources:
   GitHubOidcProvider:
     Type: AWS::IAM::OIDCProvider
     Condition: WithOidcProvider
+    # Kept if this stack is ever deleted: the Hamilton Scheduler and homepage deploy roles use it too.
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Url: https://token.actions.githubusercontent.com
       ClientIdList: [sts.amazonaws.com]
