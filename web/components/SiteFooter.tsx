@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FEEDBACK_FORM_URL } from "@/lib/site";
+import { FEEDBACK_FORM_URL, HAMAPPS_URL, SCHEDULER_URL } from "@/lib/site";
 
 const FEEDBACK_NAME = "Brandon Taylor";
 const FEEDBACK_EMAIL = "bntaylor@hamilton.edu";
@@ -175,6 +175,16 @@ export function SiteFooter() {
         HamEats: Hamilton College dining menus and hours for Soper Commons, McEwen, the Diner and the Little Pub.
       </p>
       <p className="text-center">A student project, not affiliated with Hamilton College.</p>
+      <p className="text-center">
+        Made by{" "}
+        <a href={HAMAPPS_URL} className="font-medium text-zinc-700 hover:underline dark:text-zinc-300">
+          HamApps
+        </a>{" "}
+        · Also try{" "}
+        <a href={SCHEDULER_URL} className="font-medium text-zinc-700 hover:underline dark:text-zinc-300">
+          Hamilton Scheduler
+        </a>
+      </p>
       <p className="text-center">For allergen and ingredient information, please ask dining staff.</p>
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}

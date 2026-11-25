@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
+import { HAMAPPS_URL, SCHEDULER_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About",
@@ -50,6 +51,20 @@ export default function AboutPage() {
 
         <Section title="Design Decisions">
           <p>I built HamEats with Next.js, React, TypeScript and Tailwind CSS, hosted on Amazon Web Services.</p>
+        </Section>
+
+        <Section title="More from HamApps">
+          <p>
+            HamEats is part of{" "}
+            <a href={HAMAPPS_URL} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+              HamApps
+            </a>
+            , a student-run club at Hamilton College building free apps for students. Planning next semester? Check out{" "}
+            <a href={SCHEDULER_URL} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+              Hamilton Scheduler
+            </a>{" "}
+            to search courses and build your class schedule.
+          </p>
         </Section>
 
         <Section title="Credits">

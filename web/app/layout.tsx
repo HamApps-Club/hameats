@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import { AppUpdater } from "@/components/AppUpdater";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { Splash, SPLASH_SCRIPT } from "@/components/Splash";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { HAMAPPS_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { STUCK_LOADING_SCRIPT } from "@/lib/stuckLoadingScript";
 import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
@@ -54,6 +54,11 @@ const WEBSITE_JSON_LD = JSON.stringify({
   name: SITE_NAME,
   alternateName: ["Ham Eats", "HamEats App"],
   url: SITE_URL,
+  publisher: {
+    "@type": "Organization",
+    name: "HamApps",
+    url: HAMAPPS_URL,
+  },
 });
 
 // Sends browser visits on the old Vercel address to the real domain, so each visitor has one identity (analytics,
