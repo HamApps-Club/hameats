@@ -71,7 +71,7 @@ export default function PrivacyPage() {
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> By
             logging in with your Hamilton Google account, you agree to share your email address with HamEats. Google also
-            sends your name, which is shown to you on your Profile while you&apos;re logged in, but HamEats doesn&apos;t save it.
+            sends your name, but HamEats doesn&apos;t save it or show it.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Your favorites (only if you log in).</strong> The dishes you

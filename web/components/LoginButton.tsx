@@ -7,13 +7,13 @@ import { signInWithGoogle } from "@/lib/login";
 
 /**
  * Log in with Google, in the corner of the home screen: an outlined button on the header's navy band. Once logged in it
- * becomes your picture (the first letter of your name); tapping it asks whether to log out, then confirms with a
+ * becomes your picture (the first letter of your email); tapping it asks whether to log out, then confirms with a
  * message at the top of the screen.
  */
 export function LoginButton() {
   const { status, data: session } = useSession();
   const signedIn = status === "authenticated";
-  const initial = (session?.user?.name?.trim() || session?.user?.email || "")[0]?.toUpperCase() ?? "";
+  const initial = (session?.user?.email ?? "")[0]?.toUpperCase() ?? "";
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loggedOut, setLoggedOut] = useState(false);
