@@ -11,8 +11,10 @@ import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand } from "
 //              can't be reached. Turning notifications off erases it.
 //   createdAt  when they first logged in
 //
-// Settings in Vercel: HAMEATS_AWS_REGION, HAMEATS_AWS_ACCESS_KEY_ID, HAMEATS_AWS_SECRET_ACCESS_KEY and
-// HAMEATS_DYNAMODB_TABLE (see .env.local.example). Vercel keeps the plain AWS_* names for itself, hence the prefix.
+// Settings: HAMEATS_DYNAMODB_TABLE, and HAMEATS_AWS_REGION (or AWS_REGION, which AWS sets on its own servers). Running on
+// AWS, the server's role grants access to the table, so no key is needed. Anywhere else (Vercel, a laptop), also set
+// HAMEATS_AWS_ACCESS_KEY_ID and HAMEATS_AWS_SECRET_ACCESS_KEY. Vercel keeps the plain AWS_* names for itself, hence the
+// prefix. See .env.local.example and infra/aws/README.md.
 
 export type PushAddress = { endpoint: string; p256dh: string; auth: string };
 export type User = { email: string; favorites: string[]; notify: boolean; push: PushAddress[]; createdAt: string };
@@ -24,16 +26,20 @@ const MAX_PHONES = 5;
 
 const env = (name: string) => process.env[name]?.trim() || "";
 
+const region = () => env("HAMEATS_AWS_REGION") || env("AWS_REGION");
+
 /** Whether the table is set up. Without it, favorites and notifications are switched off and the app runs as before. */
-export const storeEnabled = () =>
-  !!(env("HAMEATS_AWS_REGION") && env("HAMEATS_AWS_ACCESS_KEY_ID") && env("HAMEATS_AWS_SECRET_ACCESS_KEY") && env("HAMEATS_DYNAMODB_TABLE"));
+export const storeEnabled = () => !!(region() && env("HAMEATS_DYNAMODB_TABLE"));
 
 let client: DynamoDBDocumentClient | undefined;
 const db = () =>
   (client ??= DynamoDBDocumentClient.from(
     new DynamoDBClient({
-      region: env("HAMEATS_AWS_REGION"),
-      credentials: { accessKeyId: env("HAMEATS_AWS_ACCESS_KEY_ID"), secretAccessKey: env("HAMEATS_AWS_SECRET_ACCESS_KEY") },
+      region: region(),
+      // A key when one is given; otherwise the AWS SDK finds the server's role by itself.
+      ...(env("HAMEATS_AWS_ACCESS_KEY_ID") && env("HAMEATS_AWS_SECRET_ACCESS_KEY")
+        ? { credentials: { accessKeyId: env("HAMEATS_AWS_ACCESS_KEY_ID"), secretAccessKey: env("HAMEATS_AWS_SECRET_ACCESS_KEY") } }
+        : {}),
       // Lets tests point at a local DynamoDB. Unset in production.
       ...(env("HAMEATS_DYNAMODB_ENDPOINT") ? { endpoint: env("HAMEATS_DYNAMODB_ENDPOINT") } : {}),
     }),

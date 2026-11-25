@@ -29,7 +29,7 @@ function reloadFor(version: string) {
 }
 
 /**
- * Keeps the installed app on the latest Vercel deploy:
+ * Keeps the installed app on the latest deploy:
  * - registers the service worker and asks for a new one whenever the app is opened or brought back;
  * - in the home-screen app, asks for persistent storage so saved data isn't cleared;
  * - checks /api/version at those moments and every 10 minutes. Opening or returning to the app reloads

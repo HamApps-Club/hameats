@@ -1,0 +1,325 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  HamEats on AWS, sized to stay inside AWS's always-free allowances: the app on Lambda behind CloudFront, favorites
+  in DynamoDB (provisioned 5/5, inside the free 25/25), secrets in Parameter Store, the 8 AM alert on EventBridge
+  Scheduler, a role GitHub Actions uses to deploy, and a $1 budget alert. Deploy in us-east-1. Steps: infra/aws/README.md.
+
+Parameters:
+  AlertEmail:
+    Type: String
+    Description: Where AWS emails you if this account's bill is heading past $1 for the month.
+  VapidPublicKey:
+    Type: String
+    Description: NEXT_PUBLIC_VAPID_PUBLIC_KEY, the same value as on Vercel (not secret).
+  CreateTable:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Create the DynamoDB table. Set false if you already made it by hand.
+  TableName:
+    Type: String
+    Default: hameats-users
+  CertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      An ACM certificate in us-east-1 for DomainNames. Leave empty at first: the site then answers on its
+      *.cloudfront.net address only.
+  DomainNames:
+    Type: CommaDelimitedList
+    Default: "www.hameats.app,hameats.app"
+    Description: The addresses CloudFront answers on once CertificateArn is set.
+  GitHubRepo:
+    Type: String
+    Default: brandonnilestaylor/hamilton-dining
+    Description: owner/name of the repository whose main branch may deploy.
+  CreateGitHubOidcProvider:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Set false if this AWS account already has the token.actions.githubusercontent.com identity provider.
+
+Conditions:
+  WithTable: !Equals [!Ref CreateTable, "true"]
+  WithDomain: !Not [!Equals [!Ref CertificateArn, ""]]
+  WithOidcProvider: !Equals [!Ref CreateGitHubOidcProvider, "true"]
+
+Resources:
+  # ---- Data: one item per person (lib/users.ts). 5 reads and 5 writes a second is far more than HamEats needs and
+  # inside the always-free 25/25; on-demand mode would bill per request instead. Kept if the stack is deleted.
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Condition: WithTable
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  # ---- The app. GitHub Actions replaces the code on every push to main; this placeholder only answers until then.
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: hameats-app
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem, dynamodb:Scan]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}
+              # The settings in Parameter Store under /hameats (README step 1), read when the function starts.
+              - Effect: Allow
+                Action: ssm:GetParametersByPath
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/hameats
+              - Effect: Allow
+                Action: kms:Decrypt
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    kms:ViaService: !Sub ssm.${AWS::Region}.amazonaws.com
+
+  AppLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/hameats
+      RetentionInDays: 14
+
+  App:
+    Type: AWS::Lambda::Function
+    DependsOn: AppLogs
+    Properties:
+      FunctionName: hameats
+      Description: HamEats (Next.js standalone server; web/lambda/index.mjs)
+      Runtime: nodejs22.x
+      Architectures: [x86_64]
+      Handler: index.handler
+      MemorySize: 1024
+      Timeout: 30
+      Role: !GetAtt AppRole.Arn
+      Environment:
+        Variables:
+          SSM_PREFIX: /hameats
+          HAMEATS_DYNAMODB_TABLE: !Ref TableName
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: !Ref VapidPublicKey
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: "1"
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 503, headers: { "content-type": "text/plain" }, body: "HamEats isn't deployed yet." });
+
+  AppUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !Ref App
+      AuthType: NONE
+
+  # Anyone may call the function URL (CloudFront does, with the ORIGIN_VERIFY header the handler checks).
+  AppUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref App
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  AppUrlInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref App
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
+
+  # ---- CloudFront: HTTPS, the hameats.app addresses, and caching of the static files. Pages aren't cached here: they
+  # come from the function each time (Next.js caches them itself).
+  ForwardedHost:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: hameats-forwarded-host
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Tells the app which address the visitor used (CloudFront replaces Host with the function URL's).
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var req = event.request;
+          req.headers["x-forwarded-host"] = { value: req.headers.host.value };
+          return req;
+        }
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: HamEats
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        Aliases: !If [WithDomain, !Ref DomainNames, !Ref AWS::NoValue]
+        ViewerCertificate: !If
+          - WithDomain
+          - AcmCertificateArn: !Ref CertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
+        Origins:
+          - Id: app
+            DomainName: !Select [2, !Split ["/", !GetAtt AppUrl.FunctionUrl]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+            OriginCustomHeaders:
+              - HeaderName: x-origin-verify
+                HeaderValue: "{{resolve:ssm:/hameats/ORIGIN_VERIFY}}"
+        DefaultCacheBehavior:
+          TargetOriginId: app
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          # Files whose names change with every build: cache them at the edge, so most visits barely touch Lambda.
+          - PathPattern: /_next/static/*
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+
+  # ---- The 8 AM alert: EventBridge Scheduler invokes the function directly at 8:00 campus time, all year.
+  AlertsSchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: scheduler.amazonaws.com }
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      Policies:
+        - PolicyName: invoke-hameats
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt App.Arn
+
+  AlertsSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: hameats-morning-alert
+      Description: The 8 AM favorites alert (app/api/cron/alerts/route.ts)
+      ScheduleExpression: cron(0 8 * * ? *)
+      ScheduleExpressionTimezone: America/New_York
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt App.Arn
+        RoleArn: !GetAtt AlertsSchedulerRole.Arn
+        Input: '{"hameats":"alerts"}'
+        RetryPolicy:
+          MaximumRetryAttempts: 2
+
+  # ---- GitHub Actions (.github/workflows/deploy-aws.yml) signs in with this role, from main only, to replace the code.
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: WithOidcProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+      ThumbprintList: [6938fd4d98bab03faadb97b34396831e3780aea1]
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If
+                - WithOidcProvider
+                - !Ref GitHubOidcProvider
+                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepo}:ref:refs/heads/main
+      Policies:
+        - PolicyName: deploy-hameats
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [lambda:UpdateFunctionCode, lambda:GetFunction, lambda:GetFunctionConfiguration]
+                Resource: !GetAtt App.Arn
+
+  # ---- Emails AlertEmail if the month's bill is forecast to pass $1 (budgets themselves are free).
+  Budget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: hameats-1-dollar
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: 1
+          Unit: USD
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: FORECASTED
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+        # And as soon as anything at all is charged (1% of $1: one cent).
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 1
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+
+Outputs:
+  SiteUrl:
+    Description: The site's CloudFront address (works before your domain points here).
+    Value: !Sub https://${Distribution.DomainName}
+  CloudFrontDomain:
+    Description: Point www.hameats.app (CNAME) and hameats.app (ALIAS/ANAME, or a redirect) here.
+    Value: !GetAtt Distribution.DomainName
+  FunctionUrl:
+    Value: !GetAtt AppUrl.FunctionUrl
+  DeployRoleArn:
+    Description: Put this in the GitHub repository variable AWS_DEPLOY_ROLE_ARN.
+    Value: !GetAtt DeployRole.Arn

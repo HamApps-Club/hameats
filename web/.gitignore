@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AWS Lambda package (scripts/package-lambda.sh)
+/.lambda/
+/hameats-lambda.zip
