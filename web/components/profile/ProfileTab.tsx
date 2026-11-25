@@ -75,12 +75,15 @@ export function ProfileTab({ notifications = false }: { notifications?: boolean 
   );
 }
 
-/** The top of the Profile: the person's initial, name and Hamilton email (from their login; HamEats doesn't keep the name). */
+/**
+ * The top of the Profile: the person's initial, name, and the start of their Hamilton email (the part before the @,
+ * never the whole address). From their login; HamEats doesn't keep the name.
+ */
 function Hero({ saved }: { saved: number | null }) {
   const { data: session } = useSession();
   const name = session?.user?.name?.trim() || "";
-  const email = session?.user?.email ?? "";
-  const initial = (name || email)[0]?.toUpperCase() ?? "";
+  const handle = (session?.user?.email ?? "").split("@")[0];
+  const initial = (name || handle)[0]?.toUpperCase() ?? "";
   const [busy, setBusy] = useState(false);
 
   return (
@@ -91,7 +94,7 @@ function Hero({ saved }: { saved: number | null }) {
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-display text-[26px] font-bold leading-tight">{name || "Your profile"}</h2>
-          {email && <p className="truncate text-[15px] text-band-ink/75">{email}</p>}
+          {handle && <p className="truncate text-[15px] text-band-ink/75">{handle}</p>}
           {saved !== null && (
             <p className="mt-1 flex items-center gap-1.5 text-[14px] font-semibold">
               <StarIcon filled className="size-4 text-gold" />
