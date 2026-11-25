@@ -4,9 +4,9 @@
 //   node --env-file=.env.local scripts/migrate-neon-to-dynamodb.mjs --dry-run   # shows what it would copy
 //   node --env-file=.env.local scripts/migrate-neon-to-dynamodb.mjs             # copies it
 //
-// .env.local needs DATABASE_URL (Neon). DynamoDB is reached with your AWS command-line login (`aws configure`), or with
+// .env.local needs DATABASE_URL (Neon). DynamoDB is reached with your AWS command-line login (`aws login --profile hamapps`; run with AWS_PROFILE=hamapps), or with
 // HAMEATS_AWS_ACCESS_KEY_ID / HAMEATS_AWS_SECRET_ACCESS_KEY if set; HAMEATS_DYNAMODB_TABLE (default hameats-users) and
-// HAMEATS_AWS_REGION (default us-east-1) name the table. Safe to run more than once: it
+// HAMEATS_AWS_REGION (default us-east-2) name the table. Safe to run more than once: it
 // merges into what's already in DynamoDB (favorites are added, never removed). Nothing in Neon is changed.
 // Copied per person: their email, favorites, and, only when they had alerts and push on with a phone signed up, the
 // notifications switch and those phones' push addresses. Saved notifications and the old Feed are not copied.
@@ -27,8 +27,8 @@ const sql = neon(process.env.DATABASE_URL);
 const TABLE = process.env.HAMEATS_DYNAMODB_TABLE?.trim() || "hameats-users";
 const db = DynamoDBDocumentClient.from(
   new DynamoDBClient({
-    region: process.env.HAMEATS_AWS_REGION?.trim() || "us-east-1",
-    // Without a key here, the AWS SDK uses your `aws configure` login.
+    region: process.env.HAMEATS_AWS_REGION?.trim() || "us-east-2",
+    // Without a key here, the AWS SDK uses your AWS CLI login (AWS_PROFILE=hamapps).
     ...(keyId && keySecret ? { credentials: { accessKeyId: keyId, secretAccessKey: keySecret } } : {}),
     ...(process.env.HAMEATS_DYNAMODB_ENDPOINT ? { endpoint: process.env.HAMEATS_DYNAMODB_ENDPOINT } : {}),
   }),

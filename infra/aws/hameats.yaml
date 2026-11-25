@@ -2,12 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   HamEats on AWS, sized to stay inside AWS's always-free allowances: the app on Lambda behind CloudFront, favorites
   in DynamoDB (provisioned 5/5, inside the free 25/25), secrets in Parameter Store, the 8 AM alert on EventBridge
-  Scheduler, a role GitHub Actions uses to deploy, and a $1 budget alert. Deploy in us-east-1. Steps: infra/aws/README.md.
+  Scheduler, and a role GitHub Actions uses to deploy. Deploy in us-east-2 (the project's Region). Steps: infra/aws/README.md.
 
 Parameters:
-  AlertEmail:
-    Type: String
-    Description: Where AWS emails you if this account's bill is heading past $1 for the month.
   VapidPublicKey:
     Type: String
     Description: NEXT_PUBLIC_VAPID_PUBLIC_KEY, the same value as on Vercel (not secret).
@@ -31,7 +28,7 @@ Parameters:
     Description: The addresses CloudFront answers on once CertificateArn is set.
   GitHubRepo:
     Type: String
-    Default: brandonnilestaylor/hamilton-dining
+    Default: brandonnilestaylor/hameats
     Description: owner/name of the repository whose main branch may deploy.
   CreateGitHubOidcProvider:
     Type: String
@@ -280,36 +277,6 @@ Resources:
               - Effect: Allow
                 Action: [lambda:UpdateFunctionCode, lambda:GetFunction, lambda:GetFunctionConfiguration]
                 Resource: !GetAtt App.Arn
-
-  # ---- Emails AlertEmail if the month's bill is forecast to pass $1 (budgets themselves are free).
-  Budget:
-    Type: AWS::Budgets::Budget
-    Properties:
-      Budget:
-        BudgetName: hameats-1-dollar
-        BudgetType: COST
-        TimeUnit: MONTHLY
-        BudgetLimit:
-          Amount: 1
-          Unit: USD
-      NotificationsWithSubscribers:
-        - Notification:
-            NotificationType: FORECASTED
-            ComparisonOperator: GREATER_THAN
-            Threshold: 100
-            ThresholdType: PERCENTAGE
-          Subscribers:
-            - SubscriptionType: EMAIL
-              Address: !Ref AlertEmail
-        # And as soon as anything at all is charged (1% of $1: one cent).
-        - Notification:
-            NotificationType: ACTUAL
-            ComparisonOperator: GREATER_THAN
-            Threshold: 1
-            ThresholdType: PERCENTAGE
-          Subscribers:
-            - SubscriptionType: EMAIL
-              Address: !Ref AlertEmail
 
 Outputs:
   SiteUrl:
