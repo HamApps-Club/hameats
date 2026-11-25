@@ -1,9 +1,9 @@
-import { getSettings, saveSettings } from "@/lib/social";
+import { getSettings, saveSettings } from "@/lib/profile";
 import { currentUser, dbEnabled, dishParam, noStore, reply, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
 
-/** The signed-in person's alert settings, and the liked dishes they can pick from. */
+/** The signed-in person's alert settings, and the favorites they can pick from. */
 export async function GET() {
   if (!dbEnabled()) return unavailable();
   const user = await currentUser();

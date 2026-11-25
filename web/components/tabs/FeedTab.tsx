@@ -7,11 +7,11 @@ import { upcomingUpdates, type Update } from "@/lib/upcoming";
 import { StatusLine } from "@/components/HoursPanel";
 
 /**
- * Updates: heads-ups written from the hours file and the specials list (closures, break hours, one-off dishes) for
+ * The Feed: heads-ups written from the hours file and the specials list (closures, break hours, one-off dishes) for
  * the coming week, then every hall's open/closed status and today's hours. When the hours file or the specials list
  * changes, this page changes with it; nobody has to write a post.
  */
-export function UpdatesTab({ now }: { now: CampusTime }) {
+export function FeedTab({ now }: { now: CampusTime }) {
   const updates = useMemo(() => upcomingUpdates(now), [now]);
 
   return (

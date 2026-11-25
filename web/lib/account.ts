@@ -1,90 +1,83 @@
 import "server-only";
-import { run, transaction } from "@/lib/db";
+import { run, transaction, type Row } from "@/lib/db";
 import { ensureSchema } from "@/lib/dishes";
 import { removePhotos } from "@/lib/photos";
 
-// A person's whole account: everything HamEats keeps about them, to download (Settings, Download my data) or to delete
-// (Settings, Delete account). Every table with a user_id or reporter_id column in lib/dishes.ts is covered here; a new
-// one needs adding to both.
+// A person's whole account: everything HamEats keeps about them, to download (Profile, Download my data) or to delete
+// (Profile, Delete account). Every table with a user_id column in lib/dishes.ts is covered here; a new one needs adding
+// to both. The old Feed's tables (posts, comments, photos, votes, profiles) are covered too, wherever they still exist.
+
+/** Postgres' "undefined_table": an old table this database never had. */
+const missingTable = (e: unknown) => (e as { code?: string }).code === "42P01";
+
+/** A query on one of the old Feed's tables: no rows when the table doesn't exist. */
+const legacy = (text: string, params: unknown[]): Promise<Row[]> =>
+  run(text, params).catch((e) => {
+    if (missingTable(e)) return [];
+    throw e;
+  });
 
 /** Everything stored about the person, as one JSON-ready object. */
 export async function exportAccount(userId: string) {
   await ensureSchema();
   const q = (text: string) => run(text, [userId]);
-  const [profile, posts, comments, photos, dishVotes, postVotes, commentVotes, reports, prefs, mutes, devices, notifications] = await Promise.all([
-    q("SELECT username, created_at AS joined, username_changed_at, rules_accepted_at FROM profiles WHERE user_id = $1"),
-    q(`SELECT id, kind, dish, hall, served_on, meal, body, score, comment_count, created_at, updated_at,
-              hidden_by_ai_at IS NOT NULL AS hidden_by_photo_filter
-       FROM posts WHERE user_id = $1 ORDER BY created_at`),
-    q("SELECT id, post_id, parent_id, body, score, created_at FROM comments WHERE user_id = $1 ORDER BY created_at"),
-    q("SELECT id, post_id, url, width, height, created_at FROM photos WHERE user_id = $1 ORDER BY created_at"),
-    q("SELECT dish, CASE value WHEN 1 THEN 'thumbs up' ELSE 'thumbs down' END AS vote, created_at FROM dish_likes WHERE user_id = $1 ORDER BY dish"),
-    q("SELECT post_id, value, created_at FROM post_votes WHERE user_id = $1 ORDER BY created_at"),
-    q("SELECT comment_id, value, created_at FROM comment_votes WHERE user_id = $1 ORDER BY created_at"),
-    q("SELECT post_id, comment_id, reason, created_at FROM reports WHERE reporter_id = $1 ORDER BY created_at"),
+  const old = (text: string) => legacy(text, [userId]);
+  const [favorites, prefs, mutes, devices, notifications, posts, comments, photos, dishVotes] = await Promise.all([
+    q("SELECT dish, created_at AS saved_at FROM favorites WHERE user_id = $1 ORDER BY created_at"),
     q("SELECT alerts, email, push, updated_at FROM notification_prefs WHERE user_id = $1"),
     q("SELECT dish FROM alert_mutes WHERE user_id = $1 ORDER BY dish"),
     q("SELECT created_at FROM push_subscriptions WHERE user_id = $1 ORDER BY created_at"),
     q("SELECT kind, served_on, title, body, items, created_at, read_at FROM notifications WHERE user_id = $1 ORDER BY created_at"),
+    old("SELECT id, kind, dish, hall, body, created_at FROM posts WHERE user_id = $1 ORDER BY created_at"),
+    old("SELECT id, post_id, body, created_at FROM comments WHERE user_id = $1 ORDER BY created_at"),
+    old("SELECT id, post_id, url, created_at FROM photos WHERE user_id = $1 ORDER BY created_at"),
+    old("SELECT dish, value, created_at FROM dish_likes WHERE user_id = $1 ORDER BY dish"),
   ]);
   return {
     exportedAt: new Date().toISOString(),
     email: userId,
-    profile: profile[0] ?? null,
-    postsAndReviews: posts,
-    comments,
-    photos,
-    dishVotes,
-    postVotes,
-    commentVotes,
-    reportsYouMade: reports,
+    favorites,
     alertSettings: prefs[0] ?? null,
     alertsSwitchedOff: mutes.map((m) => m.dish),
     pushDevices: devices.length,
     notifications,
+    ...(posts.length || comments.length || photos.length || dishVotes.length
+      ? { fromTheOldFeed: { postsAndReviews: posts, comments, photos, dishVotes } }
+      : {}),
   };
 }
 
+/** Rows in the old Feed's tables that belong to the person. Each runs on its own, since any of the tables may be missing. */
+const LEGACY_DELETES = [
+  "DELETE FROM posts WHERE user_id = $1", // cascades to the comments, votes, reports and photos on their posts
+  "DELETE FROM comments WHERE user_id = $1",
+  "DELETE FROM photos WHERE user_id = $1",
+  "DELETE FROM post_votes WHERE user_id = $1",
+  "DELETE FROM comment_votes WHERE user_id = $1",
+  "DELETE FROM dish_likes WHERE user_id = $1",
+  "DELETE FROM vote_events WHERE user_id = $1",
+  "DELETE FROM dish_reviews WHERE user_id = $1",
+  "UPDATE reports SET reporter_id = 'deleted:' || id WHERE reporter_id = $1",
+  "DELETE FROM review_reports WHERE reporter_id = $1",
+  "DELETE FROM profiles WHERE user_id = $1",
+];
+
 /**
- * Deletes the person's account and everything they added: profile, posts and reviews (with their photos, and the
- * comments and votes on them), comments, votes, alert settings, push subscriptions and saved notifications. Reports they made are kept, so
- * a post hidden by reports doesn't come back, but are no longer linked to them. All in one transaction, then the photo
- * files are removed from storage.
+ * Deletes the person's account and everything kept about them: favorites, alert settings, push subscriptions, saved
+ * notifications, and anything they wrote in the old Feed (with its photo files).
  */
 export async function deleteAccount(userId: string) {
   await ensureSchema();
-  const [photos, liked] = await Promise.all([
-    run("SELECT storage_key FROM photos WHERE user_id = $1", [userId]),
-    run("SELECT dish FROM dish_likes WHERE user_id = $1", [userId]),
-  ]);
-  const dishes = liked.map((l) => l.dish as string);
   const u = [userId];
+  const photos = await legacy("SELECT storage_key FROM photos WHERE user_id = $1", u);
+  for (const statement of LEGACY_DELETES) await legacy(statement, u);
   await transaction([
-    // Cascades to the comments, votes, reports and photos on their posts.
-    ["DELETE FROM posts WHERE user_id = $1", u],
-    ["DELETE FROM comments WHERE user_id = $1", u],
-    ["DELETE FROM photos WHERE user_id = $1", u],
-    ["DELETE FROM post_votes WHERE user_id = $1", u],
-    ["DELETE FROM comment_votes WHERE user_id = $1", u],
-    ["DELETE FROM dish_likes WHERE user_id = $1", u],
-    [
-      `UPDATE dishes SET
-         thumbs_up = (SELECT count(*) FROM dish_likes l WHERE l.dish = dishes.name AND l.value = 1),
-         thumbs_down = (SELECT count(*) FROM dish_likes l WHERE l.dish = dishes.name AND l.value = -1)
-       WHERE name = ANY($1::text[])`,
-      [dishes],
-    ],
-    ["DELETE FROM vote_events WHERE user_id = $1", u],
-    // The first version of reviews (cascades to its reports).
-    ["DELETE FROM dish_reviews WHERE user_id = $1", u],
-    // Each kept report gets its own meaningless id, so they still count but can't be traced back or to each other.
-    ["UPDATE reports SET reporter_id = 'deleted:' || id WHERE reporter_id = $1", u],
-    ["UPDATE review_reports SET reporter_id = 'deleted:' || md5(random()::text || review_id::text) WHERE reporter_id = $1", u],
+    ["DELETE FROM favorites WHERE user_id = $1", u],
     ["DELETE FROM notification_prefs WHERE user_id = $1", u],
     ["DELETE FROM alert_mutes WHERE user_id = $1", u],
     ["DELETE FROM push_subscriptions WHERE user_id = $1", u],
     ["DELETE FROM notifications WHERE user_id = $1", u],
-    ["DELETE FROM profiles WHERE user_id = $1", u],
+    ["DELETE FROM alerts_sent WHERE user_id = $1", u],
   ]);
   await removePhotos(photos.map((p) => p.storage_key as string));
 }

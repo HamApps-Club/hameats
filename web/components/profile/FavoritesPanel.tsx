@@ -10,11 +10,11 @@ import { FavoriteButton, StarIcon } from "@/components/FavoriteButton";
 import { track } from "@/lib/analytics";
 
 /**
- * Favorites: the dishes you starred, each with when and where it's next served this week, soonest first. Dishes not on
- * any menu this week are listed underneath so they're easy to unstar. Saved on this device, so there's no account.
+ * The Favorites on your Profile: the dishes you starred, each with when and where it's next served this week, soonest
+ * first. Dishes not on any menu this week are listed underneath so they're easy to unstar. Saved to your account.
  */
-export function FavoritesTab({ data, now }: { data: MenuData; now: CampusTime }) {
-  const { favorites } = useFavorites();
+export function FavoritesPanel({ data, now }: { data: MenuData; now: CampusTime }) {
+  const { favorites, status } = useFavorites();
   const { open, sheet } = useItemSheet();
 
   const rows = useMemo(
@@ -25,17 +25,24 @@ export function FavoritesTab({ data, now }: { data: MenuData; now: CampusTime })
   const notThisWeek = rows.filter((r) => r.servings.length === 0);
 
   const openServing = (s: Serving) =>
-    open({ item: s.item, context: `${s.hall.name} · ${s.station} · ${s.meal}`, place: { hall: s.hall.slug, date: s.date, meal: s.meal } });
+    open({ item: s.item, context: `${s.hall.name} · ${s.station} · ${s.meal}` });
+
+  if (status !== "ready")
+    return (
+      <p className="py-12 text-center text-muted">
+        {status === "error" ? "Couldn't load your favorites. Check your connection and try again." : "Loading…"}
+      </p>
+    );
 
   return (
-    <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-12 pt-5">
+    <div className="space-y-6">
       {favorites.length === 0 ? (
         <section className="rounded-[10px] border border-rule bg-surface p-5 text-center">
           <StarIcon filled={false} className="mx-auto size-9 text-gold-ink dark:text-gold" />
-          <h2 className="mt-2 font-display text-2xl font-bold">Never miss your favorites</h2>
+          <h2 className="mt-2 font-display text-2xl font-bold">No favorites yet</h2>
           <p className="mt-1.5 text-[15px] text-muted">
-            Star the dishes you love and this page shows when and where each one is served next. Search below, or tap a
-            dish on the menu and choose Save to Favorites.
+            Star the dishes you love and they&apos;re saved here, with when and where each one is served next. Search below,
+            or tap a dish on the Menu and choose Save to Favorites.
           </p>
         </section>
       ) : (
@@ -49,7 +56,7 @@ export function FavoritesTab({ data, now }: { data: MenuData; now: CampusTime })
                     <button onClick={() => openServing(servings[0])} className="min-w-0 flex-1 text-left">
                       <h3 className="text-[17px] font-semibold leading-snug">{servings[0].item.name}</h3>
                     </button>
-                    <FavoriteButton dish={dish} source="favorites_tab" />
+                    <FavoriteButton dish={dish} source="profile" />
                   </div>
                   <ul className="mt-1 space-y-1.5 pr-2">
                     {servings.slice(0, 3).map((s, i) => (
@@ -79,7 +86,7 @@ export function FavoritesTab({ data, now }: { data: MenuData; now: CampusTime })
                 {notThisWeek.map(({ dish }) => (
                   <li key={dish} className="flex items-center gap-2 py-1 pr-0">
                     <span className="min-w-0 flex-1 text-[15px] text-muted">{dish}</span>
-                    <FavoriteButton dish={dish} source="favorites_tab" />
+                    <FavoriteButton dish={dish} source="profile" />
                   </li>
                 ))}
               </ul>
@@ -90,7 +97,7 @@ export function FavoritesTab({ data, now }: { data: MenuData; now: CampusTime })
 
       <DishSearch data={data} now={now} />
       {sheet}
-    </main>
+    </div>
   );
 }
 

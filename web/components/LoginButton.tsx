@@ -3,18 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { track } from "@/lib/analytics";
-import { signInWithGoogle } from "@/lib/likes";
-import { useMe } from "@/lib/me";
+import { signInWithGoogle } from "@/lib/login";
 
 /**
  * Log in with Google, in the corner of the home screen: an outlined button on the header's navy band. Once logged in it
- * becomes your picture (the first letter of your username); tapping it asks whether to log out, then confirms with a
+ * becomes your picture (the first letter of your name); tapping it asks whether to log out, then confirms with a
  * message at the top of the screen.
  */
 export function LoginButton() {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const signedIn = status === "authenticated";
-  const { username } = useMe();
+  const initial = (session?.user?.name?.trim() || session?.user?.email || "")[0]?.toUpperCase() ?? "";
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loggedOut, setLoggedOut] = useState(false);
@@ -64,7 +63,7 @@ export function LoginButton() {
               void signInWithGoogle();
             }
           }}
-          aria-label={signedIn ? `u/${username ?? "you"}: log out` : "Log in with Google"}
+          aria-label={signedIn ? "Logged in: log out" : "Log in with Google"}
           aria-expanded={signedIn ? confirming : undefined}
           className={
             signedIn
@@ -72,7 +71,7 @@ export function LoginButton() {
               : "flex min-h-10 min-w-[4.25rem] items-center justify-center rounded-lg border border-band-ink/30 bg-band-ink/5 px-3 text-sm font-semibold text-band-ink hover:bg-band-ink/10"
           }
         >
-          {signedIn ? (username?.[0]?.toUpperCase() ?? "") : "Log in"}
+          {signedIn ? initial : "Log in"}
         </button>
 
         {confirming && (
@@ -82,7 +81,7 @@ export function LoginButton() {
             className="absolute left-0 top-full z-40 mt-1.5 w-64 rounded-xl border border-zinc-200 bg-white p-4 text-left text-base text-zinc-700 shadow-xl dark:border-zinc-700 dark:bg-surface dark:text-zinc-300"
           >
             <p className="font-semibold text-zinc-900 dark:text-zinc-100">Log out of HamEats?</p>
-            <p className="mt-1 text-sm">You&apos;ll need to log in again to vote or write a review.</p>
+            <p className="mt-1 text-sm">You&apos;ll need to log in again to see your favorites.</p>
             <div className="mt-3 flex items-center gap-2">
               <button
                 type="button"

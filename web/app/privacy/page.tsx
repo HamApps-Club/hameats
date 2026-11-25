@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Privacy Policy</h1>
-          <p className="text-sm italic">Last updated: November 2, 2026</p>
+          <p className="text-sm italic">Last updated: November 25, 2026</p>
         </div>
 
         <p>
@@ -41,12 +41,11 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
-          an account, and anyone can read the menus and the Feed. Logging in is only for Hamilton students and staff, using
-          your @hamilton.edu Google account. If you log in, HamEats saves your Hamilton email address, a username
-          (the only name other students see), and whatever you choose to add: thumbs ups and downs, reviews, posts,
-          photos, comments and votes. HamEats doesn&apos;t save your name. Posts are moderated, and moderators can see the
-          email address of anyone who posts something inappropriate. You can download your data or delete your account anytime in Settings. It also collects
-          anonymous usage statistics so I can improve the app.
+          an account. Logging in is only for Hamilton students and staff, using your @hamilton.edu Google account, and only
+          lets you save favorite dishes and get alerts about them. If you log in, HamEats saves your Hamilton email address,
+          your favorites and your alert settings. It doesn&apos;t save your name, and nothing you save is shown to anyone else.
+          You can download your data or delete your account anytime from your Profile. HamEats also collects anonymous usage
+          statistics so I can improve the app.
         </p>
 
         <Section title="What I collect">
@@ -58,7 +57,7 @@ export default function PrivacyPage() {
             <li>Which pages you view and when you leave them</li>
             <li>
               Actions you take in the app, such as opening a dish, choosing a dining hall, day, or layout, switching
-              dark mode, or tapping Log in, a thumbs up, or a thumbs down
+              dark mode, tapping Log in, or saving a favorite
             </li>
             <li>
               Your device and browser type, screen size, and approximate location (such as city or region) based on
@@ -72,31 +71,22 @@ export default function PrivacyPage() {
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Logging in with Google (only if you choose to).</strong> By
             logging in with your Hamilton Google account, you agree to share your email address with HamEats. Google also
-            sends your name when you log in, but HamEats doesn&apos;t save it or show it to anyone.
+            sends your name, which is shown to you on your Profile while you&apos;re logged in, but HamEats doesn&apos;t save it.
           </p>
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Your username and what you post (only if you log in).</strong> You
-            get a random username, like crispy_haddock_482, which you can change. Other students see your username,
-            never your real name or email. Your reviews, posts, photos, comments, liked dishes, and when you joined are
-            shown on your profile and in the Feed, where anyone can see them. Your disliked dishes are only shown to
-            you. A review also saves which dining hall&apos;s menu you wrote it from, and the day and meal.
-          </p>
-          <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Photos.</strong> Photos you post are shrunk and saved
-            again before they&apos;re stored, which removes the hidden details your phone adds to a photo, including
-            where it was taken.
-          </p>
-          <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Moderation.</strong> Photos are checked by an AI safety filter
-            that keeps out pictures that aren&apos;t about food. Moderators can see the email address of anyone who posts something
-            inappropriate. When you report something, the person you reported never sees who reported them.
+            <strong className="text-zinc-900 dark:text-zinc-100">Your favorites (only if you log in).</strong> The dishes you
+            save as favorites, and when you saved them. Only you can see them.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Alerts (only if you turn them on).</strong> If you ask to
-            be told when a dish you like is served, HamEats saves that choice and which dishes you switched off. If you
+            be told when a favorite is served, HamEats saves that choice and which favorites you switched off. If you
             allow push notifications, it saves the address your phone or browser gives for sending them. Each alert is also
-            saved under Notifications on your profile, where only you can see it. Email alerts
-            go to your Hamilton email address.
+            saved under Notifications on your Profile, where only you can see it.
+          </p>
+          <p>
+            <strong className="text-zinc-900 dark:text-zinc-100">From earlier versions.</strong> HamEats used to have a Feed with
+            reviews, posts, photos, comments and votes. That&apos;s gone and nothing new is collected for it. Anything you added
+            back then is no longer shown, is included when you download your data, and is deleted when you delete your account.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Vercel,
@@ -106,11 +96,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="What I don&apos;t collect">
-          <p>
-            HamEats does not collect passwords, phone numbers, home addresses, or payment information. It never sees
-            your camera or photo library: when you add a photo, your phone lets you pick or take one, and only that
-            photo is sent.
-          </p>
+          <p>HamEats does not collect passwords, phone numbers, home addresses, photos, or payment information.</p>
         </Section>
 
         <Section title="Information stored on your device">
@@ -126,9 +112,8 @@ export default function PrivacyPage() {
 
         <Section title="How I use it">
           <p>
-            I use this information only to run and improve HamEats: fixing bugs, seeing which features students
-            actually use, counting thumbs ups and downs, showing reviews, posts and comments, sending the alerts you ask for, and keeping
-            the site working. I don&apos;t sell your
+            I use this information only to run and improve HamEats: fixing bugs, seeing which features students actually use,
+            showing your favorites, sending the alerts you ask for, and keeping the site working. I don&apos;t sell your
             information, and I don&apos;t use it for advertising.
           </p>
         </Section>
@@ -136,42 +121,30 @@ export default function PrivacyPage() {
         <Section title="Who I share it with">
           <p>
             Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
-            thumbs ups, thumbs downs, reviews, posts and comments), Vercel Blob (where photos are stored), Google
-            (log in and feedback forms), and an AI safety filter that checks photos. They process data on my behalf under their
+            favorites and alert settings) and Google (log in and feedback forms). They process data on my behalf under their
             own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
 
         <Section title="How long I keep it">
           <p>
-            Analytics data is kept for as long as it&apos;s useful for improving the app and is used in aggregate.
-            Thumbs ups, thumbs downs, reviews, posts, photos and comments are kept until you take them back or delete
-            them. Deleting a post also deletes its photo and its comments. HamEats keeps a record of each thumbs up or
-            down (not shown to anyone) so it can count the most popular dishes over time. Feedback submissions are kept as
-            long as they&apos;re useful for improving the app. You can ask me to delete anything you&apos;ve sent me.
+            Analytics data is kept for as long as it&apos;s useful for improving the app and is used in aggregate. Favorites
+            are kept until you remove them. Feedback submissions are kept as long as they&apos;re useful for improving the app.
+            You can ask me to delete anything you&apos;ve sent me.
           </p>
           <p>
-            Deleting your account (Settings, on your profile) deletes your username, reviews, posts, photos, comments, votes,
-            alert settings, notifications and push notification addresses right away. Reports you made stay, so hidden posts stay hidden, but
-            they&apos;re no longer linked to you.
+            Deleting your account (on your Profile) deletes your favorites, alert settings, notifications and push notification
+            addresses right away, along with anything left from the old Feed.
           </p>
         </Section>
 
         <Section title="Your choices">
           <ul className="list-disc space-y-1 pl-6">
             <li>Block analytics by using a tracking blocker, or by clearing your browser data.</li>
-            <li>Log out at any time, take back a thumbs up or down, or edit or delete your own reviews, posts and comments in the app.</li>
-            <li>Change your username at any time from your profile.</li>
-            <li>Turn alerts and push notifications on or off in Settings, on your profile.</li>
-            <li>
-              Report a post, review or comment that breaks the{" "}
-              <Link href="/rules" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                Rules
-              </Link>
-              . Anything several people report is hidden.
-            </li>
-            <li>Download everything HamEats keeps about you, from Settings (Download my data).</li>
-            <li>Delete your account and everything you&apos;ve added, from Settings (Delete account).</li>
+            <li>Log out at any time, and remove any favorite.</li>
+            <li>Turn alerts and push notifications on or off on your Profile, under Notifications.</li>
+            <li>Download everything HamEats keeps about you, from your Profile (Download my data).</li>
+            <li>Delete your account and everything you&apos;ve saved, from your Profile (Delete account).</li>
             <li>Ask me to delete any feedback you&apos;ve submitted.</li>
             <li>Ask me any question about this policy.</li>
           </ul>

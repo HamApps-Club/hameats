@@ -29,15 +29,11 @@ export default function TermsPage() {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Terms</h1>
-          <p className="text-sm italic">Last updated: November 2, 2026</p>
+          <p className="text-sm italic">Last updated: November 25, 2026</p>
         </div>
 
         <p>
-          By using HamEats you agree to these terms, the{" "}
-          <Link href="/rules" className={link}>
-            Rules
-          </Link>{" "}
-          and the{" "}
+          By using HamEats you agree to these terms and the{" "}
           <Link href="/privacy" className={link}>
             Privacy Policy
           </Link>
@@ -61,21 +57,9 @@ export default function TermsPage() {
 
         <Section title="Your account">
           <p>
-            Logging in is for current Hamilton students and staff with an @hamilton.edu Google account. Use one account, keep
-            it to yourself, and follow the Rules. You can delete your account at any time in Settings. HamEats can suspend or
-            remove an account that breaks the Rules.
-          </p>
-        </Section>
-
-        <Section title="What you post">
-          <p>
-            You own what you post. By posting it, you let HamEats show it in the app and on your profile, to anyone who opens
-            them, until you delete it. You&apos;re responsible for what you post, and you must have the right to post it (for
-            example, a photo you took). Posts other people write are their own opinions, not HamEats&apos;.
-          </p>
-          <p>
-            Moderators can hide or remove anything that breaks the Rules, and can see the email address of anyone who posts
-            something inappropriate.
+            Logging in is for current Hamilton students and staff with an @hamilton.edu Google account. It lets you save
+            favorite dishes and get alerts about them. Keep your account to yourself. You can delete it at any time from your
+            Profile.
           </p>
         </Section>
 

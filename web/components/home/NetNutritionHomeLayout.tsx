@@ -8,7 +8,7 @@ import type { HomeLayoutProps } from "@/lib/homeLayouts";
 import { MEALS, type Meal, type MenuItem } from "@/lib/types";
 import { daysFrom } from "@/lib/dates";
 import { DayPicker } from "@/components/DayPicker";
-import { ItemSheet, type ReviewPlace } from "@/components/ItemSheet";
+import { ItemSheet } from "@/components/ItemSheet";
 import { track } from "@/lib/analytics";
 import { SiteTitle } from "@/components/SiteTitle";
 
@@ -17,7 +17,7 @@ import { SiteTitle } from "@/components/SiteTitle";
  * above and the hall scroller below. Tapping a food opens its page (see ItemSheet).
  */
 
-export type Selected = { item: MenuItem; context: string; place?: ReviewPlace };
+export type Selected = { item: MenuItem; context: string };
 
 export function useItemSheet() {
   const [selected, setSelected] = useState<Selected | null>(null);
@@ -35,7 +35,7 @@ export function useItemSheet() {
     if (history.state?.itemSheet) history.back();
     else setSelected(null);
   }, []);
-  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} place={selected.place} onClose={close} />;
+  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} onClose={close} />;
   return { open, sheet };
 }
 
@@ -114,7 +114,7 @@ function HallColumn({
               </h3>
               <div className="divide-y divide-rule/70">
                 {items.map((it) => {
-                  const select = () => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}`, place: { hall: hall.slug, date, meal } });
+                  const select = () => onSelect({ item: it, context: `${hall.name} · ${station} · ${meal}` });
                   return (
                     <div key={it.name} className="py-2.5">
                       <button
@@ -203,7 +203,7 @@ function usePinToVisualBottom(ref: React.RefObject<HTMLElement | null>) {
 
 /**
  * Where a jump puts a hall card's top: a little below the sticky header's bottom edge. Measured rather than a fixed
- * scroll margin, because the header grows when the Menu / Feed / Me tabs are shown and would otherwise cover the card's top.
+ * scroll margin, because the header grows when the Menu / Feed / Profile tabs are shown and would otherwise cover the card's top.
  */
 function jumpOffset() {
   const header = document.querySelector("header");

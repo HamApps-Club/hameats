@@ -4,37 +4,26 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useSession } from "next-auth/react";
 
 type MeState = {
-  /** "loading" until the first answer; "off" when no database is connected (the Feed and profiles are hidden then). */
+  /** "loading" until the first answer; "off" when no database is connected (favorites and alerts are unavailable then). */
   status: "loading" | "off" | "out" | "in";
-  username: string | null;
-  joined: string | null;
-  /** Someone commented on or upvoted your post since you last opened the Feed: the gold dot on the Feed tab. */
-  unread: boolean;
-  /** Notifications (the morning menu alerts) you haven't opened: the gold dot on the Me tab. */
+  /** Notifications (the morning menu alerts) you haven't opened: the gold dot on the Profile tab. */
   notifications: number;
-  /** Whether photo uploads are switched on (a Blob store is connected). */
-  photos: boolean;
   /** The public key for push notifications, or null when they aren't set up. */
   pushKey: string | null;
-  /** Whether the signed-in person has agreed to the Rules on the welcome screen. */
-  rulesAccepted: boolean;
 };
 
 type Me = MeState & {
   refresh: () => void;
-  setUsername: (name: string) => void;
-  clearUnread: () => void;
   clearNotifications: () => void;
-  acceptRules: () => Promise<void>;
 };
 
-const INITIAL: MeState = { status: "loading", username: null, joined: null, unread: false, notifications: 0, photos: false, pushKey: null, rulesAccepted: false };
+const INITIAL: MeState = { status: "loading", notifications: 0, pushKey: null };
 
-const MeContext = createContext<Me>({ ...INITIAL, refresh: () => {}, setUsername: () => {}, clearUnread: () => {}, clearNotifications: () => {}, acceptRules: async () => {} });
+const MeContext = createContext<Me>({ ...INITIAL, refresh: () => {}, clearNotifications: () => {} });
 
 export const useMe = () => useContext(MeContext);
 
-/** The signed-in person's username and the app's features, from /api/me, kept in step with logging in and out. */
+/** Whether someone is signed in, their unread notifications and the push key, from /api/me, kept in step with logging in and out. */
 export function MeProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
@@ -52,13 +41,8 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
           if (!b) return setState((s) => (s.status === "loading" ? { ...INITIAL, status: "off" } : s));
           setState({
             status: b.signedIn ? "in" : "out",
-            username: b.username ?? null,
-            joined: b.joined ?? null,
-            unread: b.unread === true,
             notifications: Number(b.unreadNotifications) || 0,
-            photos: b.photos === true,
             pushKey: b.pushKey ?? null,
-            rulesAccepted: b.rulesAccepted === true,
           });
         })
         .catch(() => !cancelled && setState((s) => (s.status === "loading" ? { ...INITIAL, status: "off" } : s)));
@@ -88,21 +72,10 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
   }, [status, userId, tick]);
 
   const refresh = useCallback(() => setTick((t) => t + 1), []);
-  const setUsername = useCallback((username: string) => setState((s) => ({ ...s, username })), []);
-  const clearUnread = useCallback(() => setState((s) => ({ ...s, unread: false })), []);
   const clearNotifications = useCallback(() => setState((s) => ({ ...s, notifications: 0 })), []);
-  const acceptRules = useCallback(async () => {
-    const res = await fetch("/api/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ acceptRules: true }),
-    }).catch(() => null);
-    if (!res?.ok) throw new Error("That didn't go through. Please try again.");
-    setState((s) => ({ ...s, rulesAccepted: true }));
-  }, []);
   const value = useMemo(
-    () => ({ ...state, refresh, setUsername, clearUnread, clearNotifications, acceptRules }),
-    [state, refresh, setUsername, clearUnread, clearNotifications, acceptRules],
+    () => ({ ...state, refresh, clearNotifications }),
+    [state, refresh, clearNotifications],
   );
   return <MeContext.Provider value={value}>{children}</MeContext.Provider>;
 }

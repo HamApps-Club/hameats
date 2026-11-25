@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DayPicker } from "@/components/DayPicker";
 import { HoursPanel } from "@/components/HoursPanel";
-import { ItemSheet, type ReviewPlace } from "@/components/ItemSheet";
+import { ItemSheet } from "@/components/ItemSheet";
 import { LoginButton } from "@/components/LoginButton";
-import { LoginSheet, WelcomeSheet } from "@/components/JoinSheets";
+import { LoginSheet } from "@/components/JoinSheets";
 import { MenuList } from "@/components/MenuList";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -20,15 +20,13 @@ import { withMirroredMenus } from "@/lib/mirroredMenus";
 import { isStanding, standingMenuFor, withStandingMenus } from "@/lib/standingMenus";
 import { MEALS, type DayMenu, type Meal, type MenuData, type MenuItem } from "@/lib/types";
 import { track } from "@/lib/analytics";
-import { VotesProvider } from "@/lib/likes";
 import { MeProvider } from "@/lib/me";
+import { FavoritesProvider } from "@/lib/favorites";
 import { SessionProvider } from "next-auth/react";
 import { SiteTitle } from "@/components/SiteTitle";
-import { FavoritesTab } from "@/components/tabs/FavoritesTab";
-import { UpdatesTab } from "@/components/tabs/UpdatesTab";
-import { MeTab } from "@/components/social/Profile";
-import { SectionTabs, sectionFor } from "@/components/social/SectionTabs";
-import { SocialLayers } from "@/components/social/SocialLayers";
+import { FeedTab } from "@/components/tabs/FeedTab";
+import { ProfileTab } from "@/components/profile/ProfileTab";
+import { SectionTabs, sectionFor } from "@/components/SectionTabs";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
 const subscribeHash = (cb: () => void) => {
@@ -49,7 +47,7 @@ function goHome(state: unknown) {
   window.scrollTo({ top: 0 });
 }
 
-type Selected = { item: MenuItem; context: string; place?: ReviewPlace };
+type Selected = { item: MenuItem; context: string };
 
 /**
  * The food detail page. Opening it adds a history entry, so the phone's back
@@ -71,7 +69,7 @@ function useItemSheet() {
     if (history.state?.itemSheet) history.back();
     else setSelected(null);
   }, []);
-  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} place={selected.place} onClose={close} />;
+  const sheet = selected && <ItemSheet item={selected.item} context={selected.context} onClose={close} />;
   return { open, sheet };
 }
 
@@ -268,7 +266,7 @@ function HallView({
             )
           }
           onSelect={(item, station) =>
-            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, hoursDate, meal)}`, place: { hall: hall.slug, date: hoursDate, meal } })
+            open({ item, context: `${hall.name} · ${station} · ${mealLabel(hall.hours, hoursDate, meal)}` })
           }
         />
       </main>
@@ -284,8 +282,8 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hash = useHash();
   const hall = hallBySlug(hash);
-  // No hall page open: the Menu, Favorites or Updates, by the address (#favorites, #updates). #me and #notifications
-  // still open the account page for people who signed in before the social features were retired.
+  // No hall page open: the Menu, Feed or Profile, by the address (#feed, #profile; #notifications opens the Profile
+  // on its Notifications).
   const { section, notifications } = sectionFor(hash);
   const now = useCampusNow();
   // When the campus date rolls over (usually the app being reopened the next day), fetch the menus
@@ -361,13 +359,7 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
                   <SiteTitle />
                   <SectionTabs active={section} />
                 </header>
-                {section === "favorites" ? (
-                  <FavoritesTab data={data} now={now} />
-                ) : section === "updates" ? (
-                  <UpdatesTab now={now} />
-                ) : (
-                  <MeTab notifications={notifications} />
-                )}
+                {section === "feed" ? <FeedTab now={now} /> : <ProfileTab data={data} now={now} notifications={notifications} />}
               </>
             )}
           </>
@@ -379,20 +371,17 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   );
 }
 
-/** Sign-in, vote and profile state wrap the whole home screen, so the halls, the food pages, the Feed and profiles share them. */
+/** Sign-in and favorites wrap the whole home screen, so the halls, the food pages and the Profile share them. */
 export function HomeClient(props: { initialMenu: MenuData | null }) {
   return (
     <SessionProvider>
-      <VotesProvider>
-        <MeProvider>
-          <SocialLayers>
-            <PullToRefresh />
-            <Home {...props} />
-            <LoginSheet />
-            <WelcomeSheet />
-          </SocialLayers>
-        </MeProvider>
-      </VotesProvider>
+      <MeProvider>
+        <FavoritesProvider>
+          <PullToRefresh />
+          <Home {...props} />
+          <LoginSheet />
+        </FavoritesProvider>
+      </MeProvider>
     </SessionProvider>
   );
 }
