@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Settings } from "@/lib/profile";
 import { useMe } from "@/lib/me";
 import { disablePush, enablePush, pushPermission, pushSupport } from "@/lib/push";
 import { api } from "@/lib/api";
@@ -33,7 +32,7 @@ const BLOCKED =
  */
 export function NotificationsPanel() {
   const me = useMe();
-  const [s, setS] = useState<Settings | null>(null);
+  const [on, setOn] = useState<boolean | null>(null);
   const [failed, setFailed] = useState(false);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,32 +41,27 @@ export function NotificationsPanel() {
     let cancelled = false;
     fetch("/api/settings", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((b: Settings) => !cancelled && setS(b))
+      .then((b: { notify: boolean }) => !cancelled && setOn(b.notify === true))
       .catch(() => !cancelled && setFailed(true));
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const save = (next: Settings) => {
-    const before = s;
-    setS(next);
-    api("/api/settings", "PUT", { alerts: next.alerts, email: next.email, push: next.push, muted: [] }).catch(() => {
-      setS(before);
-      setNote("That didn't save. Please try again.");
-    });
-  };
-
   // Turning it on asks the phone for permission. It has to happen straight from the tap, so nothing waits first.
-  const toggle = async (on: boolean) => {
-    if (!s) return;
+  const toggle = async (next: boolean) => {
     setNote("");
-    track("alerts_toggled", { on });
-    if (!on) {
+    track("alerts_toggled", { on: next });
+    if (!next) {
       setBusy(true);
-      await disablePush();
-      setBusy(false);
-      return save({ ...s, alerts: false, push: false });
+      try {
+        await api("/api/settings", "PUT", { notify: false });
+        await disablePush();
+        setOn(false);
+      } catch (e) {
+        setNote((e as Error).message);
+      }
+      return setBusy(false);
     }
     const support = pushSupport();
     if (support === "needs-home-screen")
@@ -76,16 +70,27 @@ export function NotificationsPanel() {
     if (!me.pushKey) return setNote("Notifications aren't switched on for HamEats yet.");
     if (pushPermission() === "denied") return setNote(BLOCKED);
     setBusy(true);
-    const result = await enablePush(me.pushKey);
+    const phone = await enablePush(me.pushKey);
+    track("push_permission", { result: phone.result });
+    if (phone.result === "on") {
+      try {
+        await api("/api/settings", "PUT", { notify: true, push: phone.push });
+        setOn(true);
+      } catch (e) {
+        setNote((e as Error).message);
+      }
+    } else
+      setNote(
+        phone.result === "denied"
+          ? BLOCKED
+          : phone.result === "dismissed"
+            ? "Notifications weren't allowed, so they stay off."
+            : "Couldn't turn on notifications. Please try again.",
+      );
     setBusy(false);
-    track("push_permission", { result });
-    if (result === "on") return save({ ...s, alerts: true, push: true });
-    setNote(
-      result === "denied" ? BLOCKED : result === "dismissed" ? "Notifications weren't allowed, so they stay off." : "Couldn't turn on notifications. Please try again.",
-    );
   };
 
-  if (!s) return <p className="py-6 text-center text-muted">{failed ? "Couldn't load your settings. Check your connection and try again." : "Loading…"}</p>;
+  if (on === null) return <p className="py-6 text-center text-muted">{failed ? "Couldn't load your settings. Check your connection and try again." : "Loading…"}</p>;
 
   return (
     <section>
@@ -96,7 +101,7 @@ export function NotificationsPanel() {
             A notification on this phone the morning one of your favorites is served. On iPhone this only works once HamEats is on your Home Screen.
           </p>
         </div>
-        <Switch on={s.alerts && s.push} onChange={(on) => void toggle(on)} label="Push notifications" disabled={busy} />
+        <Switch on={on} onChange={(next) => void toggle(next)} label="Push notifications" disabled={busy} />
       </div>
       {note && (
         <p role="status" className="mt-2 px-1 text-[13px] text-zinc-700 dark:text-zinc-300">

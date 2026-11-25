@@ -1,6 +1,6 @@
 import "server-only";
 import { auth } from "@/lib/auth";
-import { dbEnabled } from "@/lib/db";
+import { storeEnabled } from "@/lib/users";
 import { HALLS } from "@/lib/halls";
 
 /** Browsers send Origin on every POST/DELETE; it must be this site. Stops other sites from acting on a visitor's behalf. */
@@ -30,7 +30,7 @@ export const noStore = { "Cache-Control": "no-store" };
 
 export const unavailable = () => Response.json({ error: "unavailable" }, { status: 503, headers: noStore });
 
-export { dbEnabled };
+export { storeEnabled };
 
 /** A dish name from a request: a string of 1-200 characters, trimmed. */
 export function dishParam(value: unknown): string | null {
@@ -43,11 +43,11 @@ export function dishParam(value: unknown): string | null {
 export const reply = (data: unknown, status = 200) => Response.json(data, { status, headers: noStore });
 
 /**
- * The checks every request that writes something needs: a database, a request from this site, and a login. Returns the
+ * The checks every request that writes something needs: the table set up, a request from this site, and a login. Returns the
  * signed-in person, or the response to send instead.
  */
 export async function writer(request: Request): Promise<{ id: string; name?: string | null } | Response> {
-  if (!dbEnabled()) return unavailable();
+  if (!storeEnabled()) return unavailable();
   if (!sameOrigin(request)) return reply({ error: "forbidden" }, 403);
   const user = await currentUser();
   return user ?? reply({ error: "login required" }, 401);

@@ -1,7 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { sendAlerts } from "@/lib/alerts";
-import { dbEnabled } from "@/lib/db";
-import { recordMenu } from "@/lib/dishes";
+import { storeEnabled } from "@/lib/users";
 import { campusNow } from "@/lib/hours";
 import { fetchMenus } from "@/lib/nutrislice";
 import { withMirroredMenus } from "@/lib/mirroredMenus";
@@ -25,19 +24,18 @@ function fromScheduler(request: Request) {
 /**
  * The morning alerts, at 8 AM on campus. Vercel's schedules are in UTC, so vercel.json runs this at both 12:00 and
  * 13:00 UTC (8 AM in summer time and in winter time), and only the run that lands in the 8 o'clock hour on campus
- * sends anything; ?force=1 sends at any hour, for testing. Fetches the menus first, so today's dishes are known even
- * if no one has opened the app yet, then saves and sends each person one notification about the favorites on today's menu.
+ * sends anything; ?force=1 sends at any hour, for testing. Fetches today's menus, then sends each person with
+ * notifications on one notification about their favorites on it.
  */
 export async function GET(request: Request) {
   if (!fromScheduler(request)) return new Response("unauthorized", { status: 401 });
-  if (!dbEnabled()) return Response.json({ skipped: "database not set up" });
+  if (!storeEnabled()) return Response.json({ skipped: "favorites table not set up" });
   const now = campusNow();
   const force = new URL(request.url).searchParams.get("force") === "1";
   if (!force && Math.floor(now.minutes / 60) !== ALERT_HOUR) return Response.json({ skipped: `not ${ALERT_HOUR} AM on campus` });
   try {
-    const menus = await fetchMenus(7, 0).catch(() => null);
-    if (menus) await recordMenu(withSpecials(withMirroredMenus(withStandingMenus(menus))));
-    const result = await sendAlerts(now.iso);
+    const menus = await fetchMenus(1, 0);
+    const result = await sendAlerts(withSpecials(withMirroredMenus(withStandingMenus(menus))), now.iso);
     console.log("alerts:", JSON.stringify(result));
     return Response.json(result);
   } catch (e) {

@@ -23,44 +23,36 @@ const fromBase64Url = (key: string) => {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 };
 
-export type EnableResult = "on" | "denied" | "dismissed" | "failed";
+export type EnableResult =
+  | { result: "on"; push: { endpoint: string; keys: { p256dh: string; auth: string } } }
+  | { result: "denied" | "dismissed" | "failed" };
 
 /**
- * Asks the phone for permission (it shows its own "Allow notifications?" message), then signs this phone up and tells
- * the server where to send alerts. Must be called straight from a tap.
+ * Asks the phone for permission (it shows its own "Allow notifications?" message), then signs this phone up and
+ * returns its push address, for the server to send alerts to. Must be called straight from a tap.
  */
 export async function enablePush(publicKey: string): Promise<EnableResult> {
   const permission = await Notification.requestPermission();
-  if (permission === "denied") return "denied";
-  if (permission !== "granted") return "dismissed";
+  if (permission === "denied") return { result: "denied" };
+  if (permission !== "granted") return { result: "dismissed" };
   try {
     const registration = await navigator.serviceWorker.ready;
     const subscription =
       (await registration.pushManager.getSubscription()) ??
       (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromBase64Url(publicKey) }));
     const json = subscription.toJSON();
-    const res = await fetch("/api/push", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
-    });
-    return res.ok ? "on" : "failed";
+    if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return { result: "failed" };
+    return { result: "on", push: { endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } } };
   } catch {
-    return "failed";
+    return { result: "failed" };
   }
 }
 
-/** Stops notifications to this phone. */
+/** Stops notifications to this phone (the server forgets its address when notifications are turned off). */
 export async function disablePush() {
   try {
     const registration = await navigator.serviceWorker.ready;
     const subscription = await registration.pushManager.getSubscription();
-    if (!subscription) return;
-    await fetch("/api/push", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint: subscription.endpoint }),
-    }).catch(() => {});
-    await subscription.unsubscribe();
+    await subscription?.unsubscribe();
   } catch {}
 }

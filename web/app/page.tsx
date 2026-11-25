@@ -1,10 +1,5 @@
 import saved from "@/public/dining_menu.json";
-import { dbEnabled } from "@/lib/db";
-import { recordMenu } from "@/lib/dishes";
 import { countItems, fetchMenus, menuCacheSeconds } from "@/lib/nutrislice";
-import { withMirroredMenus } from "@/lib/mirroredMenus";
-import { withSpecials } from "@/lib/specials";
-import { withStandingMenus } from "@/lib/standingMenus";
 import type { MenuData } from "@/lib/types";
 import { HomeClient } from "./HomeClient";
 
@@ -18,12 +13,6 @@ export default async function Home() {
     return null;
   });
   if (live && countItems(live) > 0) {
-    // Remember every dish name that has been served (and where it was served, which the morning alerts read). A page
-    // rebuild must never fail over this, so any trouble is only logged.
-    if (dbEnabled())
-      await recordMenu(withSpecials(withMirroredMenus(withStandingMenus(live)))).catch((e) =>
-        console.error("recording dishes failed:", e),
-      );
     return <HomeClient initialMenu={live} />;
   }
 

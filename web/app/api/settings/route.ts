@@ -1,33 +1,42 @@
-import { getSettings, saveSettings } from "@/lib/profile";
-import { currentUser, dbEnabled, dishParam, noStore, reply, unavailable, writer } from "@/lib/apiGuard";
+import { getUser, setNotify } from "@/lib/users";
+import { currentUser, noStore, reply, storeEnabled, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
 
-/** The signed-in person's alert settings, and the favorites they can pick from. */
+/** { notify }: whether the signed-in person's morning alert is on. */
 export async function GET() {
-  if (!dbEnabled()) return unavailable();
+  if (!storeEnabled()) return unavailable();
   const user = await currentUser();
   if (!user) return Response.json({ error: "login required" }, { status: 401, headers: noStore });
   try {
-    return reply(await getSettings(user.id));
+    return reply({ notify: (await getUser(user.id)).notify });
   } catch (e) {
     console.error("settings GET failed:", e);
     return unavailable();
   }
 }
 
-/** { alerts, email, push, muted: dish names switched off }. */
+const isText = (v: unknown, max: number): v is string => typeof v === "string" && v.length > 0 && v.length <= max;
+
+/**
+ * { notify: true, push: { endpoint, keys: { p256dh, auth } } }: turns notifications on, for this phone (the push address
+ * its browser gave when the person allowed notifications). { notify: false }: turns them off and erases every push address.
+ */
 export async function PUT(request: Request) {
   const user = await writer(request);
   if (user instanceof Response) return user;
   const b = await request.json().catch(() => null);
-  const flags = [b?.alerts, b?.email, b?.push];
-  const muted = Array.isArray(b?.muted) ? b.muted.map(dishParam) : null;
-  if (flags.some((f) => typeof f !== "boolean") || !muted || muted.length > 500 || muted.some((d: string | null) => !d))
-    return reply({ error: "bad request" }, 400);
   try {
-    await saveSettings(user.id, { alerts: b.alerts, email: b.email, push: b.push, muted });
-    return reply({ ok: true });
+    if (b?.notify === false) {
+      await setNotify(user.id, false);
+      return reply({ notify: false });
+    }
+    const p = b?.push;
+    const ok =
+      b?.notify === true && isText(p?.endpoint, 1000) && /^https:\/\//.test(p.endpoint) && isText(p?.keys?.p256dh, 200) && isText(p?.keys?.auth, 100);
+    if (!ok) return reply({ error: "bad request" }, 400);
+    await setNotify(user.id, true, { endpoint: p.endpoint, p256dh: p.keys.p256dh, auth: p.keys.auth });
+    return reply({ notify: true });
   } catch (e) {
     console.error("settings PUT failed:", e);
     return unavailable();
