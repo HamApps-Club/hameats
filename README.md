@@ -2,7 +2,7 @@
 
 A faster way to read the campus dining hall menus. It shows which halls are open right now with today's hours, opens each hall on the meal being served, has global search, and keeps working offline.
 
-Covers Soper Commons, McEwen, Howard Diner and Little Pub. Foods show dietary and allergen icons (tap one for its description, serving size, nutrition and ingredients when Nutrislice provides them). It installs as an app (PWA) and works offline: the service worker (`web/app/sw.js/route.ts`) caches the app and the last menus. Every Vercel deploy gets its own build ID, so installed apps pick up new deploys on their own: opening or returning to the app reloads into the new version, and while it's in use an Update bar appears (`web/components/AppUpdater.tsx`).
+Covers Soper Commons, McEwen, Howard Diner and Little Pub. Foods show dietary and allergen icons (tap one for its description, serving size, nutrition and ingredients when Nutrislice provides them). It installs as an app (PWA) and works offline: the service worker (`web/app/sw.js/route.ts`) caches the app and the last menus. Every deploy gets its own build ID (the git commit), so installed apps pick up new deploys on their own: opening or returning to the app reloads into the new version, and while it's in use an Update bar appears (`web/components/AppUpdater.tsx`).
 
 Hall hours live in `web/lib/hours.ts`; update them there when the dining schedule changes.
 
@@ -28,9 +28,9 @@ pip install -r scraper/requirements.txt && playwright install chromium
 
 Howard Diner publishes a PDF menu instead of Nutrislice items. Its items are transcribed in `web/lib/standingMenus.ts` (the PDF is in `web/public/menus/`) and fill in whenever Nutrislice has nothing posted for the Diner; update that file when the Diner posts a new menu.
 
-If a hall's menu is missing on the live site, open `/api/menu/status?key=<STATUS_KEY>` (set `STATUS_KEY` in Vercel's environment variables; without it the route always 404s): it lists every Nutrislice request with its item count or error.
+If a hall's menu is missing on the live site, open `/api/menu/status?key=<STATUS_KEY>` (`STATUS_KEY` is in AWS Parameter Store at `/hameats/STATUS_KEY`; without it the route always 404s): it lists every Nutrislice request with its item count or error.
 
-The live site doesn't depend on this file: `web/app/page.tsx` fetches the next 7 days straight from Nutrislice on the server and builds them into the page. Vercel rebuilds the page when the Nutrislice data expires (hourly during meals, and not until the next meal begins in between), so Nutrislice is only contacted when a student opens the app after that. If a refresh fails, the last good page keeps being served. The scraped `dining_menu.json` is only the starting data if Nutrislice is down during a deploy.
+The live site doesn't depend on this file: `web/app/page.tsx` fetches the next 7 days straight from Nutrislice on the server and builds them into the page. Next.js rebuilds the page when the Nutrislice data expires (hourly during meals, and not until the next meal begins in between), so Nutrislice is only contacted when a student opens the app after that. If a refresh fails, the last good page keeps being served. The scraped `dining_menu.json` is only the starting data if Nutrislice is down during a deploy.
 
 To refresh the backup, run the scraper and commit the two `dining_menu.json` files. To do that automatically every morning, add a crontab entry (`crontab -e`):
 

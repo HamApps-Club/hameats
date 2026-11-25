@@ -14,8 +14,8 @@ export const maxDuration = 60;
 const ALERT_HOUR = 8;
 
 /**
- * The scheduler sends "Authorization: Bearer <CRON_SECRET>": Vercel's cron, or on AWS the EventBridge rule in
- * infra/aws/hameats.yaml. Nothing else may start the alerts.
+ * The scheduler sends "Authorization: Bearer <CRON_SECRET>": on AWS, the Lambda handler (web/lambda/index.mjs) does,
+ * when EventBridge Scheduler invokes it (infra/aws/hameats.yaml). Nothing else may start the alerts.
  */
 function fromScheduler(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -25,9 +25,8 @@ function fromScheduler(request: Request) {
 }
 
 /**
- * The morning alerts, at 8 AM on campus. The schedules are in UTC, so they run this at both 12:00 and 13:00 UTC
- * (8 AM in summer time and in winter time: vercel.json, or the EventBridge rules), and only the run that lands in the 8 o'clock hour on campus
- * sends anything; ?force=1 sends at any hour, for testing. Fetches today's menus, then sends each person with
+ * The morning alerts, at 8 AM on campus. EventBridge Scheduler runs this at 8:00 America/New_York; only a run that lands
+ * in the 8 o'clock hour on campus sends anything; ?force=1 sends at any hour, for testing. Fetches today's menus, then sends each person with
  * notifications on one notification about their favorites on it.
  */
 export async function GET(request: Request) {

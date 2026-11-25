@@ -7,10 +7,10 @@ const lanAddresses = Object.values(networkInterfaces())
   .filter((a) => a && a.family === "IPv4" && !a.internal)
   .map((a) => a!.address);
 
-// One ID per deploy: the git commit (BUILD_ID, passed into the Docker build; VERCEL_GIT_COMMIT_SHA on Vercel), or a
+// One ID per deploy: the git commit (BUILD_ID, set by the GitHub deploy workflow or the Docker build), or a
 // timestamp for local builds. The installed app compares it with /api/version to know when a new version has
 // shipped (see components/AppUpdater.tsx).
-const BUILD_ID = (process.env.BUILD_ID || process.env.VERCEL_GIT_COMMIT_SHA)?.slice(0, 12) || `local-${Date.now()}`;
+const BUILD_ID = process.env.BUILD_ID?.slice(0, 12) || `local-${Date.now()}`;
 
 // PostHog is reached through /ingest on this site's own domain, so Firefox tracking protection and
 // ad-blockers (which block *.posthog.com) don't silently drop events. See lib/analytics.ts.
