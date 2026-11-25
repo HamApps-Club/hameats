@@ -6,6 +6,8 @@ Covers Soper Commons, McEwen, Howard Diner and Little Pub. Foods show dietary an
 
 Hall hours live in `web/lib/hours.ts`; update them there when the dining schedule changes.
 
+The Cafe tab covers Euphoria, FoJo North and FoJo South. They aren't on Nutrislice, so their menus are typed into `web/lib/cafes.ts` (their hours are in `hours.ts` with the halls'). Euphoria's site lists no prices, and FoJo posts no campus menu, so FoJo shows "Menu coming soon" until someone transcribes the boards. `cafes-data.md` has everything that was found online and where it came from.
+
 ## 1. Scrape menus
 
 ```sh

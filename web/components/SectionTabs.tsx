@@ -2,16 +2,17 @@
 
 import { track } from "@/lib/analytics";
 
-export type Section = "menu" | "feed" | "profile";
+export type Section = "menu" | "cafe" | "profile";
 
 /**
- * Which part of the app the address shows: #feed or #profile (#notifications opens the Profile on its Notifications
- * switch, which is where tapping a morning alert goes). Older addresses still land somewhere sensible: #updates is the Feed,
+ * Which part of the app the address shows: #cafe or #profile (#notifications opens the Profile on its Notifications
+ * switch, which is where tapping a morning alert goes). Older addresses still land somewhere sensible: #feed and #updates
+ * (the tab's old names) are the Cafe tab,
  * #favorites and #me are the Profile. Anything else, including no hash, is the Menu. The dining halls' own pages
  * (#commons) are handled before this.
  */
 export function sectionFor(hash: string): { section: Section; notifications: boolean } {
-  if (hash === "feed" || hash === "updates") return { section: "feed", notifications: false };
+  if (hash === "cafe" || hash === "feed" || hash === "updates") return { section: "cafe", notifications: false };
   if (hash === "profile" || hash === "favorites" || hash === "me") return { section: "profile", notifications: false };
   if (hash === "notifications") return { section: "profile", notifications: true };
   return { section: "menu", notifications: false };
@@ -27,11 +28,11 @@ export function goToSection(section: Section | "notifications") {
 
 const TABS: [Section, string][] = [
   ["menu", "Menu"],
-  ["feed", "Feed"],
+  ["cafe", "Cafe"],
   ["profile", "Profile"],
 ];
 
-/** Menu / Feed / Profile, in the blue header band under the title. */
+/** Menu / Cafe / Profile, in the blue header band under the title. */
 export function SectionTabs({ active }: { active: Section }) {
   return (
     <div role="tablist" aria-label="Sections" className="mx-auto flex max-w-2xl">
