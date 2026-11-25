@@ -59,8 +59,7 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-// Alerts. The server sends { title, body, url, tag } (see lib/alerts.ts). An open HamEats is told too, so the gold
-// dot on its Me tab appears at once.
+// Alerts. The server sends { title, body, url, tag } (see lib/alerts.ts).
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -72,20 +71,13 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     icon: "/icons/icon-192.png?v=9",
     badge: "/icons/icon-192.png?v=9",
-    data: { url: data.url || "/#notifications" },
+    data: { url: data.url || "/" },
   };
   if (data.tag) options.tag = data.tag;
-  event.waitUntil(
-    Promise.all([
-      self.registration.showNotification(data.title || "HamEats", options),
-      self.clients
-        .matchAll({ type: "window", includeUncontrolled: true })
-        .then((windows) => windows.forEach((w) => w.postMessage({ type: "hameats:notification" }))),
-    ]),
-  );
+  event.waitUntil(self.registration.showNotification(data.title || "HamEats", options));
 });
 
-// Tapping an alert opens HamEats (or brings an open one to the front) on the page it points to: your Notifications.
+// Tapping an alert opens HamEats (or brings an open one to the front) on the page it points to: the Menu.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = new URL(event.notification.data?.url || "/", self.location.origin).href;

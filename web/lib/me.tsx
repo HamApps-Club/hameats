@@ -6,24 +6,21 @@ import { useSession } from "next-auth/react";
 type MeState = {
   /** "loading" until the first answer; "off" when no database is connected (favorites and alerts are unavailable then). */
   status: "loading" | "off" | "out" | "in";
-  /** Notifications (the morning menu alerts) you haven't opened: the gold dot on the Profile tab. */
-  notifications: number;
   /** The public key for push notifications, or null when they aren't set up. */
   pushKey: string | null;
 };
 
 type Me = MeState & {
   refresh: () => void;
-  clearNotifications: () => void;
 };
 
-const INITIAL: MeState = { status: "loading", notifications: 0, pushKey: null };
+const INITIAL: MeState = { status: "loading", pushKey: null };
 
-const MeContext = createContext<Me>({ ...INITIAL, refresh: () => {}, clearNotifications: () => {} });
+const MeContext = createContext<Me>({ ...INITIAL, refresh: () => {} });
 
 export const useMe = () => useContext(MeContext);
 
-/** Whether someone is signed in, their unread notifications and the push key, from /api/me, kept in step with logging in and out. */
+/** Whether someone is signed in and the push key, from /api/me, kept in step with logging in and out. */
 export function MeProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
@@ -41,18 +38,15 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
           if (!b) return setState((s) => (s.status === "loading" ? { ...INITIAL, status: "off" } : s));
           setState({
             status: b.signedIn ? "in" : "out",
-            notifications: Number(b.unreadNotifications) || 0,
             pushKey: b.pushKey ?? null,
           });
         })
         .catch(() => !cancelled && setState((s) => (s.status === "loading" ? { ...INITIAL, status: "off" } : s)));
     load();
-    // The dot can change while the app is open: check again when it comes back into view.
+    // Logging in or out in another tab: check again when the app comes back into view.
     const onVisible = () => document.visibilityState === "visible" && load();
     document.addEventListener("visibilitychange", onVisible);
-    // A notification that arrives while the app is open (the service worker passes it on) shows its dot at once.
     const onMessage = (e: MessageEvent) => {
-      if (e.data?.type === "hameats:notification") load();
       // Tapping a notification while the app is open (see notificationclick in app/sw.js): go to the page it points to.
       if (e.data?.type === "hameats:open" && typeof e.data.url === "string") {
         const to = new URL(e.data.url, window.location.origin);
@@ -72,10 +66,9 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
   }, [status, userId, tick]);
 
   const refresh = useCallback(() => setTick((t) => t + 1), []);
-  const clearNotifications = useCallback(() => setState((s) => ({ ...s, notifications: 0 })), []);
   const value = useMemo(
-    () => ({ ...state, refresh, clearNotifications }),
-    [state, refresh, clearNotifications],
+    () => ({ ...state, refresh }),
+    [state, refresh],
   );
   return <MeContext.Provider value={value}>{children}</MeContext.Provider>;
 }

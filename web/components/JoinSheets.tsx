@@ -73,7 +73,7 @@ export function LoginSheet() {
             <span aria-hidden>🔒</span>
             <span>
               <strong className="text-zinc-900 dark:text-zinc-100">We keep very little.</strong> Your Hamilton email address (to know it&apos;s you),
-              your favorites and your alert settings. Never your name.
+              your favorites and whether notifications are on. Never your name.
             </span>
           </li>
           <li className="flex gap-2.5">

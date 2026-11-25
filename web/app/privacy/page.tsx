@@ -43,7 +43,7 @@ export default function PrivacyPage() {
           <strong className="text-zinc-900 dark:text-zinc-100">The short version:</strong> You can use HamEats without
           an account. Logging in is only for Hamilton students and staff, using your @hamilton.edu Google account, and only
           lets you save favorite dishes and get alerts about them. If you log in, HamEats saves your Hamilton email address,
-          your favorites and your alert settings. It doesn&apos;t save your name, and nothing you save is shown to anyone else.
+          your favorites and whether notifications are on. It doesn&apos;t save your name, and nothing you save is shown to anyone else.
           You can ask me for a copy of your data, or to delete your account, anytime. HamEats also collects anonymous usage
           statistics so I can improve the app.
         </p>
@@ -75,18 +75,18 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Your favorites (only if you log in).</strong> The dishes you
-            save as favorites, and when you saved them. Only you can see them.
+            save as favorites. Only you can see them.
           </p>
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Alerts (only if you turn them on).</strong> If you ask to
-            be told when a favorite is served, HamEats saves that choice and which favorites you switched off. If you
-            allow push notifications, it saves the address your phone or browser gives for sending them. Each alert is also
-            saved with your account, where only you can see it.
+            <strong className="text-zinc-900 dark:text-zinc-100">Notifications (only if you turn them on).</strong> HamEats
+            saves that they&apos;re on, and the address your phone or browser gives for sending them, which is the only way a
+            notification can reach your phone. Turning notifications off erases that address. The notifications themselves
+            aren&apos;t saved.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">From earlier versions.</strong> HamEats used to have a Feed with
-            reviews, posts, photos, comments and votes. That&apos;s gone and nothing new is collected for it. Anything you added
-            back then is no longer shown, is included when you download your data, and is deleted when you delete your account.
+            reviews, posts, photos, comments and votes. That&apos;s gone, and everything from it, photos included, has been
+            deleted. The only thing carried over is your favorites and whether notifications were on.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Vercel,
@@ -113,15 +113,15 @@ export default function PrivacyPage() {
         <Section title="How I use it">
           <p>
             I use this information only to run and improve HamEats: fixing bugs, seeing which features students actually use,
-            showing your favorites, sending the alerts you ask for, and keeping the site working. I don&apos;t sell your
+            showing your favorites, sending the notifications you ask for, and keeping the site working. I don&apos;t sell your
             information, and I don&apos;t use it for advertising.
           </p>
         </Section>
 
         <Section title="Who I share it with">
           <p>
-            Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Neon (the database that stores
-            favorites and alert settings) and Google (log in and feedback forms). They process data on my behalf under their
+            Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Amazon Web Services (DynamoDB, the
+            database that stores favorites and the notifications switch) and Google (log in and feedback forms). They process data on my behalf under their
             own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
@@ -133,8 +133,8 @@ export default function PrivacyPage() {
             You can ask me to delete anything you&apos;ve sent me.
           </p>
           <p>
-            Deleting your account (email me to ask) deletes your favorites, alert settings, notifications and push notification
-            addresses, along with anything left from the old Feed.
+            Deleting your account (email me to ask) deletes everything HamEats keeps about you: your email address, your
+            favorites, and your notifications setting and push addresses.
           </p>
         </Section>
 

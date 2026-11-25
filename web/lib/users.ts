@@ -1,0 +1,170 @@
+import "server-only";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+
+// Everything HamEats saves lives in one DynamoDB table, one item per person who has logged in:
+//
+//   email      the partition key: their lowercased Hamilton email (lib/auth.ts). Never shown in full.
+//   favorites  the dishes they saved, in the order they saved them
+//   notify     whether the 8 AM alert about their favorites is on
+//   push       while notify is on: the push address of each phone that allowed notifications. Without it a phone
+//              can't be reached. Turning notifications off erases it.
+//   createdAt  when they first logged in
+//
+// Settings in Vercel: HAMEATS_AWS_REGION, HAMEATS_AWS_ACCESS_KEY_ID, HAMEATS_AWS_SECRET_ACCESS_KEY and
+// HAMEATS_DYNAMODB_TABLE (see .env.local.example). Vercel keeps the plain AWS_* names for itself, hence the prefix.
+
+export type PushAddress = { endpoint: string; p256dh: string; auth: string };
+export type User = { email: string; favorites: string[]; notify: boolean; push: PushAddress[]; createdAt: string };
+
+/** Most favorites one person can keep. */
+export const MAX_FAVORITES = 300;
+/** Most phones one person can get notifications on. The oldest is dropped past this. */
+const MAX_PHONES = 5;
+
+const env = (name: string) => process.env[name]?.trim() || "";
+
+/** Whether the table is set up. Without it, favorites and notifications are switched off and the app runs as before. */
+export const storeEnabled = () =>
+  !!(env("HAMEATS_AWS_REGION") && env("HAMEATS_AWS_ACCESS_KEY_ID") && env("HAMEATS_AWS_SECRET_ACCESS_KEY") && env("HAMEATS_DYNAMODB_TABLE"));
+
+let client: DynamoDBDocumentClient | undefined;
+const db = () =>
+  (client ??= DynamoDBDocumentClient.from(
+    new DynamoDBClient({
+      region: env("HAMEATS_AWS_REGION"),
+      credentials: { accessKeyId: env("HAMEATS_AWS_ACCESS_KEY_ID"), secretAccessKey: env("HAMEATS_AWS_SECRET_ACCESS_KEY") },
+      // Lets tests point at a local DynamoDB. Unset in production.
+      ...(env("HAMEATS_DYNAMODB_ENDPOINT") ? { endpoint: env("HAMEATS_DYNAMODB_ENDPOINT") } : {}),
+    }),
+    { marshallOptions: { removeUndefinedValues: true } },
+  ));
+const table = () => env("HAMEATS_DYNAMODB_TABLE");
+
+const toUser = (email: string, item: Record<string, unknown> | undefined): User => ({
+  email,
+  favorites: Array.isArray(item?.favorites) ? (item.favorites as string[]) : [],
+  notify: item?.notify === true,
+  push: Array.isArray(item?.push) ? (item.push as PushAddress[]) : [],
+  createdAt: typeof item?.createdAt === "string" ? item.createdAt : new Date().toISOString(),
+});
+
+/** The person's record, created the first time they're seen. */
+export async function getUser(email: string): Promise<User> {
+  const { Item } = await db().send(new GetCommand({ TableName: table(), Key: { email }, ConsistentRead: true }));
+  if (Item) return toUser(email, Item);
+  // First visit: create it, unless another request just did.
+  const { Attributes } = await db().send(
+    new UpdateCommand({
+      TableName: table(),
+      Key: { email },
+      UpdateExpression: "SET createdAt = if_not_exists(createdAt, :now), favorites = if_not_exists(favorites, :none), notify = if_not_exists(notify, :off), push = if_not_exists(push, :none)",
+      ExpressionAttributeValues: { ":now": new Date().toISOString(), ":none": [], ":off": false },
+      ReturnValues: "ALL_NEW",
+    }),
+  );
+  return toUser(email, Attributes);
+}
+
+/**
+ * Changes the person's record: reads it, applies `change`, and writes back only if nobody else changed it in between
+ * (two phones tapping at once), trying again if they did. `change` returns the fields to save, or null to save nothing.
+ */
+async function update(email: string, change: (u: User) => Partial<Omit<User, "email" | "createdAt">> | null): Promise<User> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { Item } = await db().send(new GetCommand({ TableName: table(), Key: { email }, ConsistentRead: true }));
+    const user = toUser(email, Item);
+    const fields = change(user);
+    if (!fields) return user;
+    const version = typeof Item?.version === "number" ? Item.version : 0;
+    const next = { ...user, ...fields };
+    try {
+      await db().send(
+        new UpdateCommand({
+          TableName: table(),
+          Key: { email },
+          UpdateExpression: "SET favorites = :f, notify = :n, push = :p, createdAt = if_not_exists(createdAt, :c), version = :v1",
+          ConditionExpression: Item ? "version = :v0 OR attribute_not_exists(version)" : "attribute_not_exists(email)",
+          ExpressionAttributeValues: {
+            ":f": next.favorites,
+            ":n": next.notify,
+            ":p": next.push,
+            ":c": user.createdAt,
+            ":v1": version + 1,
+            ...(Item ? { ":v0": version } : {}),
+          },
+        }),
+      );
+      return next;
+    } catch (e) {
+      if ((e as { name?: string }).name !== "ConditionalCheckFailedException") throw e;
+    }
+  }
+  throw new Error("too many changes at once");
+}
+
+/** Dish names compared case-insensitively, since the menu source sometimes changes a dish's capitalization. */
+export const sameDish = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+// ---- Favorites
+
+/** Saves dishes as favorites (ones already saved are left alone). Null when that would go past MAX_FAVORITES. */
+export async function addFavorites(email: string, dishes: string[]): Promise<string[] | null> {
+  let full = false;
+  const user = await update(email, (u) => {
+    const added = dishes.filter((d, i) => !u.favorites.some((f) => sameDish(f, d)) && dishes.findIndex((x) => sameDish(x, d)) === i);
+    if (!added.length) return null;
+    if (u.favorites.length + added.length > MAX_FAVORITES) {
+      full = true;
+      return null;
+    }
+    return { favorites: [...u.favorites, ...added] };
+  });
+  return full ? null : user.favorites;
+}
+
+export async function removeFavorite(email: string, dish: string): Promise<string[]> {
+  const user = await update(email, (u) => (u.favorites.some((f) => sameDish(f, dish)) ? { favorites: u.favorites.filter((f) => !sameDish(f, dish)) } : null));
+  return user.favorites;
+}
+
+// ---- Notifications
+
+/** Turns the morning alert on for this phone (its push address), or off everywhere (every push address is erased). */
+export async function setNotify(email: string, on: true, phone: PushAddress): Promise<void>;
+export async function setNotify(email: string, on: false): Promise<void>;
+export async function setNotify(email: string, on: boolean, phone?: PushAddress) {
+  await update(email, (u) =>
+    on && phone
+      ? { notify: true, push: [...u.push.filter((p) => p.endpoint !== phone.endpoint), phone].slice(-MAX_PHONES) }
+      : { notify: false, push: [] },
+  );
+}
+
+/** A phone that no longer accepts notifications (its push service said 404 or 410). Off when it was their last one. */
+export async function forgetPhone(email: string, endpoint: string) {
+  await update(email, (u) => {
+    if (!u.push.some((p) => p.endpoint === endpoint)) return null;
+    const push = u.push.filter((p) => p.endpoint !== endpoint);
+    return { push, notify: push.length > 0 && u.notify };
+  });
+}
+
+/** Everyone with notifications on and at least one phone, for the morning alert. */
+export async function usersToNotify(): Promise<User[]> {
+  const users: User[] = [];
+  let start: Record<string, unknown> | undefined;
+  do {
+    const page = await db().send(
+      new ScanCommand({
+        TableName: table(),
+        FilterExpression: "notify = :on AND size(push) > :zero",
+        ExpressionAttributeValues: { ":on": true, ":zero": 0 },
+        ExclusiveStartKey: start,
+      }),
+    );
+    for (const item of page.Items ?? []) users.push(toUser(item.email as string, item));
+    start = page.LastEvaluatedKey;
+  } while (start);
+  return users;
+}
