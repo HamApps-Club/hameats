@@ -5,7 +5,6 @@ import { useMe } from "@/lib/me";
 import { signInWithGoogle } from "@/lib/login";
 import { api } from "@/lib/api";
 import { track } from "@/lib/analytics";
-import { sameDish } from "@/lib/upcoming";
 
 // Favorite dishes are saved to the person's account, so they need to be logged in.
 
@@ -38,6 +37,9 @@ const FavoritesContext = createContext<Favorites>({
 });
 
 export const useFavorites = () => useContext(FavoritesContext);
+
+/** Dish names compared case-insensitively, since the menu source sometimes changes a dish's capitalization. */
+const sameDish = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 function takeLocal(): string[] {
   const dishes: string[] = [];

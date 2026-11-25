@@ -58,8 +58,7 @@ export default function TermsPage() {
         <Section title="Your account">
           <p>
             Logging in is for current Hamilton students and staff with an @hamilton.edu Google account. It lets you save
-            favorite dishes and get alerts about them. Keep your account to yourself. You can delete it at any time from your
-            Profile.
+            favorite dishes and get alerts about them. Keep your account to yourself. You can ask me to delete it at any time.
           </p>
         </Section>
 
