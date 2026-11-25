@@ -1,4 +1,8 @@
-# Moving HamEats to AWS
+# HamEats on AWS
+
+> The move from Vercel and Neon was finished on 2026-11-25: hameats.app is served by this stack, favorites were
+> copied into DynamoDB, and the Vercel project is gone. Steps 1–7 below are kept as the record of how it was set up
+> (and how to rebuild it from scratch); the old Neon copy step has been removed along with its script.
 
 HamEats runs on AWS Lambda behind CloudFront, with favorites in DynamoDB. Everything is sized to stay inside AWS's
 **always-free** allowances (not the 12-month trial ones), so at HamEats's traffic the bill should be $0. AWS doesn't
@@ -101,20 +105,6 @@ Open `SiteUrl`. The menus, hours, search and favorites should all work. To try l
 To try the 8 AM alert without waiting: AWS console → Lambda → hameats → Test, with the event
 `{"hameats":"alerts"}`. Outside 8 AM it answers `not 8 AM on campus`, which means it worked.
 
-## 5. Copy everyone's favorites from Neon
-
-In `web/.env.local`, set `DATABASE_URL` to Neon's connection string (Vercel → Storage → the Neon database). Then:
-
-```sh
-cd web
-eval "$(aws configure export-credentials --profile hamapps --format env)"   # hands your aws login to Node
-node --env-file=.env.local scripts/migrate-neon-to-dynamodb.mjs --dry-run   # what it would copy
-node --env-file=.env.local scripts/migrate-neon-to-dynamodb.mjs             # copy it
-```
-
-It uses the credentials from the `eval` line (they last about an hour; rerun it if they expire). It's safe to run again, so run it once more right before step 7 to pick up any
-favorites saved in the meantime.
-
 ## 6. Get a certificate for hameats.app
 
 AWS console, region us-east-1 (CloudFront only accepts certificates from there) → Certificate Manager → Request → public certificate for `www.hameats.app` and
@@ -143,15 +133,6 @@ Route 53 also works, but its hosted zone costs $0.50/month.
 
 Then change the GitHub variable `SITE_URL` to `https://www.hameats.app`. Phones keep their notifications and logins,
 because the address and keys haven't changed.
-
-## 8. Remove the old setup
-
-Once the site has been working on AWS for a day or two:
-
-- Vercel: delete the project, the Neon database and the Blob store.
-- Google OAuth: remove the CloudFront redirect URI if you added one.
-- In the code (ask Claude): delete `web/vercel.json`, the Neon copy script and the `@neondatabase/serverless`
-  package, and change the privacy policy's "hosted on Vercel" to AWS.
 
 ## Deleting someone's account
 

@@ -49,7 +49,7 @@ export default function AboutPage() {
         </Section>
 
         <Section title="Design Decisions">
-          <p>I built HamEats with Next.js, React, TypeScript and Tailwind CSS, hosted on Vercel.</p>
+          <p>I built HamEats with Next.js, React, TypeScript and Tailwind CSS, hosted on Amazon Web Services.</p>
         </Section>
 
         <Section title="Credits">

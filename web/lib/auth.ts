@@ -37,7 +37,7 @@ export function userIdFor(token: { email?: string | null }): string | undefined 
 /** The one account the private test link logs in as. Not a real mailbox. */
 const TEST_EMAIL = "test@hameats.app";
 
-/** The secret in the private test link (TEST_LOGIN_SECRET in Vercel). Unset or shorter than 24 characters: the test login is off. */
+/** The secret in the private test link (TEST_LOGIN_SECRET in Parameter Store, /hameats/TEST_LOGIN_SECRET). Unset or shorter than 24 characters: the test login is off. */
 const testLoginSecret = () => {
   const secret = process.env.TEST_LOGIN_SECRET ?? "";
   return secret.length >= 24 ? secret : null;

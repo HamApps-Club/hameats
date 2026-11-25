@@ -89,8 +89,8 @@ export default function PrivacyPage() {
             deleted. The only thing carried over is your favorites and whether notifications were on.
           </p>
           <p>
-            <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Vercel,
-            which, like most hosts, processes technical data such as IP addresses and request logs to deliver the site
+            <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Amazon Web
+            Services (CloudFront and Lambda), which, like most hosts, processes technical data such as IP addresses and request logs to deliver the site
             and keep it secure.
           </p>
         </Section>
@@ -120,8 +120,8 @@ export default function PrivacyPage() {
 
         <Section title="Who I share it with">
           <p>
-            Only the services that run HamEats: PostHog (analytics), Vercel (hosting), Amazon Web Services (DynamoDB, the
-            database that stores favorites and the notifications switch) and Google (log in and feedback forms). They process data on my behalf under their
+            Only the services that run HamEats: PostHog (analytics), Amazon Web Services (hosting, and DynamoDB,
+            the database that stores favorites and the notifications switch) and Google (log in and feedback forms). They process data on my behalf under their
             own privacy policies. I don&apos;t share it with anyone else, except if the law requires it.
           </p>
         </Section>
