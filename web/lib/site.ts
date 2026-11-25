@@ -8,3 +8,8 @@ export const SITE_DESCRIPTION =
 
 export const FEEDBACK_FORM_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSfpML07xAkISCgrPiObM3c_yEJUv1_2p0OWrRTv4-1j84XtBQ/viewform";
+
+/** The HamApps club site, which makes HamEats. */
+export const HAMAPPS_URL = "https://hamapps.dev";
+/** HamApps' other app, for planning classes. */
+export const SCHEDULER_URL = "https://scheduler.hamapps.dev";
