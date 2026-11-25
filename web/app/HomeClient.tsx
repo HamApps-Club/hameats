@@ -25,6 +25,7 @@ import { FavoritesProvider } from "@/lib/favorites";
 import { SessionProvider } from "next-auth/react";
 import { SiteTitle } from "@/components/SiteTitle";
 import { ProfileTab } from "@/components/profile/ProfileTab";
+import { CafeTab } from "@/components/CafeTab";
 import { SectionTabs, sectionFor } from "@/components/SectionTabs";
 
 // The selected hall lives in the URL hash (#commons) so the browser back button returns home.
@@ -281,7 +282,7 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hash = useHash();
   const hall = hallBySlug(hash);
-  // No hall page open: the Menu, Feed or Profile, by the address (#feed, #profile; #notifications opens the Profile
+  // No hall page open: the Menu, Cafe or Profile, by the address (#cafe, #profile; #notifications opens the Profile
   // on its Notifications).
   const { section, notifications } = sectionFor(hash);
   const now = useCampusNow();
@@ -358,7 +359,7 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
                   <SiteTitle />
                   <SectionTabs active={section} />
                 </header>
-                {/* The Feed is empty for now: just the header and the footer. */}
+                {section === "cafe" && <CafeTab now={now} />}
                 {section === "profile" && <ProfileTab notifications={notifications} />}
               </>
             )}

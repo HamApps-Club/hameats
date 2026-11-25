@@ -132,6 +132,16 @@ const THANKSGIVING = {
   },
 } satisfies Record<string, Record<string, Period[]>>;
 
+// ------------------------------------------------------------------ cafés (hamilton.edu/campuslife/where-to-eat)
+
+// Cafés have one all-day service, not meals; `meal` is only there because Period needs one.
+const cafe = (open: number, close: number) => [p("Open", "Lunch", open, close)];
+const FOJO_WEEKDAY = cafe(t(9), t(16));
+const FOJO_FRI = cafe(t(9), t(15));
+const EUPHORIA_WEEKDAY = cafe(t(8, 30), t(16));
+// The cafés only say they "may close during school breaks"; assume they're closed while Commons is.
+const CAFES_THANKSGIVING = closed(...datesThrough("2026-11-21", "2026-11-29"));
+
 const withOverrides = (week: Period[][], overrides: Record<string, Period[]>): WeekHours =>
   Object.assign(week, { overrides });
 
@@ -153,6 +163,15 @@ export const HOURS: Record<string, WeekHours> = {
   littlePub: withOverrides(
     [[], PUB_LUNCH, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH_AND_NIGHT, PUB_LUNCH, []],
     { ...FALL_BREAK.littlePub, ...THANKSGIVING.littlePub },
+  ),
+  euphoria: withOverrides(
+    [[], ...Array(5).fill(EUPHORIA_WEEKDAY), cafe(t(12), t(16))],
+    CAFES_THANKSGIVING,
+  ),
+  fojoNorth: withOverrides([[], FOJO_WEEKDAY, FOJO_WEEKDAY, FOJO_WEEKDAY, FOJO_WEEKDAY, FOJO_FRI, []], CAFES_THANKSGIVING),
+  fojoSouth: withOverrides(
+    [cafe(t(11), t(14)), FOJO_WEEKDAY, FOJO_WEEKDAY, FOJO_WEEKDAY, FOJO_WEEKDAY, FOJO_FRI, []],
+    CAFES_THANKSGIVING,
   ),
 };
 
