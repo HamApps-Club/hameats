@@ -1,4 +1,4 @@
-import { deletePushSubscription, savePushSubscription } from "@/lib/social";
+import { deletePushSubscription, savePushSubscription } from "@/lib/profile";
 import { reply, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";

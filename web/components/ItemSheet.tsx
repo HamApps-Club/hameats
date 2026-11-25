@@ -2,27 +2,19 @@
 
 import { useEffect } from "react";
 import type { MenuItem } from "@/lib/types";
-
-/** Where a food was opened from: a hall slug, and the day and meal when known. */
-export type ReviewPlace = { hall: string; date: string | null; meal: string | null };
 import { track } from "@/lib/analytics";
 import { lockScroll } from "@/lib/scrollLock";
-import { CommentPill, VoteButtons } from "@/components/VoteButtons";
-import { Reviews } from "@/components/Reviews";
 import { FavoriteButton } from "@/components/FavoriteButton";
 
-/** Full-screen page for one food: its name with thumbs up and down underneath, a Google search link, and what students have written about it. */
+/** Full-screen page for one food: its name, a button to save it to your Favorites, and a Google search link. */
 export function ItemSheet({
   item,
   context,
-  place,
   onClose,
 }: {
   item: MenuItem;
   /** e.g. "Spoon & Fork · Lunch" */
   context: string;
-  /** The hall, day and meal the food was opened from, saved with a review so it shows that hall's flair in the Feed. */
-  place?: ReviewPlace;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -67,14 +59,6 @@ export function ItemSheet({
             <p className="text-sm text-zinc-500">{context}</p>
             <h2 className="text-3xl font-bold leading-tight">{item.name}</h2>
             <FavoriteButton dish={item.name} source="item_sheet" size="lg" />
-            <div className="flex items-center gap-2">
-              <VoteButtons dish={item.name} size="lg" />
-              <CommentPill
-                dish={item.name}
-                size="lg"
-                onClick={() => document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth" })}
-              />
-            </div>
           </header>
 
           {/* Opens in the phone's browser (a new tab on desktop) so people can see what the food looks like. */}
@@ -89,8 +73,6 @@ export function ItemSheet({
               Google search
             </a>
           </p>
-
-          <Reviews dish={item.name} place={place} />
 
           <p className="text-xs text-zinc-500">For allergen and ingredient information, please ask dining staff.</p>
         </div>

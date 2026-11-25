@@ -1,4 +1,4 @@
-import { getNotifications, markNotificationsRead } from "@/lib/social";
+import { getNotifications, markNotificationsRead } from "@/lib/profile";
 import { currentUser, dbEnabled, reply, unavailable, writer } from "@/lib/apiGuard";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export async function GET() {
   }
 }
 
-/** The person opened their Notifications tab: marks them all read. */
+/** The person opened their Notifications: marks them all read. */
 export async function POST(request: Request) {
   const user = await writer(request);
   if (user instanceof Response) return user;

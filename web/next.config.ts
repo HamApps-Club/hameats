@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
       { source: "/ingest/:path*", destination: `${POSTHOG_HOST}/:path*` },
     ];
   },
+  async redirects() {
+    // The Rules were for posting in the old Feed, which is gone.
+    return [{ source: "/rules", destination: "/terms", permanent: true }];
+  },
   async headers() {
     return [
       {

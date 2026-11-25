@@ -1,25 +1,25 @@
 "use client";
 
 import { track } from "@/lib/analytics";
+import { useMe } from "@/lib/me";
 
-export type Section = "menu" | "favorites" | "updates" | "me";
+export type Section = "menu" | "feed" | "profile";
 
 /**
- * Which part of the app the address shows: #favorites, #updates, or (for people who signed in under the old social
- * features) their account page at #me or #notifications, which tapping a morning alert opens. The Feed is gone, so old
- * #feed and shared-post links (#post-123) open the Menu. Anything else, including no hash, is the Menu. The dining
- * halls' own pages (#commons) are handled before this.
+ * Which part of the app the address shows: #feed or #profile (#notifications opens the Profile on its Notifications,
+ * which is where tapping a morning alert goes). Older addresses still land somewhere sensible: #updates is the Feed,
+ * #favorites and #me are the Profile. Anything else, including no hash, is the Menu. The dining halls' own pages
+ * (#commons) are handled before this.
  */
 export function sectionFor(hash: string): { section: Section; notifications: boolean } {
-  if (hash === "favorites") return { section: "favorites", notifications: false };
-  if (hash === "updates") return { section: "updates", notifications: false };
-  if (hash === "me") return { section: "me", notifications: false };
-  if (hash === "notifications") return { section: "me", notifications: true };
+  if (hash === "feed" || hash === "updates") return { section: "feed", notifications: false };
+  if (hash === "profile" || hash === "favorites" || hash === "me") return { section: "profile", notifications: false };
+  if (hash === "notifications") return { section: "profile", notifications: true };
   return { section: "menu", notifications: false };
 }
 
 /** Moves to a section, adding a history entry so the phone's back gesture returns to the last one. */
-export function goToSection(section: Section) {
+export function goToSection(section: Section | "notifications") {
   const url = section === "menu" ? window.location.pathname + window.location.search : `#${section}`;
   history.pushState({ section }, "", url);
   window.dispatchEvent(new HashChangeEvent("hashchange"));
@@ -28,12 +28,13 @@ export function goToSection(section: Section) {
 
 const TABS: [Section, string][] = [
   ["menu", "Menu"],
-  ["favorites", "Favorites"],
-  ["updates", "Updates"],
+  ["feed", "Feed"],
+  ["profile", "Profile"],
 ];
 
-/** Menu / Favorites / Updates, in the blue header band under the title. None of them needs an account. */
+/** Menu / Feed / Profile, in the blue header band under the title. A gold dot on Profile means unread notifications. */
 export function SectionTabs({ active }: { active: Section }) {
+  const { notifications } = useMe();
   return (
     <div role="tablist" aria-label="Sections" className="mx-auto flex max-w-2xl">
       {TABS.map(([section, label]) => (
@@ -53,6 +54,9 @@ export function SectionTabs({ active }: { active: Section }) {
           }`}
         >
           {label}
+          {section === "profile" && notifications > 0 && (
+            <span aria-label={`${notifications} new notification${notifications === 1 ? "" : "s"}`} className="size-2 rounded-full bg-gold" />
+          )}
         </button>
       ))}
     </div>

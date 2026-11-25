@@ -1,6 +1,7 @@
 "use client";
 
 import { useFavorites } from "@/lib/favorites";
+import { useMe } from "@/lib/me";
 
 export function StarIcon({ filled, className }: { filled: boolean; className?: string }) {
   return (
@@ -10,12 +11,18 @@ export function StarIcon({ filled, className }: { filled: boolean; className?: s
   );
 }
 
-/** Star a dish to follow it in the Favorites tab. `size="lg"` is the labeled button on a food's page. */
+/**
+ * Star a dish to save it to your Profile. Logged out, tapping it asks you to log in first. `size="lg"` is the labeled
+ * button on a food's page. Hidden when favorites aren't available (no database connected).
+ */
 export function FavoriteButton({ dish, source, size = "sm" }: { dish: string; source: string; size?: "sm" | "lg" }) {
-  const { isFavorite, toggle } = useFavorites();
+  const { status } = useMe();
+  const { isFavorite, toggle, error } = useFavorites();
+  if (status === "off") return null;
   const on = isFavorite(dish);
   if (size === "lg")
     return (
+      <div className="space-y-1">
       <button
         type="button"
         onClick={() => toggle(dish, source)}
@@ -27,8 +34,14 @@ export function FavoriteButton({ dish, source, size = "sm" }: { dish: string; so
         }`}
       >
         <StarIcon filled={on} className="size-5" />
-        {on ? "Saved to Favorites" : "Save to Favorites"}
+        {on ? "Saved to Favorites" : status === "out" ? "Log in to save to Favorites" : "Save to Favorites"}
       </button>
+      {error && (
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+      </div>
     );
   return (
     <button

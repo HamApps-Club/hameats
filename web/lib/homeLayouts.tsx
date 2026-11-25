@@ -7,7 +7,7 @@ import { NetNutritionHomeLayout } from "@/components/home/NetNutritionHomeLayout
 export type HomeLayoutProps = {
   data: MenuData;
   now: CampusTime;
-  /** The Menu / Feed / Me tabs, shown in the header band under the title. */
+  /** The Menu / Feed / Profile tabs, shown in the header band under the title. */
   tabs?: ReactNode;
 };
 

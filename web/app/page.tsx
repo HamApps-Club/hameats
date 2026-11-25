@@ -18,7 +18,7 @@ export default async function Home() {
     return null;
   });
   if (live && countItems(live) > 0) {
-    // Remember every dish name that has been served (the thumbs-up and review tables are keyed by it). A page
+    // Remember every dish name that has been served (and where it was served, which the morning alerts read). A page
     // rebuild must never fail over this, so any trouble is only logged.
     if (dbEnabled())
       await recordMenu(withSpecials(withMirroredMenus(withStandingMenus(live)))).catch((e) =>

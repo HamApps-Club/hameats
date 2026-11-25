@@ -2,10 +2,12 @@ import { HALLS, HALL_SHORT, type Hall } from "./halls";
 import { addDays, clock, compactRange, dayHours, dowOf, type CampusTime, type Period } from "./hours";
 import { SPECIALS } from "./specials";
 import { MEALS, type Meal, type MenuData, type MenuItem } from "./types";
-import { sameDish } from "./favorites";
 
-// What the Favorites and Updates tabs show, worked out from the menus and the hours file. Nothing here needs an
+// What the Profile's favorites and the Feed show, worked out from the menus and the hours file. Nothing here needs an
 // account or the database.
+
+/** Dish names compared case-insensitively, since the menu source sometimes changes a dish's capitalization. */
+export const sameDish = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const SHORT_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -54,7 +56,7 @@ export function servingsOf(dish: string, data: MenuData, now: CampusTime): Servi
   return out;
 }
 
-/** Every dish on the menus from today on, one entry per name, alphabetical: what the Favorites search looks through. */
+/** Every dish on the menus from today on, one entry per name, alphabetical: what the favorites search looks through. */
 export function weekDishes(data: MenuData, now: CampusTime): MenuItem[] {
   const seen = new Map<string, MenuItem>();
   for (const [date, day] of Object.entries(data.dates)) {

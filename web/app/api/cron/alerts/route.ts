@@ -26,7 +26,7 @@ function fromScheduler(request: Request) {
  * The morning alerts, at 8 AM on campus. Vercel's schedules are in UTC, so vercel.json runs this at both 12:00 and
  * 13:00 UTC (8 AM in summer time and in winter time), and only the run that lands in the 8 o'clock hour on campus
  * sends anything; ?force=1 sends at any hour, for testing. Fetches the menus first, so today's dishes are known even
- * if no one has opened the app yet, then saves and sends each person one notification about the liked dishes on today's menu.
+ * if no one has opened the app yet, then saves and sends each person one notification about the favorites on today's menu.
  */
 export async function GET(request: Request) {
   if (!fromScheduler(request)) return new Response("unauthorized", { status: 401 });

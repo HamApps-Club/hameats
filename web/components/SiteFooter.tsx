@@ -162,9 +162,6 @@ export function SiteFooter() {
       </div>
 
       <div className="flex justify-center gap-6 text-center text-sm text-zinc-900 dark:text-zinc-100">
-        <Link href="/rules" className="font-medium hover:underline">
-          Rules
-        </Link>
         <Link href="/terms" className="font-medium hover:underline">
           Terms
         </Link>

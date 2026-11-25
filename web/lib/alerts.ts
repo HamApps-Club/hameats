@@ -3,8 +3,8 @@ import webpush from "web-push";
 import { run } from "@/lib/db";
 import { ensureSchema } from "@/lib/dishes";
 
-// The morning alert: for everyone who turned alerts on, the dishes they liked (and didn't switch off) that are on
-// today's menu, each with its dining hall and meal. It's saved as a notification on their profile (Me, Notifications)
+// The morning alert: for everyone who turned alerts on, their favorite dishes (the ones they didn't switch off) that are
+// on today's menu, each with its dining hall and meal. It's saved as a notification on their Profile (Notifications)
 // and, when they turned push on, sent to their phones as one notification. Howard Diner dishes are left out: the Diner
 // serves them every day.
 
@@ -19,28 +19,20 @@ const MEALS = ["Breakfast", "Lunch", "Dinner"];
 const mealRank = (meal: string) => (MEALS.indexOf(meal) + 4) % 4; // Unknown meals go last.
 const MEAL_ORDER = "CASE s.meal WHEN 'Breakfast' THEN 1 WHEN 'Lunch' THEN 2 WHEN 'Dinner' THEN 3 ELSE 4 END";
 
-/** Where tapping the notification (on the phone or in the app) takes you: your profile's Notifications tab. */
+/** Where tapping the notification (on the phone or in the app) takes you: the Notifications on your Profile. */
 export const NOTIFICATIONS_URL = "/#notifications";
 
 /** Who gets an alert today, and for which dishes. People already sent one today are skipped. */
 export async function alertsFor(day: string): Promise<UserAlert[]> {
   await ensureSchema();
-  await run(
-    `CREATE TABLE IF NOT EXISTS alerts_sent (
-       user_id text NOT NULL,
-       served_on date NOT NULL,
-       sent_at timestamptz NOT NULL DEFAULT now(),
-       PRIMARY KEY (user_id, served_on)
-     )`,
-  );
   const rows = await run(
     `SELECT p.user_id, p.push AND EXISTS (SELECT 1 FROM push_subscriptions ps WHERE ps.user_id = p.user_id) AS push,
             s.dish, s.hall, s.meal
      FROM notification_prefs p
-     JOIN dish_likes l ON l.user_id = p.user_id AND l.value = 1
-     JOIN dish_servings s ON s.dish = l.dish AND s.served_on = $1::date AND s.hall <> 'diner'
+     JOIN favorites f ON f.user_id = p.user_id
+     JOIN dish_servings s ON s.dish = f.dish AND s.served_on = $1::date AND s.hall <> 'diner'
      WHERE p.alerts
-       AND NOT EXISTS (SELECT 1 FROM alert_mutes m WHERE m.user_id = p.user_id AND m.dish = l.dish)
+       AND NOT EXISTS (SELECT 1 FROM alert_mutes m WHERE m.user_id = p.user_id AND m.dish = f.dish)
        AND NOT EXISTS (SELECT 1 FROM alerts_sent a WHERE a.user_id = p.user_id AND a.served_on = $1::date)
        AND NOT EXISTS (SELECT 1 FROM notifications n WHERE n.user_id = p.user_id AND n.kind = 'menu' AND n.served_on = $1::date)
      ORDER BY p.user_id, ${MEAL_ORDER}, s.dish, s.hall`,
@@ -89,7 +81,7 @@ const PUSH_LINES = 4;
 /** The notification: the title, every dish with its hall and meal, and where tapping it goes. */
 export function alertText(dishes: DishToday[]) {
   const lines = dishLines(dishes);
-  const title = lines.length === 1 ? `${dishes[0].dish} is on today` : `${lines.length} dishes you like are on today`;
+  const title = lines.length === 1 ? `${dishes[0].dish} is on today` : `${lines.length} of your favorites are on today`;
   const shown = lines.length > PUSH_LINES ? [...lines.slice(0, PUSH_LINES - 1), `and ${lines.length - PUSH_LINES + 1} more`] : lines;
   return { title, body: lines.join("\n"), pushBody: shown.join("\n"), url: NOTIFICATIONS_URL };
 }
