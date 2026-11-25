@@ -24,7 +24,6 @@ import { MeProvider } from "@/lib/me";
 import { FavoritesProvider } from "@/lib/favorites";
 import { SessionProvider } from "next-auth/react";
 import { SiteTitle } from "@/components/SiteTitle";
-import { FeedTab } from "@/components/tabs/FeedTab";
 import { ProfileTab } from "@/components/profile/ProfileTab";
 import { SectionTabs, sectionFor } from "@/components/SectionTabs";
 
@@ -359,7 +358,8 @@ function Home({ initialMenu }: { initialMenu: MenuData | null }) {
                   <SiteTitle />
                   <SectionTabs active={section} />
                 </header>
-                {section === "feed" ? <FeedTab now={now} /> : <ProfileTab data={data} now={now} notifications={notifications} />}
+                {/* The Feed is empty for now: just the header and the footer. */}
+                {section === "profile" && <ProfileTab notifications={notifications} />}
               </>
             )}
           </>

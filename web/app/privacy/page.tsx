@@ -44,7 +44,7 @@ export default function PrivacyPage() {
           an account. Logging in is only for Hamilton students and staff, using your @hamilton.edu Google account, and only
           lets you save favorite dishes and get alerts about them. If you log in, HamEats saves your Hamilton email address,
           your favorites and your alert settings. It doesn&apos;t save your name, and nothing you save is shown to anyone else.
-          You can download your data or delete your account anytime from your Profile. HamEats also collects anonymous usage
+          You can ask me for a copy of your data, or to delete your account, anytime. HamEats also collects anonymous usage
           statistics so I can improve the app.
         </p>
 
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
             <strong className="text-zinc-900 dark:text-zinc-100">Alerts (only if you turn them on).</strong> If you ask to
             be told when a favorite is served, HamEats saves that choice and which favorites you switched off. If you
             allow push notifications, it saves the address your phone or browser gives for sending them. Each alert is also
-            saved under Notifications on your Profile, where only you can see it.
+            saved with your account, where only you can see it.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">From earlier versions.</strong> HamEats used to have a Feed with
@@ -133,8 +133,8 @@ export default function PrivacyPage() {
             You can ask me to delete anything you&apos;ve sent me.
           </p>
           <p>
-            Deleting your account (on your Profile) deletes your favorites, alert settings, notifications and push notification
-            addresses right away, along with anything left from the old Feed.
+            Deleting your account (email me to ask) deletes your favorites, alert settings, notifications and push notification
+            addresses, along with anything left from the old Feed.
           </p>
         </Section>
 
@@ -142,9 +142,9 @@ export default function PrivacyPage() {
           <ul className="list-disc space-y-1 pl-6">
             <li>Block analytics by using a tracking blocker, or by clearing your browser data.</li>
             <li>Log out at any time, and remove any favorite.</li>
-            <li>Turn alerts and push notifications on or off on your Profile, under Notifications.</li>
-            <li>Download everything HamEats keeps about you, from your Profile (Download my data).</li>
-            <li>Delete your account and everything you&apos;ve saved, from your Profile (Delete account).</li>
+            <li>Turn notifications on or off on your Profile, under Notifications.</li>
+            <li>Ask me for a copy of everything HamEats keeps about you.</li>
+            <li>Ask me to delete your account and everything you&apos;ve saved.</li>
             <li>Ask me to delete any feedback you&apos;ve submitted.</li>
             <li>Ask me any question about this policy.</li>
           </ul>

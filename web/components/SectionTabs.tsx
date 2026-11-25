@@ -1,13 +1,12 @@
 "use client";
 
 import { track } from "@/lib/analytics";
-import { useMe } from "@/lib/me";
 
 export type Section = "menu" | "feed" | "profile";
 
 /**
- * Which part of the app the address shows: #feed or #profile (#notifications opens the Profile on its Notifications,
- * which is where tapping a morning alert goes). Older addresses still land somewhere sensible: #updates is the Feed,
+ * Which part of the app the address shows: #feed or #profile (#notifications opens the Profile on its Notifications
+ * switch, which is where tapping a morning alert goes). Older addresses still land somewhere sensible: #updates is the Feed,
  * #favorites and #me are the Profile. Anything else, including no hash, is the Menu. The dining halls' own pages
  * (#commons) are handled before this.
  */
@@ -32,9 +31,8 @@ const TABS: [Section, string][] = [
   ["profile", "Profile"],
 ];
 
-/** Menu / Feed / Profile, in the blue header band under the title. A gold dot on Profile means unread notifications. */
+/** Menu / Feed / Profile, in the blue header band under the title. */
 export function SectionTabs({ active }: { active: Section }) {
-  const { notifications } = useMe();
   return (
     <div role="tablist" aria-label="Sections" className="mx-auto flex max-w-2xl">
       {TABS.map(([section, label]) => (
@@ -54,9 +52,6 @@ export function SectionTabs({ active }: { active: Section }) {
           }`}
         >
           {label}
-          {section === "profile" && notifications > 0 && (
-            <span aria-label={`${notifications} new notification${notifications === 1 ? "" : "s"}`} className="size-2 rounded-full bg-gold" />
-          )}
         </button>
       ))}
     </div>
