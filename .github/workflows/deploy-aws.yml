@@ -33,15 +33,6 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Check the menu API address is set
-        run: |
-          if [ -z "$MENU_API_BASE" ]; then
-            echo "::error::Add the repository secret MENU_API_BASE (Settings > Secrets and variables > Actions). Without it the build has no menus."
-            exit 1
-          fi
-        env:
-          MENU_API_BASE: ${{ secrets.MENU_API_BASE }}
-
       - run: npm ci
 
       - run: npm run lint
@@ -50,8 +41,6 @@ jobs:
         run: scripts/package-lambda.sh
         env:
           BUILD_ID: ${{ github.sha }}
-          # The build loads the current menus into the page, so it needs the menu API too.
-          MENU_API_BASE: ${{ secrets.MENU_API_BASE }}
           # Written into the browser code at build time.
           NEXT_PUBLIC_POSTHOG_KEY: ${{ vars.NEXT_PUBLIC_POSTHOG_KEY }}
           NEXT_PUBLIC_POSTHOG_HOST: ${{ vars.NEXT_PUBLIC_POSTHOG_HOST }}

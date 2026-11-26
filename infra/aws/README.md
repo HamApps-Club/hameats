@@ -55,7 +55,6 @@ put VAPID_PRIVATE_KEY  'value from Vercel'
 put CRON_SECRET        "$(openssl rand -hex 24)"
 put STATUS_KEY         "$(openssl rand -hex 24)"   # or the value from Vercel
 put TEST_LOGIN_SECRET  'value from Vercel'          # or: off
-put MENU_API_BASE      'https://...'                 # the menu API's base address, no trailing slash
 # Not a secret, but CloudFront reads it, so it's a plain String:
 aws ssm put-parameter --profile hamapps --region us-east-2 --name /hameats/ORIGIN_VERIFY --type String --overwrite --value "$(openssl rand -hex 24)"
 ```

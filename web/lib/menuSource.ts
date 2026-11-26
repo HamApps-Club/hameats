@@ -2,8 +2,7 @@ import type { MealMenu, MenuData, MenuItem } from "./types";
 
 // Fetches the dining halls' posted menus on the server.
 
-/** Base address of the menu API: MENU_API_BASE (Parameter Store /hameats/MENU_API_BASE on AWS, web/.env.local locally). */
-const BASE_API = (process.env.MENU_API_BASE ?? "").trim().replace(/\/$/, "");
+const BASE_API = "https://hamiltoncollege.api.nutrislice.com";
 const TIME_ZONE = "America/New_York";
 
 const LOCATIONS: Record<string, string> = {
@@ -279,7 +278,6 @@ export function countItems(data: MenuData) {
 
 /** Fetch the next `days` days of menus for every hall, from the posted menus. */
 export async function fetchMenus(days = 7, revalidate = 3600, log?: FetchLog[]): Promise<MenuData> {
-  if (!BASE_API) throw new Error("MENU_API_BASE is not set");
   const start = hamiltonToday();
   const dates = Array.from({ length: days }, (_, i) => addDays(start, i));
   const result: MenuData["dates"] = Object.fromEntries(
