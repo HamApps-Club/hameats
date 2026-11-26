@@ -12,7 +12,7 @@ The Cafe tab covers Euphoria, FoJo North and FoJo South. They don't post daily m
 
 `web/app/page.tsx` loads the next 7 days of menus on the server (`web/lib/menuSource.ts`) and builds them into the page. Next.js rebuilds the page when that data expires (hourly during meals, and not until the next meal begins in between). If a refresh fails, the last good page keeps being served. `web/public/dining_menu.json` is only the starting data for a deploy that can't reach the menus.
 
-The menu API's address is the `MENU_API_BASE` setting (`/hameats/MENU_API_BASE` in AWS Parameter Store; `web/.env.local` for local development). Without it, the app shows only the saved starting data.
+The menu API's address is the `MENU_API_BASE` setting: `/hameats/MENU_API_BASE` in AWS Parameter Store for the live site, the `MENU_API_BASE` repository secret for the deploy build (GitHub → Settings → Secrets and variables → Actions; the deploy stops without it), and `web/.env.local` for local development. Without it, the app shows only the saved starting data.
 
 Howard Diner publishes a PDF menu instead. Its items are transcribed in `web/lib/standingMenus.ts` (the PDF is in `web/public/menus/`); update that file when the Diner posts a new menu. One-off dishes go in `web/lib/specials.ts`.
 

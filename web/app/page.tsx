@@ -3,9 +3,11 @@ import { countItems, fetchMenus, menuCacheSeconds } from "@/lib/menuSource";
 import type { MenuData } from "@/lib/types";
 import { HomeClient } from "./HomeClient";
 
-// The page is built on the server with the menus inside it. No revalidate is set on purpose: Next rebuilds the page
-// when the shortest-lived menu response in it expires (see menuCacheSeconds): hourly during meals, and not
-// until the next meal begins in between. So a new page is built exactly when new menus are fetched.
+// The page is built on the server with the menus inside it. Next rebuilds the page when the shortest-lived menu
+// response in it expires (see menuCacheSeconds): hourly during meals. Between meals the page is rebuilt at most
+// hourly too, but the menu responses stay cached until the next meal, so no extra requests are made. The hourly cap
+// also means a page built from the saved file (menus unreachable during a deploy) is replaced within the hour.
+export const revalidate = 3600;
 
 export default async function Home() {
   const live = await fetchMenus(7, menuCacheSeconds()).catch((e) => {
