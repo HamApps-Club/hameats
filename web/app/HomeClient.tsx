@@ -277,7 +277,7 @@ function HallView({
 
 function Home({ initialMenu }: { initialMenu: MenuData | null }) {
   const { data: posted, status, refresh } = useMenuData(initialMenu);
-  // Posted the menu source menus, plus standing menus (the Diner's PDF) and mirrored menus
+  // Posted menus, plus standing menus (the Diner's PDF) and mirrored menus
   // (Commons' breakfast from McEwen's) wherever nothing was posted.
   const data = useMemo(() => posted && withSpecials(withMirroredMenus(withStandingMenus(posted))), [posted]);
   const hash = useHash();

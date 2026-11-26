@@ -4,7 +4,7 @@ import type { MenuData } from "@/lib/types";
 import { HomeClient } from "./HomeClient";
 
 // The page is built on the server with the menus inside it. No revalidate is set on purpose: Next rebuilds the page
-// when the shortest-lived the menu source response in it expires (see menuCacheSeconds): hourly during meals, and not
+// when the shortest-lived menu response in it expires (see menuCacheSeconds): hourly during meals, and not
 // until the next meal begins in between. So a new page is built exactly when new menus are fetched.
 
 export default async function Home() {
@@ -16,8 +16,8 @@ export default async function Home() {
     return <HomeClient initialMenu={live} />;
   }
 
-  // The menu source is down or returned nothing. A failed rebuild keeps the last good page in the cache; a first
-  // build (a deploy) starts from the last saved file, whose age sends the app to fetch fresh menus.
+  // The menu API is down or returned nothing. A failed rebuild keeps the last good page in the cache; a first
+  // build (a deploy) starts from the saved file, whose age sends the app to fetch fresh menus.
   if (process.env.NEXT_PHASE === "phase-production-build") return <HomeClient initialMenu={saved as MenuData} />;
-  throw new Error("the menu source returned no menu items");
+  throw new Error("The menu API returned no menu items");
 }

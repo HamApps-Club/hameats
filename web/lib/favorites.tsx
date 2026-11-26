@@ -38,7 +38,7 @@ const FavoritesContext = createContext<Favorites>({
 
 export const useFavorites = () => useContext(FavoritesContext);
 
-/** Dish names compared case-insensitively, since the menu source sometimes changes a dish's capitalization. */
+/** Dish names compared case-insensitively, since the posted menu sometimes changes a dish's capitalization. */
 const sameDish = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 function takeLocal(): string[] {

@@ -2,9 +2,9 @@ import { HALLS } from "./halls";
 import { dayHours } from "./hours";
 import type { MealMenu, MenuData, MenuItem } from "./types";
 
-// Menus that don't change day to day. The menu source doesn't post item data for these, so they're transcribed
-// from the posted PDF (public/menus/howard-diner.pdf). Tags use the PDF's icons, named the way the menu source
-// names them. Update this file when the Diner posts a new menu.
+// Menus that don't change day to day. The posted menus have no item data for these, so they're transcribed
+// from the posted PDF (public/menus/howard-diner.pdf). Tags use the PDF's icons, named the way the posted
+// menus name them. Update this file when the Diner posts a new menu.
 
 const item = (name: string, description: string | undefined, tags: string[]): MenuItem => ({
   name,
@@ -61,8 +61,8 @@ export type StandingMenu = {
   note: string;
   pdf: string;
   /**
-   * Show this menu every day, even when the menu source posts something for the hall. The Diner's menu never changes,
-   * but the menu source lists a few daily items for it (soup, a sandwich, macaroni salad) that would otherwise
+   * Show this menu every day, even when the posted menu has something for the hall. The Diner's menu never changes,
+   * but the posted menu lists a few daily items for it (soup, a sandwich, macaroni salad) that would otherwise
    * replace the whole menu on those days.
    */
   always?: boolean;
@@ -81,7 +81,7 @@ export const STANDING_MENUS: StandingMenu[] = [
 export const standingMenuFor = (slug: string) => STANDING_MENUS.find((m) => m.slug === slug);
 
 /**
- * Fill in each standing menu on the days and meals its hall is open. Wherever the menu source posted something, the
+ * Fill in each standing menu on the days and meals its hall is open. Wherever a menu was posted, the
  * posted menu wins, except for a standing menu marked `always`, which replaces it.
  */
 export function withStandingMenus(data: MenuData): MenuData {
@@ -96,7 +96,7 @@ export function withStandingMenus(data: MenuData): MenuData {
         const served = open.some((p) => p.meal === meal);
         if (served && menu && (standing.always || !Object.keys(loc[meal] ?? {}).length)) loc[meal] = menu;
       }
-      // An `always` menu is the hall's whole menu, so what the menu source posted for a meal the hall isn't serving
+      // An `always` menu is the hall's whole menu, so what was posted for a meal the hall isn't serving
       // that day (the Diner has no lunch on weekends) isn't shown either.
       if (standing.always)
         for (const meal of Object.keys(loc)) if (!open.some((p) => p.meal === meal)) delete loc[meal];

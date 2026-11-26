@@ -1,6 +1,6 @@
 import { HOURS, type WeekHours } from "./hours";
 
-// The campus cafés, shown on the Cafe tab. They aren't on the menu source and don't post a daily menu, so their menus are
+// The campus cafés, shown on the Cafe tab. They aren't on the posted dining menus and don't post a daily menu, so their menus are
 // transcribed here from the cafés' own sites; update this file when they change. Hours are in hours.ts.
 // Euphoria's site lists no prices. Hamilton posts no menu for the campus FoJo cafés (fojobeans.com's menu PDF is for
 // the store in the village of Hamilton), so they show hours only until someone transcribes the menu boards.

@@ -1,7 +1,7 @@
-# Campus cafés: saved data (2026-11-25)
+# Campus cafés: source notes (2026-11-25)
 
-Source data for the planned Cafe tab. Neither café is on the menu source
-(`menu-api.invalid/menu/api/schools/` lists only Commons, McEwen, Howard Diner, Little Pub, Caring for Kids).
+Source data for the Cafe tab. Neither café appears on the posted dining hall menus, which cover only Commons, McEwen,
+Howard Diner and Little Pub.
 
 ## Sources
 

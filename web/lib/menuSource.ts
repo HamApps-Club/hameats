@@ -1,7 +1,9 @@
 import type { MealMenu, MenuData, MenuItem } from "./types";
 
+// Fetches the dining halls' posted menus on the server.
 
-const BASE_API = "https://menu-api.invalid";
+/** Base address of the menu API: MENU_API_BASE (Parameter Store /hameats/MENU_API_BASE on AWS, web/.env.local locally). */
+const BASE_API = (process.env.MENU_API_BASE ?? "").trim().replace(/\/$/, "");
 const TIME_ZONE = "America/New_York";
 
 const LOCATIONS: Record<string, string> = {
@@ -45,9 +47,9 @@ const HOUR = 3600;
 const MIN_CACHE_SECONDS = 15 * 60;
 
 /**
- * How long a the menu source response may be reused. During a meal it's one hour, so a change the kitchen makes shows up
+ * How long a menu response may be reused. During a meal it's one hour, so a change the kitchen makes shows up
  * within the hour. Between meals nothing is re-fetched until the next meal begins (at least 15 minutes, so a
- * request just before a meal still gets a short cache), which roughly halves the day's requests to the menu source.
+ * request just before a meal still gets a short cache), which roughly halves the day's menu requests.
  */
 export function menuCacheSeconds(now = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -85,14 +87,14 @@ const weekday = (iso: string) => new Date(`${iso}T12:00:00Z`).getUTCDay();
 const sundayOf = (iso: string) => addDays(iso, -weekday(iso));
 
 /**
- * Locations that serve the same menu every week but only have it on the menu source for past weeks
+ * Locations that serve the same menu every week but only have it posted for past weeks
  * (Little Pub), and how far back to look for their latest posted week.
  */
 const REPEATS_WEEKLY = new Set(["little-pub"]);
 const LOOKBACK_WEEKS = 8;
 
 /**
- * Per-day corrections to the station the menu source files an item under. Each entry moves the named items out of
+ * Per-day corrections to the station the posted menu files an item under. Each entry moves the named items out of
  * `from` and into `to` for that date, location and meal.
  */
 const STATION_MOVES = [
@@ -119,7 +121,7 @@ function applyStationMoves(stations: MealMenu, date: string, location: string, m
 }
 
 /**
- * Per-day swaps for a dish the hall changed after the menu source was posted. The new dish keeps the old one's place in
+ * Per-day swaps for a dish the hall changed after the menu was posted. The new dish keeps the old one's place in
  * its station but none of its recipe: no calories, nutrition, ingredients, serving size or diet tags, since those
  * belong to the dish that was replaced. `match` finds the old dish by name.
  */
@@ -144,7 +146,7 @@ function applyItemSwaps(stations: MealMenu, date: string, location: string, meal
 }
 
 /**
- * Per-day additions for a dish the hall is serving that the menu source left off. The dish goes first in its station
+ * Per-day additions for a dish the hall is serving that the posted menu left off. The dish goes first in its station
  * (the main dish leads) with no calories or diet tags, since nothing is known about it beyond its name.
  */
 const ITEM_ADDS = [
@@ -167,8 +169,8 @@ function applyItemAdds(stations: MealMenu, date: string, location: string, meal:
 }
 
 /**
- * Menus corrected from the signs at the serving line, for a day when the menu source was missing or wrong. Each entry
- * replaces the whole station, in the order of the sign. A dish that the menu source also lists under the same name keeps its
+ * Menus corrected from the signs at the serving line, for a day when the posted menu was missing or wrong. Each entry
+ * replaces the whole station, in the order of the sign. A dish that the posted menu also lists under the same name keeps its
  * nutrition and ingredients; the diet and allergen tags come from the sign.
  */
 const STATION_REPLACEMENTS: {
@@ -275,8 +277,9 @@ export function countItems(data: MenuData) {
   return n;
 }
 
-/** Fetch the next `days` days of menus for every hall, straight from the menu source. */
+/** Fetch the next `days` days of menus for every hall, from the posted menus. */
 export async function fetchMenus(days = 7, revalidate = 3600, log?: FetchLog[]): Promise<MenuData> {
+  if (!BASE_API) throw new Error("MENU_API_BASE is not set");
   const start = hamiltonToday();
   const dates = Array.from({ length: days }, (_, i) => addDays(start, i));
   const result: MenuData["dates"] = Object.fromEntries(
@@ -377,7 +380,7 @@ export async function fetchMenus(days = 7, revalidate = 3600, log?: FetchLog[]):
 
   return {
     generated_at: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
-    source: BASE_API.replace("https://", ""),
+    source: "menu",
     mode: "live",
     dates: result,
   };

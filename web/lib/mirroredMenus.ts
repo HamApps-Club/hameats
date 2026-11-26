@@ -3,7 +3,7 @@ import { dayHours } from "./hours";
 import type { MealMenu, MenuData } from "./types";
 import commonsBreakfast from "./commonsBreakfast.json";
 
-// The menu source never posts breakfast for Soper Commons, even though Commons serves
+// The posted menus never include breakfast for Soper Commons, even though Commons serves
 // breakfast whenever it's open for it. Commons' breakfast is identical to McEwen's,
 // which IS posted correctly, so mirror McEwen's actual daily breakfast over whenever
 // Commons has nothing posted for that date. On days McEwen posts no breakfast (weekends),

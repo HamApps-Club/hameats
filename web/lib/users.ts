@@ -109,7 +109,7 @@ async function update(email: string, change: (u: User) => Partial<Omit<User, "em
   throw new Error("too many changes at once");
 }
 
-/** Dish names compared case-insensitively, since the menu source sometimes changes a dish's capitalization. */
+/** Dish names compared case-insensitively, since the posted menu sometimes changes a dish's capitalization. */
 export const sameDish = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 // ---- Favorites

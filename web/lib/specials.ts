@@ -1,7 +1,7 @@
 import { HALLS } from "./halls";
 import type { Meal, MenuData, MenuItem } from "./types";
 
-// One-off dishes a hall is serving that the menu source didn't list. Add one line per dish:
+// One-off dishes a hall is serving that the posted menu didn't list. Add one line per dish:
 //
 //   special("2026-09-28", "commons", "Dinner", "Oven", "Mac and Cheese", ["Vegetarian", "Dairy", "Wheat"]),
 //
@@ -9,11 +9,11 @@ import type { Meal, MenuData, MenuItem } from "./types";
 //   hall     "commons" | "mcewen" | "diner" | "little-pub"
 //   meal     "Breakfast" | "Lunch" | "Dinner"
 //   station  the station heading it goes under (a new heading is made if the station isn't on the menu)
-//   tags     optional allergen/diet tags, named as the menu source names them (they drive the allergen filter)
+//   tags     optional allergen/diet tags, named as the posted menus name them (they drive the allergen filter)
 //   description  optional, shown when the dish is tapped
 //
-// Specials appear alongside the posted menu, never twice if the menu source later lists the same dish.
-// The menu source has no nutrition data for them, so calories show as "—".
+// Specials appear alongside the posted menu, never twice if the posted menu later lists the same dish.
+// There is no nutrition data for them, so calories show as "—".
 
 export type Special = { date: string; hall: string; meal: Meal; station: string; item: MenuItem };
 

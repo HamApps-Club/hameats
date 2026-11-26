@@ -1,10 +1,10 @@
 import { countItems, fetchMenus, type FetchLog } from "@/lib/menuSource";
 
-// Diagnostics: what the menu source returned for each location and menu type, fetched fresh on every request.
+// Diagnostics: what the menu API returned for each location and menu type, fetched fresh on every request.
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  // Owner only: every call hits the menu source uncached, so require ?key= to match STATUS_KEY (unset = always refused).
+  // Owner only: every call fetches the menus uncached, so require ?key= to match STATUS_KEY (unset = always refused).
   const key = new URL(request.url).searchParams.get("key");
   if (!process.env.STATUS_KEY || key !== process.env.STATUS_KEY) return new Response("Not found", { status: 404 });
 
