@@ -32,11 +32,11 @@ Parameters:
     Description: The addresses CloudFront answers on once CertificateArn is set.
   GitHubRepo:
     Type: String
-    Default: HamApps-Club/hameats
+    Default: HamAppsDev/hameats
     Description: owner/name of the repository whose main branch may deploy.
   GitHubSubPrefix:
     Type: String
-    Default: repo:HamApps-Club@359968926/hameats@1384249387
+    Default: repo:HamAppsDev@359968926/hameats@1384249387
     Description: >-
       The same repository as GitHub now names it in its sign-in tokens (owner@id/name@id; see
       `gh api repos/OWNER/NAME/actions/oidc/customization/sub`). Accepted along with the plain owner/name form.
