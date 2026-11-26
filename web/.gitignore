@@ -43,3 +43,7 @@ next-env.d.ts
 # AWS Lambda package (scripts/package-lambda.sh)
 /.lambda/
 /hameats-lambda.zip
+
+# Agent notes that `next dev` writes
+/AGENTS.md
+/CLAUDE.md

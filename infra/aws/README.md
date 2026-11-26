@@ -143,5 +143,3 @@ AWS console → DynamoDB → Tables → hameats-users → Explore items → find
 
 - **Logs**: AWS console → CloudWatch → Log groups → `/aws/lambda/hameats`.
 - **Roll back the code**: GitHub → Actions → "Deploy to AWS" → open an older successful run → Re-run jobs.
-- **Run it locally the same way**: `docker build -t hameats web && docker run -p 3000:3000 --env-file web/.env.local hameats`
-  runs the same standalone server in a container.

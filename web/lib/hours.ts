@@ -238,17 +238,6 @@ export function compactRange(open: number, close: number) {
     : `${clock(open)}–${clock(close)}`;
 }
 
-/**
- * Today's main service for each meal, e.g. [{ name: "Breakfast", hours: "7–10 AM" }, { name: "Lunch", hours: "11 AM–2 PM" }].
- * Uses each meal's first window, the same as the first line of the hall page's hours
- * (extensions like "Light Lunch" are listed there, not here).
- */
-export function summaryParts(day: Period[]) {
-  const seen = new Set<string>();
-  return day
-    .filter((x) => !seen.has(x.meal) && seen.add(x.meal))
-    .map((x) => ({ name: x.name, hours: compactRange(x.open, x.close) }));
-}
 
 // ------------------------------------------------------------------ status
 

@@ -7,7 +7,7 @@ const lanAddresses = Object.values(networkInterfaces())
   .filter((a) => a && a.family === "IPv4" && !a.internal)
   .map((a) => a!.address);
 
-// One ID per deploy: the git commit (BUILD_ID, set by the GitHub deploy workflow or the Docker build), or a
+// One ID per deploy: the git commit (BUILD_ID, set by the GitHub deploy workflow), or a
 // timestamp for local builds. The installed app compares it with /api/version to know when a new version has
 // shipped (see components/AppUpdater.tsx).
 const BUILD_ID = process.env.BUILD_ID?.slice(0, 12) || `local-${Date.now()}`;
@@ -18,8 +18,8 @@ const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posth
 const POSTHOG_ASSETS_HOST = POSTHOG_HOST.replace(".i.posthog.com", "-assets.i.posthog.com");
 
 const nextConfig: NextConfig = {
-  // A self-contained server (.next/standalone/server.js) with only the packages it uses: what AWS Lambda (and the Docker
-  // image) runs. See scripts/package-lambda.sh.
+  // A self-contained server (.next/standalone/server.js) with only the packages it uses: what AWS Lambda
+  // runs. See scripts/package-lambda.sh.
   output: "standalone",
   // Keep rebuilt pages in memory only: Lambda's files are read-only (apart from /tmp), so they can't be written to disk.
   experimental: { isrFlushToDisk: false },

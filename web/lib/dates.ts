@@ -1,7 +1,3 @@
-export function localISODate(d = new Date()) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 /** Noon avoids the date shifting across time zones. */
 const parse = (iso: string) => new Date(`${iso}T12:00:00`);
 
