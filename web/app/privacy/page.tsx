@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Privacy Policy</h1>
-          <p className="text-sm italic">Last updated: November 25, 2026</p>
+          <p className="text-sm italic">Last updated: November 26, 2026</p>
         </div>
 
         <p>
@@ -85,8 +85,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">From earlier versions.</strong> HamEats used to have a Feed with
-            reviews, posts, photos, comments and votes. That&apos;s gone, and everything from it, photos included, has been
-            deleted. The only thing carried over is your favorites and whether notifications were on.
+            reviews, posts, comments and votes. That&apos;s gone, and everything from it has been deleted. The only thing carried over is your favorites and whether notifications were on.
           </p>
           <p>
             <strong className="text-zinc-900 dark:text-zinc-100">Hosting data.</strong> HamEats is hosted on Amazon Web
@@ -96,7 +95,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="What I don&apos;t collect">
-          <p>HamEats does not collect passwords, phone numbers, home addresses, photos, or payment information.</p>
+          <p>HamEats does not collect passwords, phone numbers, home addresses, or payment information.</p>
         </Section>
 
         <Section title="Information stored on your device">
