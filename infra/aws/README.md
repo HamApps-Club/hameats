@@ -1,7 +1,7 @@
 # HamEats on AWS
 
 > The move from Vercel and Neon was finished on 2026-11-25: hameats.app is served by this stack, favorites were
-> copied into DynamoDB, and the Vercel project is gone. Steps 1–7 below are kept as the record of how it was set up
+> copied into DynamoDB, and the Vercel project is gone. Steps 1–6 below are kept as the record of how it was set up
 > (and how to rebuild it from scratch); the old Neon copy step has been removed along with its script.
 
 HamEats runs on AWS Lambda behind CloudFront, with favorites in DynamoDB. Everything is sized to stay inside AWS's
@@ -37,7 +37,7 @@ installed.
 
 - The AWS CLI signed in to the HamApps project: `aws login --profile hamapps` (Region **us-east-2**). Every command
   below uses `--profile hamapps --region us-east-2`. The project only allows Regional resources in us-east-2; the one
-  exception is the hameats.app certificate (step 6), which CloudFront requires in us-east-1.
+  exception is the hameats.app certificate (step 5), which CloudFront requires in us-east-1.
 - The values of your current Vercel settings (Vercel → Project → Settings → Environment Variables).
 - Access to where hameats.app's DNS is managed (your registrar, or Vercel if its nameservers point there).
 
@@ -105,7 +105,7 @@ Open `SiteUrl`. The menus, hours, search and favorites should all work. To try l
 To try the 8 AM alert without waiting: AWS console → Lambda → hameats → Test, with the event
 `{"hameats":"alerts"}`. Outside 8 AM it answers `not 8 AM on campus`, which means it worked.
 
-## 6. Get a certificate for hameats.app
+## 5. Get a certificate for hameats.app
 
 AWS console, region us-east-1 (CloudFront only accepts certificates from there) → Certificate Manager → Request → public certificate for `www.hameats.app` and
 `hameats.app`, DNS validation. Add the two CNAME records it shows at your DNS provider and wait until it says
@@ -120,7 +120,7 @@ aws cloudformation deploy --profile hamapps --region us-east-2 --stack-name hame
 
 (Parameters you set before keep their values.)
 
-## 7. Move the domain
+## 6. Move the domain
 
 At your DNS provider:
 

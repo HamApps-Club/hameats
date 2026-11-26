@@ -1,8 +1,12 @@
 # HamEats
 
-A faster way to read the campus dining hall menus. It shows which halls are open right now with today's hours, opens each hall on the meal being served, has global search, and keeps working offline.
+Hamilton College's dining hall menus and hours in one place, at [hameats.app](https://www.hameats.app).
 
-Covers Soper Commons, McEwen, Howard Diner and Little Pub. Foods show dietary and allergen icons (tap one for its description, serving size, nutrition and ingredients when they're available). It installs as an app (PWA) and works offline: the service worker (`web/app/sw.js/route.ts`) caches the app and the last menus. Every deploy gets its own build ID (the git commit), so installed apps pick up new deploys on their own: opening or returning to the app reloads into the new version, and while it's in use an Update bar appears (`web/components/AppUpdater.tsx`).
+The home screen shows every hall's menu for the chosen day and meal on one page: a row of days (the next week of menus) and Breakfast / Lunch / Dinner tabs on top, each hall with its open/closed status and hours, and its stations below. It opens on the meal that's being served now, or the next one. Tapping a hall opens its own page (`#commons`, `#mcewen`, …) with its full week of hours; tapping a food opens its page with a star to save it to your Favorites and a Google search link. HamEats doesn't show allergen or ingredient information; the app tells people to ask dining staff. `/hours` lists every hall's hours on one page.
+
+Covers Soper Commons, McEwen, Howard Diner and Little Pub. It installs as an app (PWA) and works offline: the service worker (`web/app/sw.js/route.ts`) caches the app and the last menus. Every deploy gets its own build ID (the git commit), so installed apps pick up new deploys on their own: opening or returning to the app reloads into the new version, and while it's in use an Update bar appears (`web/components/AppUpdater.tsx`).
+
+The app has three tabs: **Menu** (the halls), **Cafe** and **Profile** (Favorites and the 8 AM notification switch, for people logged in with Google).
 
 Hall hours live in `web/lib/hours.ts`; update them there when the dining schedule changes.
 
@@ -22,13 +26,12 @@ If a hall's menu is missing on the live site, open `/api/menu/status?key=<STATUS
 
 ```sh
 cd web
-npm run dev        # http://localhost:3000
+npm install
+cp .env.local.example .env.local   # optional: every setting in it can stay empty
+npm run dev                        # http://localhost:3000
 ```
 
-- **Day / Week:** Day shows one day (pick it from the row of days). Week lists every day for the chosen meal.
-- **Search:** type any food ("pizza", "omelet") to see every hall, meal and station serving it: that day in Day view, the whole week in Week view.
-- **Compare:** Soper Commons and McEwen appear side by side for the selected meal. Check **Diner** to add Howard.
-- **Offline:** the last menu is saved in localStorage and shows instantly, then updates quietly when fresh data arrives.
+With an empty `.env.local` the menus, hours and Cafe tab all work; logging in, favorites, notifications and analytics stay off until their settings are filled in. `npm run lint` runs ESLint.
 
 ## 3. AWS (hosting, favorites, the 8 AM alert)
 

@@ -30,7 +30,7 @@ export const HOME_LAYOUTS: Record<HomeLayoutId, HomeLayoutEntry> = {
   "net-nutrition": {
     label: "Layout A",
     analyticsName: "Continental",
-    description: "Every dining hall's menu on one page, with allergy and diet filters.",
+    description: "Every dining hall's menu on one page.",
     Component: NetNutritionHomeLayout,
   },
 };
