@@ -155,8 +155,50 @@ Resources:
       Principal: "*"
       InvokedViaFunctionUrl: true
 
-  # ---- CloudFront: HTTPS, the hameats.app addresses, and caching of the static files. Pages aren't cached here: they
-  # come from the function each time (Next.js caches them itself).
+  # ---- CloudFront: HTTPS, the hameats.app addresses, and caching of the static files. Most pages aren't cached here:
+  # they come from the function each time (Next.js caches them itself). The exceptions are the pages and icons that are
+  # the same for everyone (SharedPagePaths below): caching those keeps a single page load from starting ~16 copies of
+  # the function at once, which ran into the account's concurrency limit. The deploy workflow clears them after each
+  # deploy, so a new version shows up straight away.
+
+  # About, Privacy and Terms: kept as long as the page itself allows (Next.js marks them cacheable), up to an hour.
+  # MinTTL 0 means that if one of them ever starts showing something personal (Next.js then sends no-store), CloudFront
+  # stops caching it by itself. The rsc/_rsc parts of the key keep the HTML page and the in-app version apart.
+  SharedPagesCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: hameats-shared-pages
+        Comment: HamEats pages that are the same for everyone.
+        MinTTL: 0
+        DefaultTTL: 0
+        MaxTTL: 3600
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig: { CookieBehavior: none }
+          QueryStringsConfig: { QueryStringBehavior: all }
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: [RSC, Next-Router-Prefetch, Next-Router-State-Tree, Next-Router-Segment-Prefetch]
+
+  # Icons and the app manifest: Next.js tells browsers to re-check them every time (max-age=0), so the edge keeps them
+  # for an hour regardless. They never contain anything personal.
+  IconsCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: hameats-icons
+        Comment: HamEats icons and manifest, the same for everyone.
+        MinTTL: 3600
+        DefaultTTL: 3600
+        MaxTTL: 3600
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig: { CookieBehavior: none }
+          QueryStringsConfig: { QueryStringBehavior: all }
+          HeadersConfig: { HeaderBehavior: none }
   ForwardedHost:
     Type: AWS::CloudFront::Function
     Properties:
@@ -214,6 +256,79 @@ Resources:
             ViewerProtocolPolicy: redirect-to-https
             Compress: true
             CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+          # Pages and icons that are the same for everyone (see SharedPagesCachePolicy / IconsCachePolicy).
+          - PathPattern: /about
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref SharedPagesCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /privacy
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref SharedPagesCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /terms
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref SharedPagesCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /icon.png
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref IconsCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /apple-icon.png
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref IconsCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /favicon.ico
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref IconsCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /manifest.webmanifest
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref IconsCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
+          - PathPattern: /icons/*
+            TargetOriginId: app
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref IconsCachePolicy
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ForwardedHost.FunctionMetadata.FunctionARN
 
   # ---- The 8 AM alert: EventBridge Scheduler invokes the function directly at 8:00 campus time, all year.
   AlertsSchedulerRole:
@@ -292,6 +407,10 @@ Resources:
               - Effect: Allow
                 Action: [lambda:UpdateFunctionCode, lambda:GetFunction, lambda:GetFunctionConfiguration]
                 Resource: !GetAtt App.Arn
+              # Clear the cached shared pages and icons after a deploy.
+              - Effect: Allow
+                Action: [cloudfront:CreateInvalidation, cloudfront:GetInvalidation]
+                Resource: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}
 
   # ---- Problem emails: the app erroring, and the 8 AM alert not succeeding. Inside the always-free 10 alarms and
   # 1,000 SNS emails a month. AWS sends a one-time "confirm subscription" email to AlertEmail first.
@@ -381,6 +500,9 @@ Outputs:
     Value: !GetAtt Distribution.DomainName
   FunctionUrl:
     Value: !GetAtt AppUrl.FunctionUrl
+  DistributionId:
+    Description: Put this in the GitHub repository variable CLOUDFRONT_DISTRIBUTION_ID.
+    Value: !Ref Distribution
   DeployRoleArn:
     Description: Put this in the GitHub repository variable AWS_DEPLOY_ROLE_ARN.
     Value: !GetAtt DeployRole.Arn

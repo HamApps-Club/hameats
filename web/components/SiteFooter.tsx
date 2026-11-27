@@ -145,7 +145,7 @@ export function SiteFooter() {
       <hr className="border-zinc-200 dark:border-zinc-800" />
 
       <div className="grid grid-cols-3 items-center pt-1 text-center text-sm text-zinc-900 sm:text-base dark:text-zinc-100">
-        <Link href="/about" className="font-medium hover:underline">
+        <Link href="/about" prefetch={false} className="font-medium hover:underline">
           About
         </Link>
         <button onClick={() => setFeedbackOpen(true)} className="font-medium hover:underline">
@@ -162,10 +162,10 @@ export function SiteFooter() {
       </div>
 
       <div className="flex justify-center gap-6 text-center text-sm text-zinc-900 dark:text-zinc-100">
-        <Link href="/terms" className="font-medium hover:underline">
+        <Link href="/terms" prefetch={false} className="font-medium hover:underline">
           Terms
         </Link>
-        <Link href="/privacy" className="font-medium hover:underline">
+        <Link href="/privacy" prefetch={false} className="font-medium hover:underline">
           Privacy
         </Link>
       </div>

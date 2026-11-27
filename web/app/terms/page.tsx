@@ -34,7 +34,7 @@ export default function TermsPage() {
 
         <p>
           By using HamEats you agree to these terms and the{" "}
-          <Link href="/privacy" className={link}>
+          <Link href="/privacy" prefetch={false} className={link}>
             Privacy Policy
           </Link>
           . They&apos;re short on purpose.
