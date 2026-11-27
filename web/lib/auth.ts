@@ -14,13 +14,24 @@ declare module "next-auth" {
  * Whether a Google profile is a verified account in the Hamilton Workspace. Google puts the Workspace domain in the
  * "hd" claim of a login, and only the domain's own accounts can carry it, so unlike checking the email's ending it
  * can't be got around with a look-alike address or a personal account that merely uses a hamilton.edu email.
+ * Other schools' Workspace domains listed in EXTRA_LOGIN_DOMAINS (comma-separated, e.g. "stanford.edu") are let in
+ * the same way; unset or empty, only Hamilton is.
  */
 export function isHamiltonAccount(profile: { hd?: unknown; email?: unknown; email_verified?: unknown } | undefined) {
+  const allowed = [
+    LOGIN_DOMAIN,
+    ...(process.env.EXTRA_LOGIN_DOMAINS ?? "")
+      .split(",")
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean),
+  ];
+  if (typeof profile?.hd !== "string") return false;
+  const hd = profile.hd.toLowerCase();
   return (
-    profile?.hd === LOGIN_DOMAIN &&
+    allowed.includes(hd) &&
     profile.email_verified === true &&
     typeof profile.email === "string" &&
-    profile.email.toLowerCase().endsWith(`@${LOGIN_DOMAIN}`)
+    profile.email.toLowerCase().endsWith(`@${hd}`)
   );
 }
 

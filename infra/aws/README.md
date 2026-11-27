@@ -57,6 +57,8 @@ put STATUS_KEY         "$(openssl rand -hex 24)"   # or the value from Vercel
 put TEST_LOGIN_SECRET  'value from Vercel'          # or: off
 # Not a secret, but CloudFront reads it, so it's a plain String:
 aws ssm put-parameter --profile hamapps --region us-east-2 --name /hameats/ORIGIN_VERIFY --type String --overwrite --value "$(openssl rand -hex 24)"
+# Optional: other schools' Google Workspace domains that may also log in, comma-separated. Unset = Hamilton only.
+aws ssm put-parameter --profile hamapps --region us-east-2 --name /hameats/EXTRA_LOGIN_DOMAINS --type String --overwrite --value "stanford.edu"
 ```
 
 ## 2. Create everything
