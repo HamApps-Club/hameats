@@ -14,6 +14,12 @@ export function initAnalytics() {
     person_profiles: "identified_only",
     capture_pageview: true,
     capture_pageleave: true,
+    // Send events uncompressed. posthog-js labels its gzip batches text/plain, and the Lambda function URL behind
+    // /ingest treats text/plain bodies as UTF-8 text, which corrupts the gzip bytes: PostHog then rejects the batch
+    // ("invalid GZIP data") and most events, including every $pageview, were lost after the move to AWS.
+    disable_compression: true,
+    // No screen recordings for any HamApps app.
+    disable_session_recording: true,
   });
   initialized = true;
 }
