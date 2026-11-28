@@ -42,23 +42,48 @@ export const metadata: Metadata = {
   keywords: ["HamEats", "Ham Eats", "Hamilton College", "Hamilton College dining", "dining", "menu", "Soper Commons", "McEwen", "Howard Diner", "Little Pub", "dining hours"],
   alternates: { canonical: "/" },
   openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US" },
+  // Search engines can see who makes the site.
+  publisher: "HamApps",
+  authors: [{ name: "HamApps", url: HAMAPPS_URL }],
   twitter: { card: "summary_large_image" },
   // Home-screen app on iPhone: full screen, named "HamEats".
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };
 
-// Tells Google the site's name, so results show "HamEats" instead of the domain.
+// Tells Google the site's name (so results show "HamEats" instead of the domain) and that HamApps makes it.
+// The "#organization" id matches the one on hamapps.dev and the Hamilton Scheduler, so Google ties the
+// club's three sites together.
+const HAMAPPS_ORG_ID = `${HAMAPPS_URL}/#organization`;
 const WEBSITE_JSON_LD = JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: SITE_NAME,
-  alternateName: ["Ham Eats", "HamEats App"],
-  url: SITE_URL,
-  publisher: {
-    "@type": "Organization",
-    name: "HamApps",
-    url: HAMAPPS_URL,
-  },
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      alternateName: ["Ham Eats", "HamEats App", "Hamilton College Dining Menus"],
+      url: `${SITE_URL}/`,
+      publisher: { "@id": HAMAPPS_ORG_ID },
+    },
+    {
+      "@type": "WebApplication",
+      "@id": `${SITE_URL}/#app`,
+      name: SITE_NAME,
+      url: `${SITE_URL}/`,
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Web",
+      description: SITE_DESCRIPTION,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      publisher: { "@id": HAMAPPS_ORG_ID },
+    },
+    {
+      "@type": "Organization",
+      "@id": HAMAPPS_ORG_ID,
+      name: "HamApps",
+      url: `${HAMAPPS_URL}/`,
+      logo: `${HAMAPPS_URL}/hamapps-logo.png`,
+    },
+  ],
 });
 
 // Sends browser visits on the old Vercel address to the real domain, so each visitor has one identity (analytics,
